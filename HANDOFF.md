@@ -149,16 +149,15 @@ shows one example Place on the map (how to run: [README.md](README.md) → *Run 
 
 | Who | What | Jira | State |
 |-----|------|------|-------|
-| Stefan | Reasons per Activity type in [backend/app/reasons.py](backend/app/reasons.py), with pytest | `SCRUM-18` (Reasons) | Committed on local branch `feature/SCRUM-18-reasons` (from `dev`). Tests green locally (without DB). **Not pushed, no PR, Jira not updated** (Atlassian MCP was not logged in). The team should read the list once before `SCRUM-31` (Ratings) uses it |
-| Stefan | Clickable Meetup prototype: 3 layouts (map + bottom sheet, list, assistant), test data in memory, `cd frontend && npm run prototype` | `SCRUM-17` (Meetup prototype) | Committed on local branch `feature/SCRUM-17-meetup-prototype` (from `dev`). Lint, build and a click-through in jsdom passed; **not looked at in a real browser yet**. Not pushed, Jira not updated. Open: the team picks a layout before `SCRUM-29` (Now-meetup) |
+| Stefan | Reasons per Activity type in [backend/app/reasons.py](backend/app/reasons.py), with pytest; each negative Reason says whether it changes the Condition (`broken` = yes, `bad` = no) | `SCRUM-18` (Reasons) | Committed on local branch `feature/SCRUM-18-reasons` (from `dev`). Tests green locally (without DB). **Not pushed, no PR, Jira not updated** (Atlassian MCP was not logged in). The team should read the list once before `SCRUM-31` (Ratings) uses it |
+| Stefan | Clickable Meetup prototype, layout "map + bottom sheet" (Stefan's pick on 2026-10-08), test data in memory, `cd frontend && npm run prototype` (also opens on a phone in the same Wi-Fi) | `SCRUM-17` (Meetup prototype) | Committed on local branch `feature/SCRUM-17-meetup-prototype` (from `dev`). Lint, build and a click-through in jsdom passed; Stefan opened it in the browser. Not pushed, Jira not updated. Open: Steven and David look at it and agree (acceptance criterion); note the decision on `SCRUM-17`. `SCRUM-29` (Now-meetup, Stefan), `SCRUM-34`/`SCRUM-37` (Join/Leave, Host; David) and `SCRUM-35` (later Meetup, Stefan) build these screens for real |
 | Steven | GitHub Actions: pytest (with a PostgreSQL+PostGIS service) + Vitest + Docker image build on every PR; push images to GHCR on merge into `dev` | `SCRUM-19` (CI) | In Review: [PR #6](https://github.com/GitGitRice/squadmeet/pull/6) into `dev`, all 5 checks green on GitHub. Needs one approval (Stefan or David). **Not checked yet:** the GHCR push, because it runs only after the merge into `dev`. After the merge, look at the run on `dev` and at the packages under github.com/GitGitRice → Packages |
 
 ## Next
 
-0. Stefan: open the prototype (`npm run prototype`, switch with ← →), pick a layout with the team
-   and write the choice on `SCRUM-17`. Push both branches and open the PRs into `dev`, then set
-   `SCRUM-17` and `SCRUM-18` in Jira. The local branches `scrum-17` and `scrum-18` are empty and
-   based on an old commit; delete them.
+0. Stefan: show the prototype to Steven and David (`npm run prototype`), and write the agreed
+   screens on `SCRUM-17`. Push both branches and open the PRs into `dev`, then set
+   `SCRUM-17` and `SCRUM-18` in Jira.
    Stefan or David: review and approve [PR #6](https://github.com/GitGitRice/squadmeet/pull/6) (`SCRUM-19`, CI). Steven: merge it,
    check the GHCR push, set `SCRUM-19` to Done. Then `SCRUM-20` (AWS host). David can start `SCRUM-21`
    (Leipzig Places). `SCRUM-26` (MFA), `SCRUM-27` (captcha), `SCRUM-28` (privacy) and `SCRUM-32`
@@ -216,6 +215,7 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-07 | Images in GHCR: `ghcr.io/gitgitrice/squadmeet-{backend,frontend,db}`, tags = commit SHA + `dev`; pushed only after both test jobs are green | Deploy (`SCRUM-23`) picks an exact commit; no image from a red build | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
 | 2026-10-07 | Ruleset "protect main and dev" requires the 5 CI checks (backend tests, frontend tests, 3 Docker images) | A red pipeline blocks the merge ("Done" means the pipeline is green) | GitHub → Settings → Rules |
 | 2026-10-08 | Reasons live as code in [backend/app/reasons.py](backend/app/reasons.py): a stable key (stored in the DB) + a German label; general Reasons + Reasons per Activity type | One list for API validation and UI; a label can change without a migration | `SCRUM-18` |
+| 2026-10-08 | Meetup screens: map + bottom sheet (Place → "Ich bin jetzt hier" / "Treffen planen" → Meetup detail), not a list or an assistant. Red pin = someone is there now, blue = planned | The map is the core of the app; one tap from Place to Meetup. Team still has to agree | `SCRUM-17`, commit `f407a8b` |
 | 2026-10-08 | The Meetup prototype is a separate dev-only page (`frontend/prototype.html`), not part of the app | Not in the production build, so test data and fake screens never ship | `SCRUM-17` |
 | 2026-10-07 | Jira is the only issue tracker; dependencies as Jira "Blocks" links | One source of truth; shows who is blocked | [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md) |
 
@@ -256,7 +256,7 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
 
 Newest first. One line per session: date · who · what changed.
 
-- 2026-10-08 · Stefan · `SCRUM-18`: Reasons per Activity type ([backend/app/reasons.py](backend/app/reasons.py) + tests). `SCRUM-17`: clickable Meetup prototype with 3 layouts (`frontend/src/prototype/`). Both on local feature branches, not pushed; Jira not updated (MCP not logged in).
+- 2026-10-08 · Stefan · `SCRUM-18`: Reasons per Activity type ([backend/app/reasons.py](backend/app/reasons.py) + tests). `SCRUM-17`: clickable Meetup prototype with 3 layouts (`frontend/src/prototype/`). Both on local feature branches, not pushed. Later the same day: Stefan picked layout A (map + bottom sheet), design reworked; Jira connected; SCRUM-18 now marks which negative Reasons change the Condition (acceptance criterion). Old empty branches `scrum-17`/`scrum-18` deleted.
 
 - 2026-10-07 · Steven · `SCRUM-19`: CI workflow [.github/workflows/ci.yml](.github/workflows/ci.yml) (pytest with the Compose DB, oxlint + build + Vitest, Docker images for backend/frontend/db, GHCR push on `dev`, actions pinned to SHAs). [PR #6](https://github.com/GitGitRice/squadmeet/pull/6) green; Jira In Review. Ruleset now requires the 5 CI checks.
 
