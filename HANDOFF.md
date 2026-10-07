@@ -4,7 +4,7 @@ A living handoff for the team (3 people) and their coding agents. Read it at the
 session. Update it at the end of a session. It answers one question: **what is in flight
 right now, why, and what comes next?**
 
-**Last update:** 2026-10-07 · Steven · README and DIARY added
+**Last update:** 2026-10-07 · Steven · Jira renamed, branch ruleset active
 
 ---
 
@@ -54,8 +54,8 @@ Rules. Keep them short so everybody follows them.
 ## Jira
 
 - **Site:** `https://socmediaapp.atlassian.net`
-- **Project:** Freizeitapp, key `SCRUM` (Jira default; can still be renamed in project
-  settings → Details). Team-managed software project.
+- **Project:** Squadmeet, key `SCRUM` (renamed from "Freizeitapp" on 2026-10-07; the key did not
+  change, so all ticket keys stay). Team-managed software project.
 - **Issue types:** Epic, Story, Task, Subtask, Feature, Bug
 - **Board:** _tbd_ (URL not checked yet)
 - **Examples in this file** use the key `SCRUM` but are not real issues.
@@ -155,8 +155,7 @@ by Steven; only the app name is open. No code yet. The docs are on GitHub
    Steven repo + Compose + CI/CD + EC2 + HTTPS; David data model + OSM import for one city;
    Stefan clickable screens with test data + the list of Reasons.
 4. Steven: invite Stefan and David as collaborators on the GitHub repo (needs their GitHub
-   usernames). Then protect `main` and `dev` (no direct push, changes only through a pull
-   request). Stefan and David: fill in your Day 1 line in [DIARY.md](DIARY.md).
+   usernames). Stefan and David: fill in your Day 1 line in [DIARY.md](DIARY.md).
 5. Choose the stack. Every tool needs a reason you can say out loud (brief: "Understand
    what you build").
 6. Deploy a "hello world" in the first days. Deploy problems take longer than planned.
@@ -166,8 +165,6 @@ by Steven; only the app name is open. No code yet. The docs are on GitHub
 - Final app name. Working name: **SquadMeet** (2026-10-07; quick web search found no app with this name, but similar "Squadsheet" and "squadSet" exist; no brand or domain check yet). "Meetup" rejected: Meetup.com brand, and it is our glossary term.
 - Demo data and demo devices (decided later, `SCRUM-15`).
 - Set an AWS budget alarm (Free Tier + 15 $ credit).
-- Gitflow: GitHub's "closes #12" works only for merges into the default branch — make `dev`
-  the default branch or close by hand. See [NOTES.md → Working principles](NOTES.md).
 
 ## Decisions
 
@@ -192,6 +189,8 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-07 | Walking skeleton live by Fri 09.10.; feature freeze Fri 16.10. evening; Mon–Tue 19–20.10. only fixes, tests, docs, presentation | Deploy risk first; brief's week 3 | this file |
 | 2026-10-07 | Minimum tests: pytest for the business rules, a few Vitest tests, API smoke test after each deploy | Brief asks for basic tests; rules carry the most risk | this file |
 | 2026-10-07 | Daily [DIARY.md](DIARY.md): one short line per person per day | Course wants daily progress shown; detail stays in Jira | [DIARY.md](DIARY.md) |
+| 2026-10-07 | `dev` is the GitHub default branch | GitHub's "closes #12" works only for merges into the default branch | GitHub settings |
+| 2026-10-07 | Ruleset on `main` and `dev`: pull request with 1 approval, no force push, no delete | Nobody breaks the shared branches; every change gets a second look | GitHub → Settings → Rules |
 | 2026-10-07 | Jira is the only issue tracker; dependencies as Jira "Blocks" links | One source of truth; shows who is blocked | [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md) |
 
 ## Debugging case (presentation item)
@@ -223,6 +222,8 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
 ## Log
 
 Newest first. One line per session: date · who · what changed.
+
+- 2026-10-07 · Steven · Renamed the Jira project to "Squadmeet" (key still `SCRUM`). Made `dev` the default branch. Added a GitHub ruleset that protects `main` and `dev`.
 
 - 2026-10-07 · Steven · Created `dev` branch. Added `README.md` and `DIARY.md` (daily log per person); `CLAUDE.md` now tells agents to fill the diary. Added `AGENTS.md` (points other agents to `CLAUDE.md`). Merged `dev` into `main` (docs only, fast-forward).
 
