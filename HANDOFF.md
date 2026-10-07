@@ -4,7 +4,7 @@ A living handoff for the team (3 people) and their coding agents. Read it at the
 session. Update it at the end of a session. It answers one question: **what is in flight
 right now, why, and what comes next?**
 
-**Last update:** 2026-10-07 · Steven · GitHub repo created, ticket overview added
+**Last update:** 2026-10-07 · Steven · README and DIARY added
 
 ---
 
@@ -136,7 +136,7 @@ authenticate. There are no shared credentials.
 basketball, …) where adults announce Meetups and others join them. Glossary: [CONTEXT.md](CONTEXT.md).
 Decisions: [docs/adr/](docs/adr/). Grilling session (design interview) finished and confirmed
 by Steven; only the app name is open. No code yet. The docs are on GitHub
-(https://github.com/GitGitRice/squadmeet, private, branch `main` only). Jira has Epics `SCRUM-2`,
+(https://github.com/GitGitRice/squadmeet, private, branches `main` and `dev`). Jira has Epics `SCRUM-2`,
 `SCRUM-6`–`SCRUM-15` and Stories/Tasks `SCRUM-16`–`SCRUM-45`; start order per person in
 [TICKETS.md](TICKETS.md). Agent skills are set up to use Jira
 ([docs/agents/issue-tracker.md](docs/agents/issue-tracker.md)).
@@ -155,7 +155,7 @@ by Steven; only the app name is open. No code yet. The docs are on GitHub
    Steven repo + Compose + CI/CD + EC2 + HTTPS; David data model + OSM import for one city;
    Stefan clickable screens with test data + the list of Reasons.
 4. Steven: invite Stefan and David as collaborators on the GitHub repo (needs their GitHub
-   usernames). Create the `dev` branch for Gitflow.
+   usernames). Stefan and David: fill in your Day 1 line in [DIARY.md](DIARY.md).
 5. Choose the stack. Every tool needs a reason you can say out loud (brief: "Understand
    what you build").
 6. Deploy a "hello world" in the first days. Deploy problems take longer than planned.
@@ -190,6 +190,7 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-07 | CI/CD: GitHub Actions → GHCR → EC2 via OIDC + SSM; Gitflow (`feature/*` → `dev` → `main`) | No stored AWS keys, no open SSH port | this file |
 | 2026-10-07 | Walking skeleton live by Fri 09.10.; feature freeze Fri 16.10. evening; Mon–Tue 19–20.10. only fixes, tests, docs, presentation | Deploy risk first; brief's week 3 | this file |
 | 2026-10-07 | Minimum tests: pytest for the business rules, a few Vitest tests, API smoke test after each deploy | Brief asks for basic tests; rules carry the most risk | this file |
+| 2026-10-07 | Daily [DIARY.md](DIARY.md): one short line per person per day | Course wants daily progress shown; detail stays in Jira | [DIARY.md](DIARY.md) |
 | 2026-10-07 | Jira is the only issue tracker; dependencies as Jira "Blocks" links | One source of truth; shows who is blocked | [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md) |
 
 ## Debugging case (presentation item)
@@ -221,6 +222,8 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
 ## Log
 
 Newest first. One line per session: date · who · what changed.
+
+- 2026-10-07 · Steven · Created `dev` branch. Added `README.md` and `DIARY.md` (daily log per person); `CLAUDE.md` now tells agents to fill the diary.
 
 - 2026-10-07 · Steven · Created private GitHub repo `GitGitRice/squadmeet` and pushed the docs to `main`. Added `TICKETS.md` (tickets per person in start order) and `.gitignore`.
 

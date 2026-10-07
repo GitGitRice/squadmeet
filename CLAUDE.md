@@ -10,6 +10,8 @@ comes next. Its rules section says how to write in it.
 - **Session start:** read `HANDOFF.md`, then the Jira issues it names, before you start work.
 - **Session end:** before you stop, update `HANDOFF.md` by its rules. Then tell the person
   what you changed in it.
+- **Diary:** at the end of a working day, add the person's short line to
+  [DIARY.md](DIARY.md) (rules at its top). Ask them what they did if you do not know.
 - **Decision or debugging case:** add it to `HANDOFF.md` when it happens, not at session end.
 
 ## Jira
