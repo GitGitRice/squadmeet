@@ -1,11 +1,11 @@
 /* PROTOTYPE (SCRUM-17). Phone first: touch targets at least 44px, text at least 16px,
-   red = someone is there now, blue = planned. */
+   red = someone is there now. */
 
 :root {
   --pt-now: #c8102e;
   --pt-now-soft: #fde8eb;
-  --pt-later: #1652b8;
-  --pt-later-soft: #e6eefc;
+  --pt-accent: #1652b8;
+  --pt-accent-soft: #e6eefc;
   --pt-ink: #16181d;
   --pt-muted: #505663;
   --pt-line: #d5d8de;
@@ -33,7 +33,7 @@
 }
 
 .pt-root button:focus-visible {
-  outline: 3px solid var(--pt-later);
+  outline: 3px solid var(--pt-accent);
   outline-offset: 2px;
 }
 
@@ -49,7 +49,7 @@
   font-size: 24px;
   border-radius: 50%;
   background: white;
-  border: 4px solid var(--pt-later);
+  border: 4px solid var(--pt-accent);
   box-shadow: 0 2px 6px rgb(0 0 0 / 35%);
   box-sizing: border-box;
 }
@@ -102,7 +102,7 @@
   line-height: 18px;
   white-space: nowrap;
   color: white;
-  background: var(--pt-later);
+  background: var(--pt-accent);
   border-radius: 9px;
 }
 
@@ -110,7 +110,7 @@
   background: var(--pt-now);
 }
 
-/* Top: time filter and legend */
+/* Top: legend */
 
 .pt-top {
   position: absolute;
@@ -127,29 +127,6 @@
 
 .pt-top > * {
   pointer-events: auto;
-}
-
-.pt-filters {
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  background: white;
-  border-radius: 999px;
-  box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
-}
-
-.pt-filters button {
-  min-height: 40px;
-  padding: 0 14px;
-  border: none;
-  border-radius: 999px;
-  background: none;
-  font-weight: 600;
-}
-
-.pt-filters button.selected {
-  background: var(--pt-ink);
-  color: white;
 }
 
 .pt-legend {
@@ -172,11 +149,6 @@
 
 .dot.now {
   background: var(--pt-now);
-}
-
-.dot.later {
-  margin-left: 6px;
-  background: var(--pt-later);
 }
 
 .pt-hint {
@@ -295,12 +267,6 @@
   border-radius: 6px;
 }
 
-.pt-cta {
-  display: grid;
-  grid-template-columns: 3fr 2fr;
-  gap: 8px;
-}
-
 /* Buttons */
 
 .pt-btn {
@@ -331,8 +297,8 @@
 
 .pt-btn.primary {
   color: white !important;
-  background: var(--pt-later);
-  border-color: var(--pt-later);
+  background: var(--pt-accent);
+  border-color: var(--pt-accent);
 }
 
 .pt-btn.danger {
@@ -370,17 +336,11 @@
   text-align: left;
   background: white;
   border: 1px solid var(--pt-line);
-  border-left: 6px solid var(--pt-later);
+  border-left: 6px solid var(--pt-now);
   border-radius: 12px;
 }
 
-.pt-card.now {
-  border-left-color: var(--pt-now);
-}
-
-.pt-card.state-cancelled,
-.pt-card.state-closed,
-.pt-card.state-ended {
+.pt-card.cancelled {
   border-left-color: #8a909c;
   background: var(--pt-soft);
   opacity: 0.75;
@@ -437,18 +397,11 @@
   font-size: 14px;
   font-weight: 700;
   border-radius: 999px;
-  color: var(--pt-later);
-  background: var(--pt-later-soft);
-}
-
-.pt-status.now {
   color: var(--pt-now);
   background: var(--pt-now-soft);
 }
 
-.pt-status.cancelled,
-.pt-status.closed,
-.pt-status.ended {
+.pt-status.cancelled {
   color: var(--pt-muted);
   background: var(--pt-soft);
 }
@@ -504,8 +457,8 @@
   padding: 2px 8px;
   font-size: 13px;
   font-weight: 700;
-  color: var(--pt-later);
-  background: var(--pt-later-soft);
+  color: var(--pt-accent);
+  background: var(--pt-accent-soft);
   border-radius: 6px;
 }
 
@@ -599,13 +552,6 @@
   font-size: 28px;
   font-weight: 800;
   text-align: center;
-}
-
-.pt-slot {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  font-weight: 600;
 }
 
 /* Feedback after an action */

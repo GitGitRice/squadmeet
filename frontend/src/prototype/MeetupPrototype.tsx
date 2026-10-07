@@ -1,38 +1,24 @@
-// PROTOTYPE (SCRUM-17): the Meetup screens the team chose (map + bottom sheet).
+// PROTOTYPE (SCRUM-17): the Meetup screens, layout "map + bottom sheet".
 // Test data in memory; reload the page to start again.
 import { useEffect, useReducer, useState } from 'react'
 import { MapContainer, Marker, TileLayer } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import {
-  ACTIVITIES,
-  INITIAL_STATE,
-  PLACES,
-  TIME_FILTERS,
-  matchesFilter,
-  partyTotal,
-  placeById,
-  reducer,
-  timeFormat,
-  type Meetup,
-  type TimeFilter,
-} from './data'
-import { LaterForm, MeetupCard, MeetupDetail, NowForm, PrototypeBar } from './parts'
+import { ACTIVITIES, INITIAL_STATE, PLACES, partyTotal, people, placeById, reducer, type Meetup } from './data'
+import { MeetupCard, MeetupDetail, NowForm, PrototypeBar } from './parts'
 
 type Sheet =
-  | { placeId: number; view: 'place' | 'now' | 'later' }
+  | { placeId: number; view: 'place' | 'now' }
   | { placeId: number; view: 'meetup'; meetupId: number }
 
 function pinIcon(activity: string, meetups: Meetup[]) {
-  const live = meetups.find((m) => m.kind === 'now')
-  const next = meetups.find((m) => m.kind === 'later')
-  const kind = live ? 'now' : next ? 'later' : 'empty'
-  // The badge says what matters at a glance: how many are there now, or when the next Meetup starts.
-  const badge = live ? `${partyTotal(live)} 👤` : next ? timeFormat.format(next.start) : ''
-  const size = kind === 'empty' ? 36 : 48
+  const people = meetups.reduce((sum, m) => sum + partyTotal(m), 0)
+  const live = meetups.length > 0
+  const size = live ? 48 : 36
   return L.divIcon({
     className: '',
-    html: `<div class="pt-pin ${kind}">${ACTIVITIES[activity].emoji}${badge ? `<span>${badge}</span>` : ''}</div>`,
+    // The badge says at a glance how many people are there now.
+    html: `<div class="pt-pin ${live ? 'now' : 'empty'}">${ACTIVITIES[activity].emoji}${live ? `<span>${people} 👤</span>` : ''}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   })
@@ -41,7 +27,6 @@ function pinIcon(activity: string, meetups: Meetup[]) {
 export default function MeetupPrototype() {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
   const [sheet, setSheet] = useState<Sheet | null>(null)
-  const [filter, setFilter] = useState<TimeFilter>('all')
   const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
@@ -50,19 +35,13 @@ export default function MeetupPrototype() {
     return () => clearTimeout(timer)
   }, [toast])
 
-  const visible = (placeId: number) =>
-    state.meetups.filter((m) => m.placeId === placeId && matchesFilter(m, filter)).sort((a, b) => a.start - b.start)
+  const active = (placeId: number) => state.meetups.filter((m) => m.placeId === placeId && !m.cancelled)
 
   const place = sheet && placeById(sheet.placeId)
-  // The sheet lists all Meetups of the Place, also cancelled and closed ones, so a user sees what happened.
+  // The sheet lists all Meetups of the Place, also cancelled ones, so a user sees what happened.
   const placeMeetups = sheet ? state.meetups.filter((m) => m.placeId === sheet.placeId).sort((a, b) => a.start - b.start) : []
   const meetup = sheet?.view === 'meetup' ? state.meetups.find((m) => m.id === sheet.meetupId) : undefined
-  const liveHere = placeMeetups.find((m) => m.kind === 'now' && m.state === 'active')
-
-  function openNew(placeId: number) {
-    // The next id is the new Meetup (the first Occurrence for a Series).
-    setSheet({ placeId, view: 'meetup', meetupId: state.nextId })
-  }
+  const liveHere = placeMeetups.find((m) => !m.cancelled)
 
   return (
     <div className="pt-root">
@@ -75,22 +54,15 @@ export default function MeetupPrototype() {
           <Marker
             key={p.id}
             position={[p.lat, p.lon]}
-            icon={pinIcon(p.activity, visible(p.id))}
+            icon={pinIcon(p.activity, active(p.id))}
             eventHandlers={{ click: () => setSheet({ placeId: p.id, view: 'place' }) }}
           />
         ))}
       </MapContainer>
 
       <header className="pt-top">
-        <div className="pt-filters" role="group" aria-label="Zeit">
-          {(Object.keys(TIME_FILTERS) as TimeFilter[]).map((f) => (
-            <button key={f} type="button" className={f === filter ? 'selected' : ''} onClick={() => setFilter(f)}>
-              {TIME_FILTERS[f]}
-            </button>
-          ))}
-        </div>
         <div className="pt-legend">
-          <span className="dot now" /> Jetzt hier <span className="dot later" /> Geplant
+          <span className="dot now" /> Jemand ist jetzt hier
         </div>
         <PrototypeBar state={state} dispatch={dispatch} />
       </header>
@@ -121,17 +93,12 @@ export default function MeetupPrototype() {
             <>
               {liveHere && (
                 <button type="button" className="pt-live-banner" onClick={() => setSheet({ placeId: place.id, view: 'meetup', meetupId: liveHere.id })}>
-                  <span className="pt-live">LIVE</span> {partyTotal(liveHere)} Personen sind jetzt hier ›
+                  <span className="pt-live">LIVE</span> {people(partyTotal(liveHere))} {partyTotal(liveHere) === 1 ? 'ist' : 'sind'} jetzt hier ›
                 </button>
               )}
-              <div className="pt-cta">
-                <button type="button" className="pt-btn now" onClick={() => setSheet({ placeId: place.id, view: 'now' })}>
-                  📍 Ich bin jetzt hier
-                </button>
-                <button type="button" className="pt-btn" onClick={() => setSheet({ placeId: place.id, view: 'later' })}>
-                  🗓 Treffen planen
-                </button>
-              </div>
+              <button type="button" className="pt-btn now" onClick={() => setSheet({ placeId: place.id, view: 'now' })}>
+                📍 Ich bin jetzt hier
+              </button>
               <h3 className="pt-h3">Treffen an diesem Platz</h3>
               {placeMeetups.length === 0 && <p className="pt-muted">Noch keine Treffen. Sei der Erste!</p>}
               {placeMeetups.map((m) => (
@@ -143,20 +110,9 @@ export default function MeetupPrototype() {
           {sheet.view === 'now' && (
             <NowForm
               onSubmit={(hours, partySize) => {
-                openNew(place.id)
-                dispatch({ type: 'createNow', placeId: place.id, hours, partySize })
+                setSheet({ placeId: place.id, view: 'meetup', meetupId: state.nextId })
+                dispatch({ type: 'create', placeId: place.id, hours, partySize })
                 setToast('Du bist jetzt auf der Karte. Andere können mitkommen.')
-              }}
-            />
-          )}
-
-          {sheet.view === 'later' && (
-            <LaterForm
-              onSubmit={(when, partySize) => {
-                openNew(place.id)
-                if (typeof when === 'number') dispatch({ type: 'createLater', placeId: place.id, start: when, partySize })
-                else dispatch({ type: 'createSeries', placeId: place.id, slots: when, partySize })
-                setToast('Dein Treffen ist angekündigt.')
               }}
             />
           )}
