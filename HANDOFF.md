@@ -146,11 +146,11 @@ shows one example Place on the map (how to run: [README.md](README.md) → *Run 
 
 | Who | What | Jira | State |
 |-----|------|------|-------|
-| Steven | Local skeleton: Compose with DB (PostGIS), FastAPI, React map; Alembic; pytest + Vitest | `SCRUM-16` (skeleton locally) | Works locally (checked: map shows the Place, tests green). Branch `feature/SCRUM-16-skeleton`, pull request to `dev` needs 1 approval |
+| Steven | Local skeleton: Compose with DB (PostGIS), FastAPI, React map; Alembic; pytest + Vitest | `SCRUM-16` (skeleton locally) | Works locally (checked: map shows the Place, tests green). Branch `feature/SCRUM-16-skeleton`, [PR #4](https://github.com/GitGitRice/squadmeet/pull/4) to `dev` needs 1 approval |
 
 ## Next
 
-0. Review and merge the `SCRUM-16` pull request (needs 1 approval by Stefan or David). Then
+0. Review and merge [PR #4](https://github.com/GitGitRice/squadmeet/pull/4) (`SCRUM-16`) (needs 1 approval by Stefan or David). Then
    `SCRUM-19` (CI), `SCRUM-20` (AWS host), `SCRUM-21` (Leipzig Places, David) and `SCRUM-22`
    (login) can start.
 1. Create the two Jira sprints (see *Jira → Sprints*), then approve the second ticket batch.
