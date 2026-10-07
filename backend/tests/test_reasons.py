@@ -25,6 +25,17 @@ def test_a_user_can_pick_positive_and_negative_reasons(activity_type):
     assert len({r.label for r in reasons}) == len(reasons)
 
 
+@pytest.mark.parametrize("activity_type", ACTIVITY_TYPES)
+def test_every_activity_type_has_reasons_that_change_the_condition(activity_type):
+    assert any(r.affects_condition for r in reasons_for(activity_type))
+
+
+def test_only_negative_reasons_change_the_condition():
+    reasons = GENERAL_REASONS + tuple(r for rs in ACTIVITY_REASONS.values() for r in rs)
+
+    assert not any(r.positive and r.affects_condition for r in reasons)
+
+
 def test_reasons_for_puts_the_activity_reasons_first():
     reasons = reasons_for("table_tennis")
 

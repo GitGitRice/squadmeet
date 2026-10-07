@@ -1,8 +1,9 @@
 """The predefined Reasons for a Rating, per Activity type (SCRUM-18, see CONTEXT.md).
 
 Users cannot write free text (ADR-0004), so a Rating picks one or more of these Reasons.
-The negative Reasons drive the Condition of a Place, so they name things that are broken or
-missing at the Place, not the people there.
+A negative Reason with affects_condition=True names something broken or missing at the Place.
+These Reasons drive the Condition of the Place. The other negative Reasons ("Oft überfüllt")
+are worth knowing, but repairs do not fix them, so they do not change the Condition.
 
 The key is stored in the database and must never change. The label is the German UI text and
 may change.
@@ -19,60 +20,75 @@ class Reason:
     key: str
     label: str
     positive: bool
+    affects_condition: bool = False
+
+
+def good(key: str, label: str) -> Reason:
+    return Reason(key, label, positive=True)
+
+
+def bad(key: str, label: str) -> Reason:
+    """A negative Reason that does not change the Condition."""
+    return Reason(key, label, positive=False)
+
+
+def broken(key: str, label: str) -> Reason:
+    """A negative Reason that changes the Condition: something at the Place is broken."""
+    return Reason(key, label, positive=False, affects_condition=True)
 
 
 # Reasons that fit every Activity type.
 GENERAL_REASONS = (
-    Reason("easy_to_reach", "Gut erreichbar", positive=True),
-    Reason("clean", "Sauber und gepflegt", positive=True),
-    Reason("lit_in_evening", "Abends beleuchtet", positive=True),
-    Reason("shade", "Schattig im Sommer", positive=True),
-    Reason("seats_nearby", "Bänke in der Nähe", positive=True),
-    Reason("litter", "Müll oder Verschmutzung", positive=False),
-    Reason("broken_glass", "Glasscherben", positive=False),
-    Reason("hard_to_find", "Schwer zu finden", positive=False),
-    Reason("often_crowded", "Oft überfüllt", positive=False),
-    Reason("puddles", "Steht nach Regen unter Wasser", positive=False),
+    good("easy_to_reach", "Gut erreichbar"),
+    good("clean", "Sauber und gepflegt"),
+    good("lit_in_evening", "Abends beleuchtet"),
+    good("shade", "Schattig im Sommer"),
+    good("seats_nearby", "Bänke in der Nähe"),
+    broken("litter", "Müll oder Verschmutzung"),
+    broken("broken_glass", "Glasscherben"),
+    bad("hard_to_find", "Schwer zu finden"),
+    bad("often_crowded", "Oft überfüllt"),
+    broken("puddles", "Steht nach Regen unter Wasser"),
 )
 
 ACTIVITY_REASONS: dict[str, tuple[Reason, ...]] = {
     "table_tennis": (
-        Reason("table_good", "Platte in gutem Zustand", positive=True),
-        Reason("fixed_net", "Festes Netz vorhanden", positive=True),
-        Reason("wind_protected", "Windgeschützt", positive=True),
-        Reason("net_missing", "Netz fehlt oder ist kaputt", positive=False),
-        Reason("table_damaged", "Platte beschädigt oder uneben", positive=False),
+        good("table_good", "Platte in gutem Zustand"),
+        good("fixed_net", "Festes Netz vorhanden"),
+        good("wind_protected", "Windgeschützt"),
+        broken("net_missing", "Netz fehlt oder ist kaputt"),
+        broken("table_damaged", "Platte beschädigt oder uneben"),
     ),
     "basketball": (
-        Reason("hoops_with_nets", "Körbe mit Netz", positive=True),
-        Reason("court_surface_good", "Guter, ebener Belag", positive=True),
-        Reason("lines_visible", "Linien gut sichtbar", positive=True),
-        Reason("hoop_damaged", "Korb oder Brett beschädigt", positive=False),
-        Reason("hoop_net_missing", "Korbnetz fehlt", positive=False),
-        Reason("court_surface_bad", "Belag rissig oder rutschig", positive=False),
+        good("hoops_with_nets", "Körbe mit Netz"),
+        good("court_surface_good", "Guter, ebener Belag"),
+        good("lines_visible", "Linien gut sichtbar"),
+        broken("hoop_damaged", "Korb oder Brett beschädigt"),
+        broken("hoop_net_missing", "Korbnetz fehlt"),
+        broken("court_surface_bad", "Belag rissig oder rutschig"),
     ),
     "football": (
-        Reason("goals_with_nets", "Tore mit Netz", positive=True),
-        Reason("pitch_good", "Rasen oder Belag in gutem Zustand", positive=True),
-        Reason("fenced", "Eingezäunt, der Ball bleibt drin", positive=True),
-        Reason("goal_nets_missing", "Tornetze fehlen oder sind kaputt", positive=False),
-        Reason("pitch_bad", "Löcher oder kaputter Belag", positive=False),
-        Reason("often_locked", "Oft abgeschlossen", positive=False),
+        good("goals_with_nets", "Tore mit Netz"),
+        good("pitch_good", "Rasen oder Belag in gutem Zustand"),
+        good("fenced", "Eingezäunt, der Ball bleibt drin"),
+        broken("goal_nets_missing", "Tornetze fehlen oder sind kaputt"),
+        broken("pitch_bad", "Löcher oder kaputter Belag"),
+        bad("often_locked", "Oft abgeschlossen"),
     ),
     "beach_volleyball": (
-        Reason("sand_good", "Feiner, sauberer Sand", positive=True),
-        Reason("net_tight", "Netz gespannt und in richtiger Höhe", positive=True),
-        Reason("court_marked", "Spielfeld markiert", positive=True),
-        Reason("sand_dirty", "Sand verschmutzt", positive=False),
-        Reason("volleyball_net_missing", "Netz fehlt oder ist kaputt", positive=False),
-        Reason("too_little_sand", "Zu wenig Sand, harter Boden", positive=False),
+        good("sand_good", "Feiner, sauberer Sand"),
+        good("net_tight", "Netz gespannt und in richtiger Höhe"),
+        good("court_marked", "Spielfeld markiert"),
+        broken("sand_dirty", "Sand verschmutzt"),
+        broken("volleyball_net_missing", "Netz fehlt oder ist kaputt"),
+        broken("too_little_sand", "Zu wenig Sand, harter Boden"),
     ),
     "outdoor_fitness": (
-        Reason("equipment_good", "Geräte in gutem Zustand", positive=True),
-        Reason("equipment_varied", "Viele verschiedene Geräte", positive=True),
-        Reason("instructions", "Übungsanleitungen an den Geräten", positive=True),
-        Reason("equipment_damaged", "Gerät beschädigt oder gesperrt", positive=False),
-        Reason("equipment_rusty", "Geräte rostig oder wackelig", positive=False),
+        good("equipment_good", "Geräte in gutem Zustand"),
+        good("equipment_varied", "Viele verschiedene Geräte"),
+        good("instructions", "Übungsanleitungen an den Geräten"),
+        broken("equipment_damaged", "Gerät beschädigt oder gesperrt"),
+        broken("equipment_rusty", "Geräte rostig oder wackelig"),
     ),
 }
 
