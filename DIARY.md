@@ -1,20 +1,21 @@
-# Project diary
+# Projekt-Tagebuch
 
-Each team member adds one short entry per working day: what you did that day.
-The detail is in Jira, so name the ticket key and do not copy the ticket text.
+Jedes Teammitglied schreibt pro Arbeitstag einen kurzen Eintrag: was du an dem Tag gemacht hast.
+Die Details stehen in Jira. Nenne also den Ticket-Key und kopiere nicht den Ticket-Text.
 
-**Rules**
+**Regeln**
 
-- One block per day, newest day on top.
-- One line per person, 1–3 short points. Write your line before you stop for the day.
-- Name the Jira key where there is one: `SCRUM-22 login endpoint done`.
-- Nothing to report? Write what blocked you.
+- Ein Block pro Tag, der neueste Tag oben.
+- Eine Zeile pro Person, 1–3 kurze Punkte. Schreib deine Zeile, bevor du für den Tag aufhörst.
+- Nenne den Jira-Key, wenn es einen gibt: `SCRUM-22 Login-Endpoint fertig`.
+- Nichts zu berichten? Schreib, was dich blockiert hat.
+- Auf Deutsch schreiben, damit alle im Team es verstehen.
 
 ---
 
-## Wed 07.10.2026 — Day 1: topic and planning
+## Mi 07.10.2026 — Tag 1: Thema und Planung
 
-- **Team:** chose Stefan's idea (activity-place map with Meetups). Split the roles.
-- **Steven:** led the design interview for the idea; wrote glossary and decisions (ADR-0001–0005). Set up Jira: 11 Epics, 30 Stories/Tasks, Sprint 1. Created the GitHub repo. `SCRUM-16` local skeleton runs (map with one Place from the DB).
-- **Stefan:** _to fill_
-- **David:** _to fill_
+- **Team:** Stefans Idee gewählt (Karte mit Aktivitäts-Plätzen und Meetups). Rollen aufgeteilt.
+- **Steven:** Design-Interview zur Idee geleitet; Glossar und Entscheidungen geschrieben (ADR-0001–0005). Jira eingerichtet: 11 Epics, 30 Stories/Tasks, Sprint 1. GitHub-Repo erstellt. `SCRUM-16` lokales Skeleton gemergt (Karte mit einem Platz aus der DB). `SCRUM-22` Registrieren/Anmelden/Abmelden mit Nickname gemergt.
+- **Stefan:** _bitte ausfüllen_
+- **David:** _bitte ausfüllen_
