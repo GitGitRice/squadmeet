@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, FastAPI
 from sqlalchemy import func
 from sqlmodel import Session, select
 
+from app.auth import router as auth_router
 from app.db import get_session
 from app.models import Place, PlaceRead
 
@@ -28,4 +29,5 @@ def list_places(session: Session = Depends(get_session)):
     return [PlaceRead.model_validate(row, from_attributes=True) for row in rows]
 
 
+api.include_router(auth_router)
 app.include_router(api)

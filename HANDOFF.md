@@ -4,7 +4,7 @@ A living handoff for the team (3 people) and their coding agents. Read it at the
 session. Update it at the end of a session. It answers one question: **what is in flight
 right now, why, and what comes next?**
 
-**Last update:** 2026-10-07 · Steven · `SCRUM-16` (local skeleton) runs; pull request to `dev` open
+**Last update:** 2026-10-07 · Steven · `SCRUM-16` (local skeleton) merged and Done; `SCRUM-22` (register/login) works locally, [PR #5](https://github.com/GitGitRice/squadmeet/pull/5) to `dev` open
 
 ---
 
@@ -146,13 +146,14 @@ shows one example Place on the map (how to run: [README.md](README.md) → *Run 
 
 | Who | What | Jira | State |
 |-----|------|------|-------|
-| Steven | Local skeleton: Compose with DB (PostGIS), FastAPI, React map; Alembic; pytest + Vitest | `SCRUM-16` (skeleton locally) | Works locally (checked: map shows the Place, tests green). Branch `feature/SCRUM-16-skeleton`, [PR #4](https://github.com/GitGitRice/squadmeet/pull/4) to `dev` needs 1 approval |
+| Steven | Register, login, logout with Nickname; Recovery codes; Bearer token; protected route `/api/auth/me` | `SCRUM-22` (register/login) | Works locally (checked in the browser: register → codes screen → logged in → reload keeps login → logout; wrong password gives 401). pytest 10 green, Vitest 7 green. Branch `feature/SCRUM-22-login`, [PR #5](https://github.com/GitGitRice/squadmeet/pull/5) to `dev` needs 1 approval; Jira In Review. Single-column codes layout not checked in the browser |
 
 ## Next
 
-0. Review and merge [PR #4](https://github.com/GitGitRice/squadmeet/pull/4) (`SCRUM-16`) (needs 1 approval by Stefan or David). Then
-   `SCRUM-19` (CI), `SCRUM-20` (AWS host), `SCRUM-21` (Leipzig Places, David) and `SCRUM-22`
-   (login) can start.
+0. Review and merge [PR #5](https://github.com/GitGitRice/squadmeet/pull/5) (`SCRUM-22`) (needs 1 approval by Stefan or David). Then `SCRUM-26` (MFA),
+   `SCRUM-27` (captcha + rate limit), `SCRUM-33` (password reset) can build on it. `SCRUM-19` (CI),
+   `SCRUM-20` (AWS host) and `SCRUM-21` (Leipzig Places, David) can start now (`SCRUM-16` is merged).
+   CI must start a PostgreSQL+PostGIS service: the backend tests need a migrated database.
 1. Create the two Jira sprints (see *Jira → Sprints*), then approve the second ticket batch.
 2. Confirm the role split and the Epic assignees as a team (tables above).
 3. Write the Stories for each Epic, with "Blocks" links. Walking skeleton first (by Fri 09.10.):
@@ -198,6 +199,9 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-07 | Frontend in TypeScript | Type checks catch API shape errors | `frontend/` |
 | 2026-10-07 | Database schema with Alembic migrations, not `create_all` | The EC2 database keeps its data when the schema changes | `backend/alembic/` |
 | 2026-10-07 | Own DB image: official `postgres:17` + Debian PostGIS package | `postgis/postgis` has no arm64 build (Apple Silicon, Graviton EC2) | [db/Dockerfile](db/Dockerfile) |
+| 2026-10-07 | Login token = random session token, stored only as SHA-256 hash in `login_session`, sent as `Authorization: Bearer`; 30 days valid | Logout and Admin lock can end a session at once (a JWT cannot); Bearer also works for the later Android app | [backend/app/auth.py](backend/app/auth.py) |
+| 2026-10-07 | Passwords: Argon2 (`pwdlib`). Recovery codes (10 × 16 characters) and tokens: SHA-256 | People choose weak passwords, so the hash must be slow; random codes are too long to guess | [backend/app/auth.py](backend/app/auth.py) |
+| 2026-10-07 | Nickname: 3–20 of `A–Z a–z 0–9 _ -`, unique without case; the map stays public without login | No look-alike Nicknames ("Steven"/"steven"); people can look before they register | [backend/app/auth.py](backend/app/auth.py) |
 | 2026-10-07 | Jira is the only issue tracker; dependencies as Jira "Blocks" links | One source of truth; shows who is blocked | [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md) |
 
 ## Debugging case (presentation item)
@@ -236,6 +240,8 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
 ## Log
 
 Newest first. One line per session: date · who · what changed.
+
+- 2026-10-07 · Steven · `SCRUM-16` merged (PR #4) and set to Done. `SCRUM-22`: register/login/logout (backend `app/auth.py`, migration 0002, frontend login dialog + Recovery code screen), 9 new pytest tests with rollback per test, 5 new Vitest tests. Checked in the browser.
 
 - 2026-10-07 · Steven · `SCRUM-16`: local skeleton (Compose: PostGIS DB, FastAPI + Alembic, React/TS + Leaflet). One example Place on the map, pytest + Vitest green. README has the run steps. Debugging case "map marker" written down.
 
