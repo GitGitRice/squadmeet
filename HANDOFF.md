@@ -4,7 +4,7 @@ A living handoff for the team (3 people) and their coding agents. Read it at the
 session. Update it at the end of a session. It answers one question: **what is in flight
 right now, why, and what comes next?**
 
-**Last update:** 2026-10-07 · Steven · Jira renamed, branch ruleset active
+**Last update:** 2026-10-07 · Steven · `SCRUM-16` (local skeleton) runs; pull request to `dev` open
 
 ---
 
@@ -135,7 +135,8 @@ authenticate. There are no shared credentials.
 **Topic chosen (2026-10-07):** Stefan's idea, a map of free public activity places (table tennis,
 basketball, …) where adults announce Meetups and others join them. Glossary: [CONTEXT.md](CONTEXT.md).
 Decisions: [docs/adr/](docs/adr/). Grilling session (design interview) finished and confirmed
-by Steven; only the app name is open. No code yet. The docs are on GitHub
+by Steven; only the app name is open. The local skeleton (`SCRUM-16`) runs: `docker compose up`
+shows one example Place on the map (how to run: [README.md](README.md) → *Run locally*). The docs are on GitHub
 (https://github.com/GitGitRice/squadmeet, private, branches `main` and `dev`). Jira has Epics `SCRUM-2`,
 `SCRUM-6`–`SCRUM-15` and Stories/Tasks `SCRUM-16`–`SCRUM-45`; start order per person in
 [TICKETS.md](TICKETS.md). Agent skills are set up to use Jira
@@ -145,10 +146,13 @@ by Steven; only the app name is open. No code yet. The docs are on GitHub
 
 | Who | What | Jira | State |
 |-----|------|------|-------|
-| — | — | — | — |
+| Steven | Local skeleton: Compose with DB (PostGIS), FastAPI, React map; Alembic; pytest + Vitest | `SCRUM-16` (skeleton locally) | Works locally (checked: map shows the Place, tests green). Branch `feature/SCRUM-16-skeleton`, [PR #4](https://github.com/GitGitRice/squadmeet/pull/4) to `dev` needs 1 approval |
 
 ## Next
 
+0. Review and merge [PR #4](https://github.com/GitGitRice/squadmeet/pull/4) (`SCRUM-16`) (needs 1 approval by Stefan or David). Then
+   `SCRUM-19` (CI), `SCRUM-20` (AWS host), `SCRUM-21` (Leipzig Places, David) and `SCRUM-22`
+   (login) can start.
 1. Create the two Jira sprints (see *Jira → Sprints*), then approve the second ticket batch.
 2. Confirm the role split and the Epic assignees as a team (tables above).
 3. Write the Stories for each Epic, with "Blocks" links. Walking skeleton first (by Fri 09.10.):
@@ -191,6 +195,9 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-07 | Daily [DIARY.md](DIARY.md): one short line per person per day | Course wants daily progress shown; detail stays in Jira | [DIARY.md](DIARY.md) |
 | 2026-10-07 | `dev` is the GitHub default branch | GitHub's "closes #12" works only for merges into the default branch | GitHub settings |
 | 2026-10-07 | Ruleset on `main` and `dev`: pull request with 1 approval, no force push, no delete | Nobody breaks the shared branches; every change gets a second look | GitHub → Settings → Rules |
+| 2026-10-07 | Frontend in TypeScript | Type checks catch API shape errors | `frontend/` |
+| 2026-10-07 | Database schema with Alembic migrations, not `create_all` | The EC2 database keeps its data when the schema changes | `backend/alembic/` |
+| 2026-10-07 | Own DB image: official `postgres:17` + Debian PostGIS package | `postgis/postgis` has no arm64 build (Apple Silicon, Graviton EC2) | [db/Dockerfile](db/Dockerfile) |
 | 2026-10-07 | Jira is the only issue tracker; dependencies as Jira "Blocks" links | One source of truth; shows who is blocked | [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md) |
 
 ## Debugging case (presentation item)
@@ -200,7 +207,14 @@ happens**. Afterwards the details are gone.
 
 Format: symptom → wrong guesses → real cause → fix → lesson. Link the Jira issue.
 
-- _none yet_
+- **Map marker does not show** (`SCRUM-16`, 2026-10-07). Symptom: the map loads, the API sends
+  the Place, the marker element is in the page, no console error, but no pin is visible.
+  Wrong guess: the common fix `L.Icon.Default.mergeOptions({ iconUrl: … })` with the Vite image
+  imports. Real cause: Leaflet's default icon puts its own detected image path in front of the
+  URL, so the browser loads `…/images//node_modules/leaflet/…` (404). Found by reading `img.src`
+  and `naturalWidth` (0) of the marker in the browser. Fix: an explicit `L.icon({...})` on each
+  Marker ([frontend/src/App.tsx](frontend/src/App.tsx)). Lesson: when an image does not show,
+  look at the real URL the browser requests before you copy a fix.
 
 ---
 
@@ -222,6 +236,8 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
 ## Log
 
 Newest first. One line per session: date · who · what changed.
+
+- 2026-10-07 · Steven · `SCRUM-16`: local skeleton (Compose: PostGIS DB, FastAPI + Alembic, React/TS + Leaflet). One example Place on the map, pytest + Vitest green. README has the run steps. Debugging case "map marker" written down.
 
 - 2026-10-07 · Steven · Renamed the Jira project to "Squadmeet" (key still `SCRUM`). Made `dev` the default branch. Added a GitHub ruleset that protects `main` and `dev`.
 

@@ -15,6 +15,6 @@ The detail is in Jira, so name the ticket key and do not copy the ticket text.
 ## Wed 07.10.2026 — Day 1: topic and planning
 
 - **Team:** chose Stefan's idea (activity-place map with Meetups). Split the roles.
-- **Steven:** led the design interview for the idea; wrote glossary and decisions (ADR-0001–0005). Set up Jira: 11 Epics, 30 Stories/Tasks, Sprint 1. Created the GitHub repo.
+- **Steven:** led the design interview for the idea; wrote glossary and decisions (ADR-0001–0005). Set up Jira: 11 Epics, 30 Stories/Tasks, Sprint 1. Created the GitHub repo. `SCRUM-16` local skeleton runs (map with one Place from the DB).
 - **Stefan:** _to fill_
 - **David:** _to fill_
