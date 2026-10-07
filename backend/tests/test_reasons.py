@@ -1,6 +1,8 @@
 import pytest
 
-from app.reasons import ACTIVITY_REASONS, ACTIVITY_TYPES, GENERAL_REASONS, reasons_for
+from app.reasons import ACTIVITY_REASONS, ACTIVITY_TYPES, GENERAL_REASONS
+
+ALL_REASONS = GENERAL_REASONS + tuple(r for reasons in ACTIVITY_REASONS.values() for r in reasons)
 
 
 def test_every_activity_type_has_its_own_reasons():
@@ -9,40 +11,21 @@ def test_every_activity_type_has_its_own_reasons():
 
 def test_reason_keys_are_unique_over_all_activity_types():
     # A key is stored in the database, so one key must mean one thing.
-    keys = [r.key for r in GENERAL_REASONS]
-    keys += [r.key for reasons in ACTIVITY_REASONS.values() for r in reasons]
+    keys = [r.key for r in ALL_REASONS]
 
     assert len(keys) == len(set(keys))
 
 
 @pytest.mark.parametrize("activity_type", ACTIVITY_TYPES)
-def test_a_user_can_pick_positive_and_negative_reasons(activity_type):
-    reasons = reasons_for(activity_type)
+def test_each_activity_type_has_positive_and_negative_reasons(activity_type):
+    reasons = ACTIVITY_REASONS[activity_type] + GENERAL_REASONS
 
     assert any(r.positive for r in reasons)
     assert any(not r.positive for r in reasons)
+    assert any(r.affects_condition for r in reasons)
     # Two Reasons with the same text would look like one in the UI.
     assert len({r.label for r in reasons}) == len(reasons)
 
 
-@pytest.mark.parametrize("activity_type", ACTIVITY_TYPES)
-def test_every_activity_type_has_reasons_that_change_the_condition(activity_type):
-    assert any(r.affects_condition for r in reasons_for(activity_type))
-
-
 def test_only_negative_reasons_change_the_condition():
-    reasons = GENERAL_REASONS + tuple(r for rs in ACTIVITY_REASONS.values() for r in rs)
-
-    assert not any(r.positive and r.affects_condition for r in reasons)
-
-
-def test_reasons_for_puts_the_activity_reasons_first():
-    reasons = reasons_for("table_tennis")
-
-    assert reasons[: len(ACTIVITY_REASONS["table_tennis"])] == ACTIVITY_REASONS["table_tennis"]
-    assert set(GENERAL_REASONS) <= set(reasons)
-
-
-def test_reasons_for_an_unknown_activity_type_fails():
-    with pytest.raises(KeyError):
-        reasons_for("chess")
+    assert not any(r.positive and r.affects_condition for r in ALL_REASONS)
