@@ -73,6 +73,10 @@ docker compose exec backend pytest        # backend (pytest)
 cd frontend && npm install && npm test    # frontend (Vitest)
 ```
 
+The backend tests need the running, migrated database. Each test runs in one transaction that
+is rolled back at the end, so the tests leave no data behind
+([backend/tests/conftest.py](backend/tests/conftest.py)).
+
 ### Database schema changes (Alembic)
 
 Change the models in `backend/app/models.py`, then let Alembic write the migration and check it:
