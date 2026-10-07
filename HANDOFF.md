@@ -155,7 +155,8 @@ by Steven; only the app name is open. No code yet. The docs are on GitHub
    Steven repo + Compose + CI/CD + EC2 + HTTPS; David data model + OSM import for one city;
    Stefan clickable screens with test data + the list of Reasons.
 4. Steven: invite Stefan and David as collaborators on the GitHub repo (needs their GitHub
-   usernames). Stefan and David: fill in your Day 1 line in [DIARY.md](DIARY.md).
+   usernames). Then protect `main` and `dev` (no direct push, changes only through a pull
+   request). Stefan and David: fill in your Day 1 line in [DIARY.md](DIARY.md).
 5. Choose the stack. Every tool needs a reason you can say out loud (brief: "Understand
    what you build").
 6. Deploy a "hello world" in the first days. Deploy problems take longer than planned.
@@ -223,7 +224,7 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
 
 Newest first. One line per session: date · who · what changed.
 
-- 2026-10-07 · Steven · Created `dev` branch. Added `README.md` and `DIARY.md` (daily log per person); `CLAUDE.md` now tells agents to fill the diary. Added `AGENTS.md` (points other agents to `CLAUDE.md`).
+- 2026-10-07 · Steven · Created `dev` branch. Added `README.md` and `DIARY.md` (daily log per person); `CLAUDE.md` now tells agents to fill the diary. Added `AGENTS.md` (points other agents to `CLAUDE.md`). Merged `dev` into `main` (docs only, fast-forward).
 
 - 2026-10-07 · Steven · Created private GitHub repo `GitGitRice/squadmeet` and pushed the docs to `main`. Added `TICKETS.md` (tickets per person in start order) and `.gitignore`.
 
