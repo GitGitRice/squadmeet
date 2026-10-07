@@ -4,7 +4,7 @@ A living handoff for the team (3 people) and their coding agents. Read it at the
 session. Update it at the end of a session. It answers one question: **what is in flight
 right now, why, and what comes next?**
 
-**Last update:** 2026-10-07 · Steven · `SCRUM-16` (local skeleton) merged and Done; `SCRUM-22` (register/login) works locally, not pushed yet
+**Last update:** 2026-10-07 · Steven · `SCRUM-16` (local skeleton) merged and Done; `SCRUM-22` (register/login) works locally, [PR #5](https://github.com/GitGitRice/squadmeet/pull/5) to `dev` open
 
 ---
 
@@ -146,11 +146,11 @@ shows one example Place on the map (how to run: [README.md](README.md) → *Run 
 
 | Who | What | Jira | State |
 |-----|------|------|-------|
-| Steven | Register, login, logout with Nickname; Recovery codes; Bearer token; protected route `/api/auth/me` | `SCRUM-22` (register/login) | Works locally (checked in the browser: register → codes screen → logged in → reload keeps login → logout; wrong password gives 401). pytest 10 green, Vitest 7 green. Branch `feature/SCRUM-22-login`, committed, not pushed, no PR yet. Single-column codes layout not checked in the browser |
+| Steven | Register, login, logout with Nickname; Recovery codes; Bearer token; protected route `/api/auth/me` | `SCRUM-22` (register/login) | Works locally (checked in the browser: register → codes screen → logged in → reload keeps login → logout; wrong password gives 401). pytest 10 green, Vitest 7 green. Branch `feature/SCRUM-22-login`, [PR #5](https://github.com/GitGitRice/squadmeet/pull/5) to `dev` needs 1 approval; Jira In Review. Single-column codes layout not checked in the browser |
 
 ## Next
 
-0. Push `feature/SCRUM-22-login` and open a PR to `dev` (needs 1 approval). Then `SCRUM-26` (MFA),
+0. Review and merge [PR #5](https://github.com/GitGitRice/squadmeet/pull/5) (`SCRUM-22`) (needs 1 approval by Stefan or David). Then `SCRUM-26` (MFA),
    `SCRUM-27` (captcha + rate limit), `SCRUM-33` (password reset) can build on it. `SCRUM-19` (CI),
    `SCRUM-20` (AWS host) and `SCRUM-21` (Leipzig Places, David) can start now (`SCRUM-16` is merged).
    CI must start a PostgreSQL+PostGIS service: the backend tests need a migrated database.
