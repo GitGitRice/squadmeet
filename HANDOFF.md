@@ -223,7 +223,7 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
 
 Newest first. One line per session: date · who · what changed.
 
-- 2026-10-07 · Steven · Created `dev` branch. Added `README.md` and `DIARY.md` (daily log per person); `CLAUDE.md` now tells agents to fill the diary.
+- 2026-10-07 · Steven · Created `dev` branch. Added `README.md` and `DIARY.md` (daily log per person); `CLAUDE.md` now tells agents to fill the diary. Added `AGENTS.md` (points other agents to `CLAUDE.md`).
 
 - 2026-10-07 · Steven · Created private GitHub repo `GitGitRice/squadmeet` and pushed the docs to `main`. Added `TICKETS.md` (tickets per person in start order) and `.gitignore`.
 
