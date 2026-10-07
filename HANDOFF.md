@@ -1,0 +1,229 @@
+# Abschlussprojekt — Handoff
+
+A living handoff for the team (3 people) and their coding agents. Read it at the start of a
+session. Update it at the end of a session. It answers one question: **what is in flight
+right now, why, and what comes next?**
+
+**Last update:** 2026-10-07 · Steven · GitHub repo created, ticket overview added
+
+---
+
+## How to use this file
+
+Rules. Keep them short so everybody follows them.
+
+1. **Read first.** A new session (human or agent) reads this file, then the Jira board.
+2. **Update last.** Before you stop work, update *Now*, *In flight* and *Next*, then add one
+   line to the *Log*. Change the "Last update" line at the top.
+3. **Jira is the source of truth for tasks.** Do not copy issue text into this file. Write
+   the issue key and a few words: `SCRUM-12 (login form)`. Jira holds the detail.
+4. **Reference, do not copy.** Specs, decisions, commits and PRs go here as a path, a key or
+   a URL. The detail stays in one place, so it does not drift.
+5. **Write facts only when they are checked.** "Deploy works" means somebody saw it work.
+   If you only think so, write "probably" or "not checked". The next person trusts this file.
+6. **No secrets.** No API keys, passwords, tokens, `.env` contents or personal data.
+7. **Explain every code the first time.** A Jira key, a commit hash or a decision number
+   gets a few words of meaning next to it.
+8. **Delete what is done.** Finished work leaves *In flight*. The *Log* keeps the history.
+   This file stays short.
+
+---
+
+## Project in three lines
+
+- **What:** Syntax Modul 4 final project (Fullstack, Backend & DevOps). Original brief:
+  [BRIEF.md](BRIEF.md). Timeline and must-haves: [NOTES.md](NOTES.md).
+- **Must-haves:** cloud deployment, Docker, CI/CD (test → build → deploy), one complete
+  business workflow, tests, docs, one debugging case.
+- **Deadline:** presentation on **Wed 21.10.2026** (15–20 min, live demo).
+- **Repo:** https://github.com/GitGitRice/squadmeet (private). Who starts with which ticket:
+  [TICKETS.md](TICKETS.md).
+
+---
+
+## Team
+
+| Person | Role / area | Jira name |
+|--------|-------------|-----------|
+| Steven | DevOps (Docker, CI/CD, AWS, HTTPS) + login + push notifications | Steven Tanu |
+| Stefan | Product owner (his idea) + frontend PWA (map, meetup screens, ratings) | Stefan Kallinich |
+| David  | Backend API, database, OSM import, place confirmations; native Android app after the project | David Ludwig-Erbs |
+
+---
+
+## Jira
+
+- **Site:** `https://socmediaapp.atlassian.net`
+- **Project:** Freizeitapp, key `SCRUM` (Jira default; can still be renamed in project
+  settings → Details). Team-managed software project.
+- **Issue types:** Epic, Story, Task, Subtask, Feature, Bug
+- **Board:** _tbd_ (URL not checked yet)
+- **Examples in this file** use the key `SCRUM` but are not real issues.
+
+### Epics (created 2026-10-07, all To Do)
+
+| Key | Epic | Owner (**bold** = Jira assignee) | Blocked by |
+|-----|------|-------|-----------|
+| `SCRUM-6` | Infrastruktur & Pipeline | **Steven** | — |
+| `SCRUM-2` | Anmeldung und Registrierung | **Steven** | `SCRUM-6` |
+| `SCRUM-7` | Plätze & Karte | **David** + Stefan | `SCRUM-6` |
+| `SCRUM-8` | Treffen (main demo workflow) | **Stefan** + David | `SCRUM-2`, `SCRUM-7` |
+| `SCRUM-9` | Platzvorschläge & Bestätigungen | **David** + Stefan | `SCRUM-2`, `SCRUM-7` |
+| `SCRUM-10` | Bewertungen & Fotos | **Stefan** + David | `SCRUM-2`, `SCRUM-7` |
+| `SCRUM-11` | Kontakte & Blockieren | **Stefan** + David | `SCRUM-2` |
+| `SCRUM-12` | Benachrichtigungen | **Steven** + David | `SCRUM-8` |
+| `SCRUM-13` | Admin & Moderation | **David** | `SCRUM-7`, `SCRUM-10` |
+| `SCRUM-14` | Datenschutz & Konto | **Steven** | `SCRUM-2` |
+| `SCRUM-15` | Präsentation & Doku | **Stefan** (product owner) + all | — |
+
+### Sprints
+
+- **Sprint 1** ("SCRUM Sprint 1", sprint ID 1) — Wed 07.10. – Fri 09.10.: walking skeleton, `SCRUM-16` – `SCRUM-25`.
+- **Sprint 2** — Mon 12.10. – Fri 16.10. (feature freeze): `SCRUM-26` – `SCRUM-45`. Tickets not yet
+  moved into the sprint (sprint ID unknown; drag one ticket in, then an agent can move the rest).
+- Sprints must be created in the Jira UI (the agent's Jira tools cannot create sprints). An agent
+  reads a sprint ID from the `customfield_10020` (Sprint) field of an issue in that sprint.
+
+### Walking skeleton tickets (Sprint 1)
+
+`SCRUM-16` skeleton locally (Steven, blocks 19–22) → `SCRUM-19` CI + `SCRUM-20` AWS host with HTTPS
+(Steven) → `SCRUM-23` automatic deploy (Steven). `SCRUM-21` Leipzig Places (David) → `SCRUM-24`
+filter + detail (Stefan), `SCRUM-25` other cities (David). `SCRUM-22` register/login (Steven).
+No blockers: `SCRUM-17` Meetup prototype, `SCRUM-18` list of Reasons (Stefan).
+
+### Sprint 2 tickets
+
+Must: `SCRUM-26` MFA, `SCRUM-27` captcha + rate limit, `SCRUM-33` password reset, `SCRUM-28` privacy +
+delete account (Steven); main workflow `SCRUM-29` Now-meetup (Stefan, start Mon morning) → `SCRUM-34`
+Join/Leave (David) → `SCRUM-37` Host Cancel/handover/Closed (David) and `SCRUM-35` later Meetup
+(Stefan) → `SCRUM-38` Series (David); `SCRUM-30` suggest Place → `SCRUM-36` confirm (David);
+`SCRUM-31` Ratings (Stefan); `SCRUM-39` Admin lock/delete (David).
+Should: `SCRUM-40` in-app Notifications, `SCRUM-41` Favorites (Steven); `SCRUM-42` Photos,
+`SCRUM-32` Contacts + Block (Stefan). Could: `SCRUM-43` Contact notifications (Stefan), `SCRUM-44`
+web push, `SCRUM-45` Home area (Steven). Each ticket's "Blocked by" is a Jira link.
+
+"Blocked by" on `SCRUM-6` means only the walking skeleton, not the whole Epic. Stories come
+next; each owner writes them (for example with `/mattpocock-skills:to-tickets`).
+
+### Issue hierarchy
+
+| Level | Meaning | Example |
+|-------|---------|---------|
+| **Epic** | A large goal, often one per must-have or feature area | `SCRUM-1 (CI/CD pipeline)` |
+| **Story** | A result a user or the team can see, fits in a few days | `SCRUM-5 (pipeline deploys to cloud on merge)` |
+| **Task** | One concrete piece of work, fits in one day or less | `SCRUM-9 (write GitHub Actions build job)` |
+
+### Conventions (proposal — confirm as a team)
+
+- **Branch name:** `<KEY>-<short-name>`, for example `SCRUM-9-build-job`. Jira links the
+  branch to the issue.
+- **Commit message:** start with the key: `SCRUM-9 add build job`.
+- **Done means:** merged, and the pipeline is green. Not "works on my laptop".
+- **Status flow:** To Do → In Progress → In Review → Done.
+
+### Agent access
+
+The Atlassian MCP server is set up in [.mcp.json](.mcp.json) (official remote server,
+`https://mcp.atlassian.com/v1/mcp`). Each person logs in once with their own Atlassian
+account: start `claude` in this folder, approve the server, then run `/mcp` → `atlassian` →
+authenticate. There are no shared credentials.
+
+---
+
+## Now
+
+**Topic chosen (2026-10-07):** Stefan's idea, a map of free public activity places (table tennis,
+basketball, …) where adults announce Meetups and others join them. Glossary: [CONTEXT.md](CONTEXT.md).
+Decisions: [docs/adr/](docs/adr/). Grilling session (design interview) finished and confirmed
+by Steven; only the app name is open. No code yet. The docs are on GitHub
+(https://github.com/GitGitRice/squadmeet, private, branch `main` only). Jira has Epics `SCRUM-2`,
+`SCRUM-6`–`SCRUM-15` and Stories/Tasks `SCRUM-16`–`SCRUM-45`; start order per person in
+[TICKETS.md](TICKETS.md). Agent skills are set up to use Jira
+([docs/agents/issue-tracker.md](docs/agents/issue-tracker.md)).
+
+## In flight
+
+| Who | What | Jira | State |
+|-----|------|------|-------|
+| — | — | — | — |
+
+## Next
+
+1. Create the two Jira sprints (see *Jira → Sprints*), then approve the second ticket batch.
+2. Confirm the role split and the Epic assignees as a team (tables above).
+3. Write the Stories for each Epic, with "Blocks" links. Walking skeleton first (by Fri 09.10.):
+   Steven repo + Compose + CI/CD + EC2 + HTTPS; David data model + OSM import for one city;
+   Stefan clickable screens with test data + the list of Reasons.
+4. Steven: invite Stefan and David as collaborators on the GitHub repo (needs their GitHub
+   usernames). Create the `dev` branch for Gitflow.
+5. Choose the stack. Every tool needs a reason you can say out loud (brief: "Understand
+   what you build").
+6. Deploy a "hello world" in the first days. Deploy problems take longer than planned.
+
+## Open questions
+
+- Final app name. Working name: **SquadMeet** (2026-10-07; quick web search found no app with this name, but similar "Squadsheet" and "squadSet" exist; no brand or domain check yet). "Meetup" rejected: Meetup.com brand, and it is our glossary term.
+- Demo data and demo devices (decided later, `SCRUM-15`).
+- Set an AWS budget alarm (Free Tier + 15 $ credit).
+- Gitflow: GitHub's "closes #12" works only for merges into the default branch — make `dev`
+  the default branch or close by hand. See [NOTES.md → Working principles](NOTES.md).
+
+## Decisions
+
+Short entries. Put the reason next to the decision. Longer reasoning goes to a separate file
+(for example `docs/decisions/`), and this list links to it.
+
+| Date | Decision | Why | Where |
+|------|----------|-----|-------|
+| 2026-10-07 | Use Jira with Epics, Stories and Tasks | Team of 3 needs one shared task list | this file → Jira |
+| 2026-10-07 | Atlassian MCP at project scope | Same agent setup for all three, no secrets in the repo | [.mcp.json](.mcp.json) |
+| 2026-10-07 | Topic: Stefan's activity-place map with Meetups; main demo workflow = Meetup, second = Place suggestion with 3 Confirmations | Real use case, two workflows with states | [CONTEXT.md](CONTEXT.md) |
+| 2026-10-07 | Client is a React PWA, not native | One code base for phone + laptop, team knows React | [ADR-0001](docs/adr/0001-pwa-not-native-app.md) |
+| 2026-10-07 | One EC2 host with Docker Compose; NAS after the project | Cheapest, same Compose file runs on the NAS | [ADR-0002](docs/adr/0002-one-ec2-host-with-docker-compose.md) |
+| 2026-10-07 | Radius Notifications use a Home area, not live location | PWA has no background location; privacy | [ADR-0003](docs/adr/0003-home-area-not-live-location.md) |
+| 2026-10-07 | No chat; nicknames + predefined avatars; predefined rating Reasons | Safety between strangers, no moderation capacity | [ADR-0004](docs/adr/0004-no-chat-between-users.md) |
+| 2026-10-07 | Stack: React/Vite PWA, Leaflet, FastAPI + SQLModel, PostgreSQL + PostGIS, Caddy + free subdomain (HTTPS) | Course stack; PostGIS for radius queries; HTTPS needed for push/location | this file |
+| 2026-10-07 | Own login; MFA = authenticator app (TOTP) + recovery codes, optional for users, required for Admins; captcha = Cloudflare Turnstile (register, reset, login after 3 failures) + login rate limit; 18+ checkbox | Steven built FastAPI auth in MediDoc; Turnstile free and DSGVO-friendly | this file |
+| 2026-10-07 | No email address; login with Nickname; reset with recovery code or MFA code | No email sending wanted; less personal data | [ADR-0005](docs/adr/0005-no-email-address.md) |
+| 2026-10-07 | A Meetup has one Host; Host can Cancel or Leave; role passes to the earliest Join; no users left = Closed | Meetups survive when the creator drops out | [CONTEXT.md](CONTEXT.md) |
+| 2026-10-07 | Meetups are visible to all users (except blocked ones); no "contacts only" | Meeting new people is the purpose of the app | [CONTEXT.md](CONTEXT.md) |
+| 2026-10-07 | CI/CD: GitHub Actions → GHCR → EC2 via OIDC + SSM; Gitflow (`feature/*` → `dev` → `main`) | No stored AWS keys, no open SSH port | this file |
+| 2026-10-07 | Walking skeleton live by Fri 09.10.; feature freeze Fri 16.10. evening; Mon–Tue 19–20.10. only fixes, tests, docs, presentation | Deploy risk first; brief's week 3 | this file |
+| 2026-10-07 | Minimum tests: pytest for the business rules, a few Vitest tests, API smoke test after each deploy | Brief asks for basic tests; rules carry the most risk | this file |
+| 2026-10-07 | Jira is the only issue tracker; dependencies as Jira "Blocks" links | One source of truth; shows who is blocked | [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md) |
+
+## Debugging case (presentation item)
+
+The brief asks for at least one interesting debugging case. Write it down **when it
+happens**. Afterwards the details are gone.
+
+Format: symptom → wrong guesses → real cause → fix → lesson. Link the Jira issue.
+
+- _none yet_
+
+---
+
+## Suggested skills for agents
+
+| When | Skill |
+|------|-------|
+| Stress-test a plan or the topic choice | `/mattpocock-skills:grilling` |
+| Fix the glossary (domain terms) for the chosen topic | `/mattpocock-skills:domain-modeling` |
+| Try a UI or a state model before the real build | `/mattpocock-skills:prototype` |
+| Build features test-first | `/mattpocock-skills:tdd` |
+| A bug that does not go away (also: debugging case) | `/mattpocock-skills:diagnosing-bugs` |
+| Review a branch before the merge | `/mattpocock-skills:code-review` |
+| Merge conflict | `/mattpocock-skills:resolving-merge-conflicts` |
+| Look up docs or API facts | `/mattpocock-skills:research` |
+
+---
+
+## Log
+
+Newest first. One line per session: date · who · what changed.
+
+- 2026-10-07 · Steven · Created private GitHub repo `GitGitRice/squadmeet` and pushed the docs to `main`. Added `TICKETS.md` (tickets per person in start order) and `.gitignore`.
+
+- 2026-10-07 · Steven · Grilling of Stefan's idea (rounds 1–9, confirmed). Tickets `SCRUM-16`–`SCRUM-45` created, assigned and linked; Sprint 1 filled. Working name SquadMeet. Topic chosen. Added `CONTEXT.md`, ADR-0001–0005, Epics `SCRUM-6`–`SCRUM-15` with Blocks links, agent-skills setup (`docs/agents/`, `CLAUDE.md` section). Team roles filled in.
+- 2026-10-07 · Steven · Checked Jira access via MCP. Added site, project key `SCRUM` and the current issue (`SCRUM-2`) to this file. Changed the example key from `ABP` to `SCRUM`.
+- 2026-10-07 · Steven · Created this file and `CLAUDE.md` (tells agents to read and update this file). Added the Atlassian MCP server (`.mcp.json`).
