@@ -4,7 +4,7 @@ A living handoff for the team (3 people) and their coding agents. Read it at the
 session. Update it at the end of a session. It answers one question: **what is in flight
 right now, why, and what comes next?**
 
-**Last update:** 2026-10-07 · Steven · `SCRUM-22` (register/login) merged and Done; `SCRUM-19` (CI) started
+**Last update:** 2026-10-07 · Steven · `SCRUM-19` (CI) in review as [PR #6](https://github.com/GitGitRice/squadmeet/pull/6); CI checks are now required on `main` and `dev`
 
 ---
 
@@ -149,12 +149,12 @@ shows one example Place on the map (how to run: [README.md](README.md) → *Run 
 
 | Who | What | Jira | State |
 |-----|------|------|-------|
-| Steven | GitHub Actions: pytest (with a PostgreSQL+PostGIS service) + Vitest + Docker image build on every PR; push images to GHCR on merge into `dev` | `SCRUM-19` (CI) | Workflow [.github/workflows/ci.yml](.github/workflows/ci.yml) written: actionlint OK, backend + frontend steps green locally. **Not checked on GitHub yet** (needs push + PR). Open: make the CI checks required in the ruleset "protect main and dev" |
+| Steven | GitHub Actions: pytest (with a PostgreSQL+PostGIS service) + Vitest + Docker image build on every PR; push images to GHCR on merge into `dev` | `SCRUM-19` (CI) | In Review: [PR #6](https://github.com/GitGitRice/squadmeet/pull/6) into `dev`, all 5 checks green on GitHub. Needs one approval (Stefan or David). **Not checked yet:** the GHCR push, because it runs only after the merge into `dev`. After the merge, look at the run on `dev` and at the packages under github.com/GitGitRice → Packages |
 
 ## Next
 
-0. Steven: build `SCRUM-19` (CI). The backend tests need a migrated database, so the CI job must
-   start a PostgreSQL+PostGIS service. Then `SCRUM-20` (AWS host). David can start `SCRUM-21`
+0. Stefan or David: review and approve [PR #6](https://github.com/GitGitRice/squadmeet/pull/6) (`SCRUM-19`, CI). Steven: merge it,
+   check the GHCR push, set `SCRUM-19` to Done. Then `SCRUM-20` (AWS host). David can start `SCRUM-21`
    (Leipzig Places). `SCRUM-26` (MFA), `SCRUM-27` (captcha), `SCRUM-28` (privacy) and `SCRUM-32`
    (contacts, Stefan) are no longer blocked.
 1. Create the two Jira sprints (see *Jira → Sprints*), then approve the second ticket batch.
@@ -208,6 +208,7 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-07 | PR title/description and `DIARY.md` in German; code, commits and other docs in English | Stefan and David read German more easily | this file → *Conventions* |
 | 2026-10-07 | CI starts the database with `docker compose up --wait db` (our own PostGIS image), not a `postgis/postgis` service container; CI also builds and pushes the `db` image | CI tests against the same database image as local and EC2; the EC2 deploy can pull all three images | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
 | 2026-10-07 | Images in GHCR: `ghcr.io/gitgitrice/squadmeet-{backend,frontend,db}`, tags = commit SHA + `dev`; pushed only after both test jobs are green | Deploy (`SCRUM-23`) picks an exact commit; no image from a red build | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
+| 2026-10-07 | Ruleset "protect main and dev" requires the 5 CI checks (backend tests, frontend tests, 3 Docker images) | A red pipeline blocks the merge ("Done" means the pipeline is green) | GitHub → Settings → Rules |
 | 2026-10-07 | Jira is the only issue tracker; dependencies as Jira "Blocks" links | One source of truth; shows who is blocked | [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md) |
 
 ## Debugging case (presentation item)
@@ -246,6 +247,8 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
 ## Log
 
 Newest first. One line per session: date · who · what changed.
+
+- 2026-10-07 · Steven · `SCRUM-19`: CI workflow [.github/workflows/ci.yml](.github/workflows/ci.yml) (pytest with the Compose DB, oxlint + build + Vitest, Docker images for backend/frontend/db, GHCR push on `dev`, actions pinned to SHAs). [PR #6](https://github.com/GitGitRice/squadmeet/pull/6) green; Jira In Review. Ruleset now requires the 5 CI checks.
 
 - 2026-10-07 · Steven · [PR #5](https://github.com/GitGitRice/squadmeet/pull/5) (`SCRUM-22`) merged, Jira Done. Started `SCRUM-19` (In Progress). New rule: PR text and `DIARY.md` in German. `DIARY.md` translated; `TICKETS.md` shows ✓ done / ● in progress / ▶ start now.
 
