@@ -1,62 +1,62 @@
-# Ticket overview — who starts with what
+# Ticket-Übersicht — wer womit anfängt
 
-Snapshot of Jira (`SCRUM` project) on 2026-10-07. Jira is the source of truth; this file can be
-out of date. Each person's list is in work order: do the top open ticket whose blockers are done.
+Snapshot von Jira (Projekt `SCRUM`) am 07.10.2026. Jira ist die Single Source of Truth; diese Datei kann
+veraltet sein. Die Liste jeder Person ist in Arbeitsreihenfolge: Bearbeite das oberste offene Ticket, dessen Blocker erledigt sind.
 
-- **▶ = start now** (no blockers).
-- **Blocked by** = Jira "is blocked by" link. Start a ticket when those are Done.
-- **Prio** (Sprint 2 only): Must / Should / Could. Must first.
+- **▶ = jetzt starten** (keine Blocker).
+- **Blockiert von** = Jira "is blocked by" Verknüpfung. Starte ein Ticket, wenn diese erledigt (Done) sind.
+- **Prio** (nur Sprint 2): Must / Should / Could. Must zuerst.
 
-Sprint 1 = Wed 07.10. – Fri 09.10. (walking skeleton live). Sprint 2 = Mon 12.10. – Fri 16.10.
-(feature freeze).
+Sprint 1 = Mi 07.10. – Fr 09.10. (Walking Skeleton live). Sprint 2 = Mo 12.10. – Fr 16.10.
+(Feature Freeze).
 
 ## Steven
 
-| | Key | Title | Epic | Sprint | Prio | Blocked by |
-|-|-----|-------|------|--------|------|------------|
-| ▶ | SCRUM-16 | Skeleton: one Place on the map, locally | SCRUM-6 Infrastruktur & Pipeline | 1 | | — |
-| | SCRUM-22 | Register and log in with a Nickname | SCRUM-2 Anmeldung und Registrierung | 1 | | 16 |
-| | SCRUM-19 | CI: tests and images on every pull request | SCRUM-6 Infrastruktur & Pipeline | 1 | | 16 |
-| | SCRUM-20 | AWS host with HTTPS | SCRUM-6 Infrastruktur & Pipeline | 1 | | 16 |
-| | SCRUM-23 | Automatic deploy + smoke test | SCRUM-6 Infrastruktur & Pipeline | 1 | | 19, 20 |
-| | SCRUM-26 | MFA with an authenticator app | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22 |
-| | SCRUM-27 | Captcha (Turnstile) and login rate limit | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22 |
-| | SCRUM-28 | Privacy page, imprint and "delete my account" | SCRUM-14 Datenschutz & Konto | 2 | Must | 22 |
-| | SCRUM-33 | Password reset with a Recovery code or MFA code | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22, 26 |
-| | SCRUM-40 | In-app Notification list | SCRUM-12 Benachrichtigungen | 2 | Should | 37 |
-| | SCRUM-41 | Favorites with Time rules | SCRUM-12 Benachrichtigungen | 2 | Should | 40 |
-| | SCRUM-44 | Web push for Notifications | SCRUM-12 Benachrichtigungen | 2 | Could | 40 |
-| | SCRUM-45 | Home area Notifications | SCRUM-12 Benachrichtigungen | 2 | Could | 40 |
+| | Key | Titel | Epic | Sprint | Prio | Blockiert von |
+|-|-----|-------|------|--------|------|---------------|
+| ▶ | SCRUM-16 | Skeleton: ein Platz auf der Karte, lokal | SCRUM-6 Infrastruktur & Pipeline | 1 | | — |
+| | SCRUM-22 | Registrieren und anmelden mit einem Nickname | SCRUM-2 Anmeldung und Registrierung | 1 | | 16 |
+| | SCRUM-19 | CI: Tests und Images bei jedem Pull Request | SCRUM-6 Infrastruktur & Pipeline | 1 | | 16 |
+| | SCRUM-20 | AWS Host mit HTTPS | SCRUM-6 Infrastruktur & Pipeline | 1 | | 16 |
+| | SCRUM-23 | Automatisches Deploy + Smoke-Test | SCRUM-6 Infrastruktur & Pipeline | 1 | | 19, 20 |
+| | SCRUM-26 | MFA mit einer Authenticator-App | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22 |
+| | SCRUM-27 | Captcha (Turnstile) und Login-Rate-Limit | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22 |
+| | SCRUM-28 | Datenschutzseite, Impressum und "Mein Konto löschen" | SCRUM-14 Datenschutz & Konto | 2 | Must | 22 |
+| | SCRUM-33 | Passwort-Reset mit Recovery-Code oder MFA-Code | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22, 26 |
+| | SCRUM-40 | In-App Benachrichtigungsliste | SCRUM-12 Benachrichtigungen | 2 | Should | 37 |
+| | SCRUM-41 | Favoriten mit Zeit-Regeln | SCRUM-12 Benachrichtigungen | 2 | Should | 40 |
+| | SCRUM-44 | Web-Push für Benachrichtigungen | SCRUM-12 Benachrichtigungen | 2 | Could | 40 |
+| | SCRUM-45 | Home-Bereich Benachrichtigungen | SCRUM-12 Benachrichtigungen | 2 | Could | 40 |
 
 ## Stefan
 
-| | Key | Title | Epic | Sprint | Prio | Blocked by |
-|-|-----|-------|------|--------|------|------------|
-| ▶ | SCRUM-17 | Meetup screens as a clickable prototype | SCRUM-8 Treffen (Haupt-Workflow) | 1 | | — |
-| ▶ | SCRUM-18 | The list of Reasons per Activity type | SCRUM-10 Bewertungen & Fotos | 1 | | — |
-| | SCRUM-24 | Filter and Place detail | SCRUM-7 Plätze & Karte | 1 | | 21 |
-| | SCRUM-29 | Create a Now-meetup and see it on the map | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 22, 24, 17 |
-| | SCRUM-31 | Rate a Place with stars and Reasons | SCRUM-10 Bewertungen & Fotos | 2 | Must | 22, 24, 18 |
-| | SCRUM-35 | Meetup at a later time | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 29 |
-| | SCRUM-32 | Contact request, accept, remove and Block | SCRUM-11 Kontakte & Blockieren | 2 | Should | 22 |
-| | SCRUM-42 | Photo upload and Admin approval | SCRUM-10 Bewertungen & Fotos | 2 | Should | 39, 20 |
-| | SCRUM-43 | Contacts: Notification for their Meetups and invitations | SCRUM-11 Kontakte & Blockieren | 2 | Could | 32, 40 |
+| | Key | Titel | Epic | Sprint | Prio | Blockiert von |
+|-|-----|-------|------|--------|------|---------------|
+| ▶ | SCRUM-17 | Meetup-Screens als klickbarer Prototyp | SCRUM-8 Treffen (Haupt-Workflow) | 1 | | — |
+| ▶ | SCRUM-18 | Die Liste der Gründe pro Aktivitätstyp | SCRUM-10 Bewertungen & Fotos | 1 | | — |
+| | SCRUM-24 | Filter und Platz-Details | SCRUM-7 Plätze & Karte | 1 | | 21 |
+| | SCRUM-29 | Ein Jetzt-Meetup erstellen und auf der Karte sehen | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 22, 24, 17 |
+| | SCRUM-31 | Einen Platz mit Sternen und Gründen bewerten | SCRUM-10 Bewertungen & Fotos | 2 | Must | 22, 24, 18 |
+| | SCRUM-35 | Meetup zu einer späteren Zeit | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 29 |
+| | SCRUM-32 | Kontaktanfrage, annehmen, entfernen und Blockieren | SCRUM-11 Kontakte & Blockieren | 2 | Should | 22 |
+| | SCRUM-42 | Foto-Upload und Admin-Freigabe | SCRUM-10 Bewertungen & Fotos | 2 | Should | 39, 20 |
+| | SCRUM-43 | Kontakte: Benachrichtigung für deren Meetups und Einladungen | SCRUM-11 Kontakte & Blockieren | 2 | Could | 32, 40 |
 
 ## David
 
-| | Key | Title | Epic | Sprint | Prio | Blocked by |
-|-|-----|-------|------|--------|------|------------|
-| | SCRUM-21 | Real Places for Leipzig on the map | SCRUM-7 Plätze & Karte | 1 | | 16 |
-| | SCRUM-25 | Import the other 4 cities | SCRUM-7 Plätze & Karte | 1 | | 21 |
-| | SCRUM-30 | Suggest a Place, with the duplicate warning | SCRUM-9 Platzvorschläge & Bestätigungen | 2 | Must | 22, 21 |
-| | SCRUM-34 | Join a Meetup with Party size, and Leave | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 29 |
-| | SCRUM-36 | Confirm a Place suggestion at the Place | SCRUM-9 Platzvorschläge & Bestätigungen | 2 | Must | 30 |
-| | SCRUM-37 | Host: Cancel, handover and Closed | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 34 |
-| | SCRUM-38 | Weekly Series with Occurrences | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 34, 35 |
-| | SCRUM-39 | Admin: lock, unlock and delete a Place | SCRUM-13 Admin & Moderation | 2 | Must | 26, 37 |
+| | Key | Titel | Epic | Sprint | Prio | Blockiert von |
+|-|-----|-------|------|--------|------|---------------|
+| | SCRUM-21 | Echte Plätze für Leipzig auf der Karte | SCRUM-7 Plätze & Karte | 1 | | 16 |
+| | SCRUM-25 | Die anderen 4 Städte importieren | SCRUM-7 Plätze & Karte | 1 | | 21 |
+| | SCRUM-30 | Einen Platz vorschlagen, mit der Duplikat-Warnung | SCRUM-9 Platzvorschläge & Bestätigungen | 2 | Must | 22, 21 |
+| | SCRUM-34 | Einem Meetup mit Party-Größe beitreten, und Verlassen | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 29 |
+| | SCRUM-36 | Einen Platzvorschlag am Platz bestätigen | SCRUM-9 Platzvorschläge & Bestätigungen | 2 | Must | 30 |
+| | SCRUM-37 | Host: Absagen, Übergabe und Geschlossen | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 34 |
+| | SCRUM-38 | Wöchentliche Serie mit Terminen | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 34, 35 |
+| | SCRUM-39 | Admin: Platz sperren, entsperren und löschen | SCRUM-13 Admin & Moderation | 2 | Must | 26, 37 |
 
-David has no ▶ ticket: everything waits for `SCRUM-16` (Steven's local skeleton). Until then,
-David can prepare the OSM query and the data model for `SCRUM-21` without the skeleton repo.
+David hat kein ▶ Ticket: Alles wartet auf `SCRUM-16` (Stevens lokales Skeleton). Bis dahin
+kann David die OSM-Abfrage und das Datenmodell für `SCRUM-21` ohne das Skeleton-Repo vorbereiten.
 
 ## Epics
 
