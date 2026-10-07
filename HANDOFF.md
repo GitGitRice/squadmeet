@@ -4,7 +4,7 @@ A living handoff for the team (3 people) and their coding agents. Read it at the
 session. Update it at the end of a session. It answers one question: **what is in flight
 right now, why, and what comes next?**
 
-**Last update:** 2026-10-07 · Steven · `SCRUM-16` (local skeleton) merged and Done; `SCRUM-22` (register/login) works locally, [PR #5](https://github.com/GitGitRice/squadmeet/pull/5) to `dev` open
+**Last update:** 2026-10-07 · Steven · `SCRUM-19` (CI) in review as [PR #6](https://github.com/GitGitRice/squadmeet/pull/6); CI checks are now required on `main` and `dev`
 
 ---
 
@@ -120,6 +120,9 @@ next; each owner writes them (for example with `/mattpocock-skills:to-tickets`).
 - **Commit message:** start with the key: `SCRUM-9 add build job`.
 - **Done means:** merged, and the pipeline is green. Not "works on my laptop".
 - **Status flow:** To Do → In Progress → In Review → Done.
+- **Language for the team:** pull request title and description, and [DIARY.md](DIARY.md), are in
+  German, so everybody in the team understands them. Code, commit messages and the other docs stay
+  in English.
 
 ### Agent access
 
@@ -146,14 +149,14 @@ shows one example Place on the map (how to run: [README.md](README.md) → *Run 
 
 | Who | What | Jira | State |
 |-----|------|------|-------|
-| Steven | Register, login, logout with Nickname; Recovery codes; Bearer token; protected route `/api/auth/me` | `SCRUM-22` (register/login) | Works locally (checked in the browser: register → codes screen → logged in → reload keeps login → logout; wrong password gives 401). pytest 10 green, Vitest 7 green. Branch `feature/SCRUM-22-login`, [PR #5](https://github.com/GitGitRice/squadmeet/pull/5) to `dev` needs 1 approval; Jira In Review. Single-column codes layout not checked in the browser |
+| Steven | GitHub Actions: pytest (with a PostgreSQL+PostGIS service) + Vitest + Docker image build on every PR; push images to GHCR on merge into `dev` | `SCRUM-19` (CI) | In Review: [PR #6](https://github.com/GitGitRice/squadmeet/pull/6) into `dev`, all 5 checks green on GitHub. Needs one approval (Stefan or David). **Not checked yet:** the GHCR push, because it runs only after the merge into `dev`. After the merge, look at the run on `dev` and at the packages under github.com/GitGitRice → Packages |
 
 ## Next
 
-0. Review and merge [PR #5](https://github.com/GitGitRice/squadmeet/pull/5) (`SCRUM-22`) (needs 1 approval by Stefan or David). Then `SCRUM-26` (MFA),
-   `SCRUM-27` (captcha + rate limit), `SCRUM-33` (password reset) can build on it. `SCRUM-19` (CI),
-   `SCRUM-20` (AWS host) and `SCRUM-21` (Leipzig Places, David) can start now (`SCRUM-16` is merged).
-   CI must start a PostgreSQL+PostGIS service: the backend tests need a migrated database.
+0. Stefan or David: review and approve [PR #6](https://github.com/GitGitRice/squadmeet/pull/6) (`SCRUM-19`, CI). Steven: merge it,
+   check the GHCR push, set `SCRUM-19` to Done. Then `SCRUM-20` (AWS host). David can start `SCRUM-21`
+   (Leipzig Places). `SCRUM-26` (MFA), `SCRUM-27` (captcha), `SCRUM-28` (privacy) and `SCRUM-32`
+   (contacts, Stefan) are no longer blocked.
 1. Create the two Jira sprints (see *Jira → Sprints*), then approve the second ticket batch.
 2. Confirm the role split and the Epic assignees as a team (tables above).
 3. Write the Stories for each Epic, with "Blocks" links. Walking skeleton first (by Fri 09.10.):
@@ -202,6 +205,10 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-07 | Login token = random session token, stored only as SHA-256 hash in `login_session`, sent as `Authorization: Bearer`; 30 days valid | Logout and Admin lock can end a session at once (a JWT cannot); Bearer also works for the later Android app | [backend/app/auth.py](backend/app/auth.py) |
 | 2026-10-07 | Passwords: Argon2 (`pwdlib`). Recovery codes (10 × 16 characters) and tokens: SHA-256 | People choose weak passwords, so the hash must be slow; random codes are too long to guess | [backend/app/auth.py](backend/app/auth.py) |
 | 2026-10-07 | Nickname: 3–20 of `A–Z a–z 0–9 _ -`, unique without case; the map stays public without login | No look-alike Nicknames ("Steven"/"steven"); people can look before they register | [backend/app/auth.py](backend/app/auth.py) |
+| 2026-10-07 | PR title/description and `DIARY.md` in German; code, commits and other docs in English | Stefan and David read German more easily | this file → *Conventions* |
+| 2026-10-07 | CI starts the database with `docker compose up --wait db` (our own PostGIS image), not a `postgis/postgis` service container; CI also builds and pushes the `db` image | CI tests against the same database image as local and EC2; the EC2 deploy can pull all three images | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
+| 2026-10-07 | Images in GHCR: `ghcr.io/gitgitrice/squadmeet-{backend,frontend,db}`, tags = commit SHA + `dev`; pushed only after both test jobs are green | Deploy (`SCRUM-23`) picks an exact commit; no image from a red build | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
+| 2026-10-07 | Ruleset "protect main and dev" requires the 5 CI checks (backend tests, frontend tests, 3 Docker images) | A red pipeline blocks the merge ("Done" means the pipeline is green) | GitHub → Settings → Rules |
 | 2026-10-07 | Jira is the only issue tracker; dependencies as Jira "Blocks" links | One source of truth; shows who is blocked | [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md) |
 
 ## Debugging case (presentation item)
@@ -240,6 +247,10 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
 ## Log
 
 Newest first. One line per session: date · who · what changed.
+
+- 2026-10-07 · Steven · `SCRUM-19`: CI workflow [.github/workflows/ci.yml](.github/workflows/ci.yml) (pytest with the Compose DB, oxlint + build + Vitest, Docker images for backend/frontend/db, GHCR push on `dev`, actions pinned to SHAs). [PR #6](https://github.com/GitGitRice/squadmeet/pull/6) green; Jira In Review. Ruleset now requires the 5 CI checks.
+
+- 2026-10-07 · Steven · [PR #5](https://github.com/GitGitRice/squadmeet/pull/5) (`SCRUM-22`) merged, Jira Done. Started `SCRUM-19` (In Progress). New rule: PR text and `DIARY.md` in German. `DIARY.md` translated; `TICKETS.md` shows ✓ done / ● in progress / ▶ start now.
 
 - 2026-10-07 · Steven · `SCRUM-16` merged (PR #4) and set to Done. `SCRUM-22`: register/login/logout (backend `app/auth.py`, migration 0002, frontend login dialog + Recovery code screen), 9 new pytest tests with rollback per test, 5 new Vitest tests. Checked in the browser.
 

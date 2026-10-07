@@ -11,8 +11,13 @@ comes next. Its rules section says how to write in it.
 - **Session end:** before you stop, update `HANDOFF.md` by its rules. Then tell the person
   what you changed in it.
 - **Diary:** at the end of a working day, add the person's short line to
-  [DIARY.md](DIARY.md) (rules at its top). Ask them what they did if you do not know.
+  [DIARY.md](DIARY.md) (rules at its top), in German. Ask them what they did if you do not know.
 - **Decision or debugging case:** add it to `HANDOFF.md` when it happens, not at session end.
+
+## Pull requests
+
+Write the pull request title and description in **German**, so the whole team understands them.
+Code, commit messages and the other docs stay in English. Details: `HANDOFF.md` → *Jira → Conventions*.
 
 ## Jira
 
