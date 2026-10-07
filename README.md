@@ -6,7 +6,7 @@ announce a Meetup at a Place, and other people join it.
 Final project of the Syntax course, Modul 4 (Fullstack, Backend & DevOps). Team of 3.
 Presentation with live demo: **Wed 21.10.2026**.
 
-> **State:** planning done, no code yet. The walking skeleton is due Fri 09.10.
+> **State:** local skeleton runs (`SCRUM-16`). The walking skeleton is due live on Fri 09.10.
 
 ## Team
 
@@ -20,8 +20,8 @@ Presentation with live demo: **Wed 21.10.2026**.
 
 | Part | Tool | Why |
 |------|------|-----|
-| Client | React + Vite as a PWA, Leaflet map | One code base for phone and laptop ([ADR-0001](docs/adr/0001-pwa-not-native-app.md)) |
-| API | FastAPI + SQLModel | Course stack; the team knows it |
+| Client | React + TypeScript + Vite as a PWA, Leaflet map | One code base for phone and laptop ([ADR-0001](docs/adr/0001-pwa-not-native-app.md)) |
+| API | FastAPI + SQLModel, Alembic migrations | Course stack; the team knows it. Alembic keeps the EC2 data on schema changes |
 | Database | PostgreSQL + PostGIS | Radius queries ("Places near me") |
 | Hosting | One AWS EC2 host, Docker Compose, Caddy (HTTPS) | Cheap and simple ([ADR-0002](docs/adr/0002-one-ec2-host-with-docker-compose.md)); push and location need HTTPS |
 | CI/CD | GitHub Actions → GHCR → EC2 (OIDC + SSM) | No stored AWS keys, no open SSH port |
@@ -48,4 +48,44 @@ Tasks are in Jira (project `SCRUM`, https://socmediaapp.atlassian.net).
 
 ## Run locally
 
-_Comes with `SCRUM-16` (local skeleton)._
+You need Docker Desktop. Then, in the repo root:
+
+```sh
+docker compose up --build
+```
+
+| What | URL |
+|------|-----|
+| Map (frontend) | http://localhost:5173 |
+| API health | http://localhost:8000/api/health |
+| API docs | http://localhost:8000/docs |
+| Database | `localhost:5432`, user, password and DB `squadmeet` (change with `.env`, see `.env.example`) |
+
+On start, the backend runs the Alembic migrations and adds one example Place to an empty
+database. Code changes in `backend/` and `frontend/` reload without a rebuild. After a change to
+`requirements*.txt` or `package.json`, run `docker compose up --build` again.
+`docker compose down -v` also deletes the database.
+
+### Tests
+
+```sh
+docker compose exec backend pytest        # backend (pytest)
+cd frontend && npm install && npm test    # frontend (Vitest)
+```
+
+### Database schema changes (Alembic)
+
+Change the models in `backend/app/models.py`, then let Alembic write the migration and check it:
+
+```sh
+docker compose exec backend alembic revision --autogenerate -m "add meetup"
+docker compose exec backend alembic upgrade head
+```
+
+### Folders
+
+| Folder | What |
+|--------|------|
+| `backend/` | FastAPI + SQLModel API, Alembic migrations, pytest tests |
+| `frontend/` | React + TypeScript + Vite, Leaflet map, Vitest tests |
+| `db/` | PostgreSQL image with PostGIS (also runs on arm64) |
