@@ -191,7 +191,7 @@ function seed(): State {
 
 export const INITIAL_STATE = seed()
 
-const timeFormat = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' })
+export const timeFormat = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' })
 const dayFormat = new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' })
 
 export function formatWhen(meetup: Meetup): string {
@@ -209,4 +209,18 @@ export const STATE_LABELS: Record<MeetupState, string> = {
   ended: 'Beendet',
   cancelled: 'Abgesagt',
   closed: 'Geschlossen',
+}
+
+export type TimeFilter = 'all' | 'now' | 'today' | 'later'
+
+export const TIME_FILTERS: Record<TimeFilter, string> = { all: 'Alle', now: 'Jetzt', today: 'Heute', later: 'Später' }
+
+// Which active Meetups the map shows for a time filter (SCRUM-35: now / today / upcoming).
+export function matchesFilter(meetup: Meetup, filter: TimeFilter): boolean {
+  if (meetup.state !== 'active') return false
+  const isToday = new Date(meetup.start).toDateString() === new Date().toDateString()
+  if (filter === 'now') return meetup.kind === 'now'
+  if (filter === 'today') return meetup.kind === 'later' && isToday
+  if (filter === 'later') return meetup.kind === 'later' && !isToday
+  return true
 }
