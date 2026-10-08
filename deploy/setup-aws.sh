@@ -329,7 +329,13 @@ confirm "Create them now?" || die "Stopped. Nothing was created in this stage."
 
 VPC_ID=$(aws ec2 describe-vpcs --filters Name=is-default,Values=true \
   --query 'Vpcs[0].VpcId' --output text)
-[[ "$VPC_ID" != "None" ]] || die "No default VPC in $AWS_REGION. Create one: VPC console → Actions → Create default VPC."
+if [[ "$VPC_ID" == "None" ]]; then
+  # Some accounts (for example course accounts) have no default VPC in this region.
+  warn "There is no default VPC in $AWS_REGION. A default VPC costs nothing."
+  confirm "Create the default VPC now?" || die "Stopped. Create it later: VPC console → Actions → Create default VPC."
+  VPC_ID=$(aws ec2 create-default-vpc --query Vpc.VpcId --output text)
+  say "${GREEN}✓${RESET} Default VPC $VPC_ID"
+fi
 
 SG_ID=$(aws ec2 describe-security-groups \
   --filters Name=group-name,Values="$NAME-web" Name=vpc-id,Values="$VPC_ID" \
