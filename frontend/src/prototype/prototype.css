@@ -1,0 +1,619 @@
+/* PROTOTYPE (SCRUM-17). Phone first: touch targets at least 44px, text at least 16px,
+   red = someone is there now. */
+
+:root {
+  --pt-now: #c8102e;
+  --pt-now-soft: #fde8eb;
+  --pt-accent: #1652b8;
+  --pt-accent-soft: #e6eefc;
+  --pt-ink: #16181d;
+  --pt-muted: #505663;
+  --pt-line: #d5d8de;
+  --pt-soft: #f3f4f6;
+  --pt-ok: #1b7a3d;
+  --pt-radius: 14px;
+}
+
+.pt-root {
+  position: relative;
+  height: 100%;
+  color: var(--pt-ink);
+  font-size: 16px;
+}
+
+.pt-root button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.pt-root button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pt-root button:focus-visible {
+  outline: 3px solid var(--pt-accent);
+  outline-offset: 2px;
+}
+
+/* Map pins */
+
+.pt-pin {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 4px solid var(--pt-accent);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 35%);
+  box-sizing: border-box;
+}
+
+.pt-pin.empty {
+  font-size: 18px;
+  border: 2px solid #8a909c;
+  opacity: 0.85;
+}
+
+.pt-pin.now {
+  border-color: var(--pt-now);
+}
+
+/* A pulsing ring makes live Places stand out on a busy map. */
+.pt-pin.now::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 4px solid var(--pt-now);
+  animation: pt-pulse 1.8s ease-out infinite;
+}
+
+@keyframes pt-pulse {
+  from {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-pin.now::before {
+    animation: none;
+  }
+}
+
+.pt-pin span {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  white-space: nowrap;
+  color: white;
+  background: var(--pt-accent);
+  border-radius: 9px;
+}
+
+.pt-pin.now span {
+  background: var(--pt-now);
+}
+
+/* Top: legend */
+
+.pt-top {
+  position: absolute;
+  z-index: 1000;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.pt-top > * {
+  pointer-events: auto;
+}
+
+.pt-legend {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 14px;
+  background: rgb(255 255 255 / 92%);
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 20%);
+}
+
+.dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.dot.now {
+  background: var(--pt-now);
+}
+
+.pt-hint {
+  position: absolute;
+  z-index: 1000;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 12px 18px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--pt-ink);
+  color: white;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
+}
+
+/* Bottom sheet */
+
+.pt-sheet {
+  position: absolute;
+  z-index: 1100;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 560px;
+  max-height: 78%;
+  margin: 0 auto;
+  overflow-y: auto;
+  padding: 8px 16px calc(20px + env(safe-area-inset-bottom));
+  background: white;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 20px rgb(0 0 0 / 25%);
+  box-sizing: border-box;
+}
+
+.pt-handle {
+  align-self: center;
+  width: 40px;
+  height: 5px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  background: var(--pt-line);
+}
+
+.pt-sheet-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.pt-place-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  font-size: 26px;
+  background: var(--pt-soft);
+  border-radius: 12px;
+}
+
+.pt-place-title {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pt-place-title strong {
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.pt-place-title span {
+  font-size: 14px;
+  color: var(--pt-muted);
+}
+
+.pt-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  font-size: 22px;
+  border: none;
+  border-radius: 50%;
+  background: var(--pt-soft);
+}
+
+.pt-live-banner {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 14px;
+  font-weight: 600;
+  text-align: left;
+  color: var(--pt-now) !important;
+  background: var(--pt-now-soft);
+  border: none;
+  border-radius: var(--pt-radius);
+}
+
+.pt-live {
+  padding: 2px 7px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: white;
+  background: var(--pt-now);
+  border-radius: 6px;
+}
+
+/* Buttons */
+
+.pt-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 8px 14px;
+  font-weight: 700;
+  background: white;
+  border: 2px solid var(--pt-line);
+  border-radius: var(--pt-radius);
+}
+
+.pt-btn small {
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--pt-muted);
+}
+
+.pt-btn.now {
+  font-size: 18px;
+  color: white !important;
+  background: var(--pt-now);
+  border-color: var(--pt-now);
+}
+
+.pt-btn.primary {
+  color: white !important;
+  background: var(--pt-accent);
+  border-color: var(--pt-accent);
+}
+
+.pt-btn.danger {
+  color: white !important;
+  background: var(--pt-now);
+  border-color: var(--pt-now);
+}
+
+.pt-btn.danger-outline {
+  color: var(--pt-now) !important;
+  border-color: var(--pt-now);
+}
+
+/* Meetup cards */
+
+.pt-h3 {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 4px 0 0;
+  font-size: 16px;
+}
+
+.pt-muted {
+  margin: 0;
+  color: var(--pt-muted);
+}
+
+.pt-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 64px;
+  padding: 10px 12px 10px 14px;
+  text-align: left;
+  background: white;
+  border: 1px solid var(--pt-line);
+  border-left: 6px solid var(--pt-now);
+  border-radius: 12px;
+}
+
+.pt-card.cancelled {
+  border-left-color: #8a909c;
+  background: var(--pt-soft);
+  opacity: 0.75;
+}
+
+.pt-card-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pt-card-when {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 700;
+}
+
+.pt-card-sub {
+  font-size: 14px;
+  color: var(--pt-muted);
+}
+
+.pt-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 44px;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.pt-count small {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pt-muted);
+}
+
+/* Meetup detail */
+
+.pt-detail,
+.pt-form,
+.pt-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pt-status {
+  align-self: flex-start;
+  padding: 4px 10px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 999px;
+  color: var(--pt-now);
+  background: var(--pt-now-soft);
+}
+
+.pt-status.cancelled {
+  color: var(--pt-muted);
+  background: var(--pt-soft);
+}
+
+.pt-when {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.pt-total {
+  font-weight: 400;
+  color: var(--pt-muted);
+}
+
+.pt-people {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pt-people li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.pt-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
+  background: var(--pt-soft);
+  border-radius: 50%;
+}
+
+.pt-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.pt-plus {
+  font-weight: 700;
+  color: var(--pt-muted);
+}
+
+.pt-host {
+  padding: 2px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pt-accent);
+  background: var(--pt-accent-soft);
+  border-radius: 6px;
+}
+
+.pt-joined {
+  margin: 0;
+  padding: 12px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--pt-ok);
+  background: #e5f4ea;
+  border-radius: var(--pt-radius);
+}
+
+.pt-confirm {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 12px;
+  background: var(--pt-now-soft);
+  border-radius: var(--pt-radius);
+}
+
+.pt-confirm p {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Forms */
+
+.pt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pt-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--pt-muted);
+}
+
+.pt-field input {
+  min-height: 48px;
+  padding: 0 12px;
+  font-size: 16px;
+  border: 2px solid var(--pt-line);
+  border-radius: 12px;
+}
+
+.pt-segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pt-segments button {
+  flex: 1;
+  min-width: 44px;
+  min-height: 48px;
+  font-weight: 700;
+  background: white;
+  border: 2px solid var(--pt-line);
+  border-radius: 12px;
+}
+
+.pt-segments button.selected {
+  color: white;
+  background: var(--pt-ink);
+  border-color: var(--pt-ink);
+}
+
+.pt-stepper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pt-stepper button {
+  width: 52px;
+  height: 52px;
+  font-size: 26px;
+  font-weight: 700;
+  background: white;
+  border: 2px solid var(--pt-line);
+  border-radius: 50%;
+}
+
+.pt-stepper output {
+  min-width: 40px;
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* Feedback after an action */
+
+.pt-message {
+  position: fixed;
+  z-index: 3000;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 32px);
+  padding: 14px 18px;
+  font-weight: 600;
+  color: white;
+  background: var(--pt-ok);
+  border-radius: var(--pt-radius);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 30%);
+}
+
+/* Prototype controls: yellow, so nobody mistakes them for the design */
+
+.pt-proto {
+  max-width: 100%;
+  font-size: 13px;
+  background: #ffe066;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
+}
+
+.pt-proto > summary {
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pt-proto-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding: 0 10px 10px;
+}
+
+.pt-proto-body button {
+  min-height: 36px;
+  padding: 0 10px;
+  background: white;
+  border: 2px solid transparent;
+  border-radius: 8px;
+}
+
+.pt-proto-body button.selected {
+  border-color: var(--pt-ink);
+}
+
+.pt-proto pre {
+  max-height: 40vh;
+  overflow: auto;
+  padding: 8px;
+  font-size: 11px;
+  color: #eee;
+  background: #222;
+  border-radius: 6px;
+}
