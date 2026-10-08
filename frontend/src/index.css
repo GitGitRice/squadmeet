@@ -330,3 +330,178 @@ body {
   color: #1a5fb4;
   cursor: pointer;
 }
+
+/* SCRUM-29: Now-meetups. Red = someone is there now (agreed in the prototype, SCRUM-17). */
+
+.place-pin.live {
+  position: relative;
+  border-color: #c8102e;
+}
+
+.pin-badge {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  color: white;
+  background: #c8102e;
+  border-radius: 9px;
+}
+
+.spot-pin.live {
+  background: #c8102e;
+}
+
+.place-meetups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.place-meetups h3 {
+  margin: 4px 0 0;
+  font-size: 1rem;
+}
+
+.now-button {
+  min-height: 52px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  background: #c8102e;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.now-button:disabled {
+  opacity: 0.6;
+}
+
+.now-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.now-form .segments {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.now-form .segments legend {
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.now-form .segments button {
+  flex: 1;
+  min-height: 44px;
+  font-size: 1rem;
+  font-weight: 700;
+  background: white;
+  border: 2px solid #d5d8de;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.now-form .segments button.on {
+  color: white;
+  background: #16181d;
+  border-color: #16181d;
+}
+
+.stepper {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.stepper span {
+  flex: 1;
+  font-weight: 600;
+}
+
+.stepper button {
+  width: 44px;
+  height: 44px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  background: white;
+  border: 2px solid #d5d8de;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.stepper output {
+  min-width: 28px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.hint {
+  margin: 0;
+  color: #505663;
+}
+
+.link-button {
+  align-self: flex-start;
+  padding: 6px 0;
+  font-size: 1rem;
+  color: #1a5fb4;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.meetup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.meetup-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid #d5d8de;
+  border-left: 6px solid #c8102e;
+  border-radius: 10px;
+}
+
+.meetup-card .live {
+  padding: 1px 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: white;
+  background: #c8102e;
+  border-radius: 5px;
+}
+
+.meetup-people {
+  font-size: 1.1rem;
+}
+
+.meetup-card button {
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 0.95rem;
+  background: white;
+  border: 2px solid #d5d8de;
+  border-radius: 8px;
+  cursor: pointer;
+}

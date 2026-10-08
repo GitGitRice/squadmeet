@@ -44,7 +44,7 @@ Sprint 1 = Mi 07.10. – Fr 09.10. (Walking Skeleton live), am 08.10. fertig. Sp
 | ✓ | SCRUM-21 | Echte Plätze für Leipzig auf der Karte | SCRUM-7 Plätze & Karte | 1 | | 16 |
 | ✓ | SCRUM-25 | Die anderen 4 Städte importieren | SCRUM-7 Plätze & Karte | 1 | | 21 |
 | ✓ | SCRUM-24 | Filter und Platz-Details | SCRUM-7 Plätze & Karte | 1 | | 21 |
-| ▶ | SCRUM-29 | Ein Jetzt-Meetup erstellen und auf der Karte sehen | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 22, 24, 17 |
+| ● | SCRUM-29 | Ein Jetzt-Meetup erstellen und auf der Karte sehen | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 22, 24, 17 |
 | ▶ | SCRUM-31 | Einen Platz mit Sternen und Gründen bewerten | SCRUM-10 Bewertungen & Fotos | 2 | Must | 22, 24, 18 |
 | | SCRUM-35 | Meetup zu einer späteren Zeit | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 29 |
 | | SCRUM-34 | Einem Meetup mit Party-Größe beitreten, und Verlassen | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 29 |

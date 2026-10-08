@@ -48,6 +48,8 @@ class PlaceRead(SQLModel):
     activity_type: str
     lat: float
     lon: float
+    # Party sizes of the active Meetups at the Place; 0 = nobody is there now (SCRUM-29).
+    people_now: int = 0
 
 
 class User(SQLModel, table=True):
@@ -103,3 +105,32 @@ class LoginSession(SQLModel, table=True):
     token_hash: str = Field(unique=True)
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     expires_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
+class Meetup(SQLModel, table=True):
+    """A user's announcement to be at a Place from starts_at until ends_at (see CONTEXT.md).
+
+    SCRUM-29 builds the Now-meetup: it starts when it is created and ends after 1–4 hours.
+    It is active while starts_at <= now < ends_at; there is no job that deletes it.
+    """
+
+    __tablename__ = "meetup"
+    __table_args__ = (
+        CheckConstraint("party_size BETWEEN 1 AND 10", name="ck_meetup_party_size"),
+        CheckConstraint("ends_at > starts_at", name="ck_meetup_ends_after_start"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(
+        sa_column=Column(ForeignKey("place.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    # The creator is the Host (SCRUM-29). Handing the role over is SCRUM-37.
+    host_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    # The Host's own Party size, the Host included (1–10). Joins of others are SCRUM-34.
+    party_size: int
+    starts_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    # The Host ending the Meetup early sets this to the moment of the end.
+    ends_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+

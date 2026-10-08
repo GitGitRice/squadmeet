@@ -7,6 +7,7 @@ const place: Place = {
   activity_type: 'table_tennis',
   lat: 51.33,
   lon: 12.36,
+  people_now: 0,
 }
 
 const leipzig: MapArea = { west: 12.3, south: 51.3, east: 12.4, north: 51.35 }

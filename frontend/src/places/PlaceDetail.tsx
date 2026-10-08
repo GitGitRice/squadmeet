@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { Place } from '../api/places'
 import { activityOf } from './activities'
 
@@ -6,11 +7,13 @@ type Props = {
   error: string | null
   onRetry: () => void
   onClose: () => void
+  // The Meetups part (SCRUM-29), shown once the Place is loaded.
+  children?: ReactNode
 }
 
 // The Place detail page: a panel over the bottom of the map (layout from SCRUM-17), so the
 // map still shows where the Place is.
-export default function PlaceDetail({ place, error, onRetry, onClose }: Props) {
+export default function PlaceDetail({ place, error, onRetry, onClose, children }: Props) {
   const activity = place && activityOf(place.activity_type)
   const coordinates = place && `${place.lat.toFixed(5)}, ${place.lon.toFixed(5)}`
 
@@ -40,6 +43,7 @@ export default function PlaceDetail({ place, error, onRetry, onClose }: Props) {
           </a>
         </p>
       )}
+      {place && children}
       {error && (
         <>
           <p className="form-error">{error}</p>
