@@ -43,6 +43,7 @@ Rules. Keep them short so everybody follows them.
 - **Must-haves:** cloud deployment, Docker, CI/CD (test → build → deploy), one complete
   business workflow, tests, docs, one debugging case.
 - **Deadline:** presentation on **Wed 21.10.2026** (15–20 min, live demo).
+- **Live:** https://squadmeet.duckdns.org (since 2026-10-08, `SCRUM-20`). It runs on one EC2 host in the Syntax course AWS account (SSO role "Student", region `eu-central-1`). Setup, shell access and troubleshooting: [deploy/README.md](deploy/README.md).
 - **Repo:** https://github.com/GitGitRice/squadmeet (private). Who starts with which ticket:
   [TICKETS.md](TICKETS.md).
 
@@ -143,7 +144,6 @@ authenticate. There are no shared credentials.
 
 - Final app name. Working name: **SquadMeet** (2026-10-07; quick web search found no app with this name, but similar "Squadsheet" and "squadSet" exist; no brand or domain check yet). "Meetup" rejected: Meetup.com brand, and it is our glossary term.
 - Demo data and demo devices (decided later, `SCRUM-15`).
-- Set an AWS budget alarm (Free Tier + 15 $ credit).
 
 ## Decisions
 
