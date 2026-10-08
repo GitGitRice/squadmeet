@@ -26,8 +26,8 @@ Sprint 1 = Mi 07.10. – Fr 09.10. (Walking Skeleton live). Sprint 2 = Mo 12.10.
 | ▶ | SCRUM-27 | Captcha (Turnstile) und Login-Rate-Limit | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22 |
 | ▶ | SCRUM-28 | Datenschutzseite, Impressum und "Mein Konto löschen" | SCRUM-14 Datenschutz & Konto | 2 | Must | 22 |
 | | SCRUM-33 | Passwort-Reset mit Recovery-Code oder MFA-Code | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22, 26 |
-| | SCRUM-30 | Einen Platz vorschlagen, mit der Duplikat-Warnung | SCRUM-9 Platzvorschläge & Bestätigungen | 2 | Must | 22, 21 |
-| | SCRUM-36 | Einen Platzvorschlag am Platz bestätigen | SCRUM-9 Platzvorschläge & Bestätigungen | 2 | Must | 30 |
+| | SCRUM-30 | Einen Platz vorschlagen, mit der Duplikat-Warnung | SCRUM-9 Platzvorschläge & Bestätigungen | 2 | Should | 22, 21 |
+| | SCRUM-36 | Einen Platzvorschlag am Platz bestätigen | SCRUM-9 Platzvorschläge & Bestätigungen | 2 | Should | 30 |
 | | SCRUM-39 | Admin: Platz sperren, entsperren und löschen | SCRUM-13 Admin & Moderation | 2 | Must | 26, 37 |
 | | SCRUM-40 | In-App Benachrichtigungsliste | SCRUM-12 Benachrichtigungen | 2 | Should | 37 |
 | | SCRUM-41 | Favoriten mit Zeit-Regeln | SCRUM-12 Benachrichtigungen | 2 | Should | 40 |
@@ -48,7 +48,7 @@ Sprint 1 = Mi 07.10. – Fr 09.10. (Walking Skeleton live). Sprint 2 = Mo 12.10.
 | | SCRUM-35 | Meetup zu einer späteren Zeit | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 29 |
 | | SCRUM-34 | Einem Meetup mit Party-Größe beitreten, und Verlassen | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 29 |
 | | SCRUM-37 | Host: Absagen, Übergabe und Geschlossen | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 34 |
-| | SCRUM-38 | Wöchentliche Serie mit Terminen | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 34, 35 |
+| | SCRUM-38 | Wöchentliche Serie mit Terminen | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Should | 34, 35 |
 | ▶ | SCRUM-32 | Kontaktanfrage, annehmen, entfernen und Blockieren | SCRUM-11 Kontakte & Blockieren | 2 | Should | 22 |
 | | SCRUM-42 | Foto-Upload und Admin-Freigabe | SCRUM-10 Bewertungen & Fotos | 2 | Should | 39, 20 |
 | | SCRUM-43 | Kontakte: Benachrichtigung für deren Meetups und Einladungen | SCRUM-11 Kontakte & Blockieren | 2 | Could | 32, 40 |
