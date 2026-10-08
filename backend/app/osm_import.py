@@ -6,7 +6,7 @@ often too busy to answer):
     python -m app.osm_import fetch Leipzig   # Overpass -> data/osm/leipzig.json; commit the file
     python -m app.osm_import load            # data/osm/*.json -> database, only if it has no Places
 
-`docker compose up` runs `load`. The city is a parameter, so another city is one more `fetch`
+`docker compose up` runs `load` through app/seed.py. The city is a parameter, so another city is one more `fetch`
 (SCRUM-25). OSM data is © OpenStreetMap contributors, ODbL; the map shows the attribution.
 """
 
