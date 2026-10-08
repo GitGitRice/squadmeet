@@ -63,23 +63,25 @@ docker compose up --build
 | Database | `localhost:5432`, user, password and DB `squadmeet` (change with `.env`, see `.env.example`) |
 
 On start, the backend runs the Alembic migrations and loads the Places from
-`backend/data/osm/*.json` (OpenStreetMap snapshot) into an empty database. Code changes in `backend/` and `frontend/` reload without a rebuild. After a change to
+`backend/data/osm/*.json` (OpenStreetMap snapshots). Code changes in `backend/` and `frontend/`
+reload without a rebuild. After a change to
 `requirements*.txt` or `package.json`, run `docker compose up --build` again.
 `docker compose down -v` also deletes the database.
 
 ### Places from OpenStreetMap
 
-The Places come from a snapshot file per city in `backend/data/osm/`, so a start never needs the
-(often busy) public Overpass servers. To refresh a city or add one, fetch it and commit the file:
+The Places come from a snapshot file per city in `backend/data/osm/` (Leipzig, Erfurt, Hannover,
+Stuttgart, Potsdam), so a start never needs the (often busy) public Overpass servers. To refresh
+a city or add one, fetch it and commit the file:
 
 ```sh
 docker compose exec backend python -m app.osm_import fetch Leipzig
 ```
 
-`app.seed` loads the snapshots **only into an empty database**. After you add or refresh a
-city file, reset the local database with `docker compose down -v` (it deletes all local data);
-the backend log warns when snapshot Places are missing. Re-importing without a reset is
-`SCRUM-25`.
+Each start (`app.seed`) loads the snapshots again: new Places are added, known ones (same OSM
+id and Activity type) get the new name and location and keep their database id, and no Place is
+ever deleted, because it may already have Ratings or Meetups. The log says how many were new,
+refreshed and kept. A city name must match exactly one German municipality.
 
 Private, paid and indoor places are skipped ([backend/app/osm_import.py](backend/app/osm_import.py)).
 Map data © OpenStreetMap contributors (ODbL); the map shows the attribution.
