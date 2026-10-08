@@ -1,0 +1,4802 @@
+{
+ "city": "Stuttgart",
+ "source": "© OpenStreetMap contributors, ODbL 1.0, openstreetmap.org/copyright",
+ "osm_timestamp": "2026-10-08T11:16:20Z",
+ "places": [
+  {
+   "osm_id": "node/10006275579",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7441546,
+   "lon": 9.1648127
+  },
+  {
+   "osm_id": "node/10108891170",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7420414,
+   "lon": 9.1356492
+  },
+  {
+   "osm_id": "node/10665525816",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7466671,
+   "lon": 9.1019383
+  },
+  {
+   "osm_id": "node/10695018460",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7312767,
+   "lon": 9.127573
+  },
+  {
+   "osm_id": "node/10717386077",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7478908,
+   "lon": 9.1266024
+  },
+  {
+   "osm_id": "node/10717386078",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7479191,
+   "lon": 9.1265561
+  },
+  {
+   "osm_id": "node/10748372622",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7402998,
+   "lon": 9.2302308
+  },
+  {
+   "osm_id": "node/10830573760",
+   "activity_type": "outdoor_fitness",
+   "name": "Inklusive Calisthenics Anlage Vaihingen",
+   "lat": 48.7242531,
+   "lon": 9.102138
+  },
+  {
+   "osm_id": "node/11110549684",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8361416,
+   "lon": 9.2229299
+  },
+  {
+   "osm_id": "node/11144107268",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7635909,
+   "lon": 9.1256657
+  },
+  {
+   "osm_id": "node/11252139235",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7654449,
+   "lon": 9.2717094
+  },
+  {
+   "osm_id": "node/11379096344",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.803998,
+   "lon": 9.2274433
+  },
+  {
+   "osm_id": "node/11649884122",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7268896,
+   "lon": 9.1436943
+  },
+  {
+   "osm_id": "node/11688327867",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7803752,
+   "lon": 9.1628632
+  },
+  {
+   "osm_id": "node/11688327868",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7803479,
+   "lon": 9.1627766
+  },
+  {
+   "osm_id": "node/11757845110",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7452296,
+   "lon": 9.0997502
+  },
+  {
+   "osm_id": "node/11893703094",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8016976,
+   "lon": 9.2302256
+  },
+  {
+   "osm_id": "node/11896585040",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7729279,
+   "lon": 9.2476227
+  },
+  {
+   "osm_id": "node/11896730773",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.777262,
+   "lon": 9.2330009
+  },
+  {
+   "osm_id": "node/11896730774",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7806812,
+   "lon": 9.1884918
+  },
+  {
+   "osm_id": "node/11965043070",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8413683,
+   "lon": 9.149794
+  },
+  {
+   "osm_id": "node/12037276432",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7745377,
+   "lon": 9.1579544
+  },
+  {
+   "osm_id": "node/12176963507",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7228423,
+   "lon": 9.158372
+  },
+  {
+   "osm_id": "node/12198837317",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8153679,
+   "lon": 9.2264062
+  },
+  {
+   "osm_id": "node/12331588756",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7689036,
+   "lon": 9.147944
+  },
+  {
+   "osm_id": "node/12568142780",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7642336,
+   "lon": 9.1688699
+  },
+  {
+   "osm_id": "node/12737546876",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.807696,
+   "lon": 9.1052109
+  },
+  {
+   "osm_id": "node/12841728687",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8074087,
+   "lon": 9.2190162
+  },
+  {
+   "osm_id": "node/12947570980",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7512783,
+   "lon": 9.1701753
+  },
+  {
+   "osm_id": "node/13059653825",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7744708,
+   "lon": 9.1584141
+  },
+  {
+   "osm_id": "node/13100265800",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.744911,
+   "lon": 9.1201117
+  },
+  {
+   "osm_id": "node/13112884518",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7770661,
+   "lon": 9.119262
+  },
+  {
+   "osm_id": "node/13203042701",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7158307,
+   "lon": 9.2080915
+  },
+  {
+   "osm_id": "node/13206281485",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7813137,
+   "lon": 9.1947768
+  },
+  {
+   "osm_id": "node/13206281486",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7812894,
+   "lon": 9.1948086
+  },
+  {
+   "osm_id": "node/13206622265",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7692998,
+   "lon": 9.180104
+  },
+  {
+   "osm_id": "node/13251438465",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7242353,
+   "lon": 9.193745
+  },
+  {
+   "osm_id": "node/13360448758",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7969689,
+   "lon": 9.2050322
+  },
+  {
+   "osm_id": "node/13360453047",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7974204,
+   "lon": 9.210767
+  },
+  {
+   "osm_id": "node/13360453048",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.797539,
+   "lon": 9.2108174
+  },
+  {
+   "osm_id": "node/13412773708",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7813129,
+   "lon": 9.1692743
+  },
+  {
+   "osm_id": "node/13532609751",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7185088,
+   "lon": 9.1141065
+  },
+  {
+   "osm_id": "node/13713277218",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7755328,
+   "lon": 9.1468503
+  },
+  {
+   "osm_id": "node/13780596913",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7242519,
+   "lon": 9.1938269
+  },
+  {
+   "osm_id": "node/13780596914",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7243476,
+   "lon": 9.1938082
+  },
+  {
+   "osm_id": "node/13801129934",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7812068,
+   "lon": 9.1691134
+  },
+  {
+   "osm_id": "node/13900774379",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7192584,
+   "lon": 9.205352
+  },
+  {
+   "osm_id": "node/14057963285",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7323216,
+   "lon": 9.1106453
+  },
+  {
+   "osm_id": "node/14068512708",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.819003,
+   "lon": 9.23816
+  },
+  {
+   "osm_id": "node/14070302940",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7398268,
+   "lon": 9.2213388
+  },
+  {
+   "osm_id": "node/14073546628",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7825378,
+   "lon": 9.1742063
+  },
+  {
+   "osm_id": "node/14078846401",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7119615,
+   "lon": 9.16322
+  },
+  {
+   "osm_id": "node/14142574200",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7201885,
+   "lon": 9.0967316
+  },
+  {
+   "osm_id": "node/14143284118",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7276225,
+   "lon": 9.1106076
+  },
+  {
+   "osm_id": "node/14143284119",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7276217,
+   "lon": 9.110564
+  },
+  {
+   "osm_id": "node/14252747112",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7360358,
+   "lon": 9.2147536
+  },
+  {
+   "osm_id": "node/14252747113",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7360181,
+   "lon": 9.2148569
+  },
+  {
+   "osm_id": "node/1456068122",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7720452,
+   "lon": 9.1538761
+  },
+  {
+   "osm_id": "node/1683409639",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7471156,
+   "lon": 9.1007662
+  },
+  {
+   "osm_id": "node/1710581136",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8187775,
+   "lon": 9.2305418
+  },
+  {
+   "osm_id": "node/2316426434",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8102784,
+   "lon": 9.2156239
+  },
+  {
+   "osm_id": "node/2349725825",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8360137,
+   "lon": 9.2364325
+  },
+  {
+   "osm_id": "node/2606696823",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8133896,
+   "lon": 9.119007
+  },
+  {
+   "osm_id": "node/265810698",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7604556,
+   "lon": 9.1727173
+  },
+  {
+   "osm_id": "node/2679283679",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7819515,
+   "lon": 9.2544669
+  },
+  {
+   "osm_id": "node/2679283680",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7819754,
+   "lon": 9.2544924
+  },
+  {
+   "osm_id": "node/269168334",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7884212,
+   "lon": 9.2560315
+  },
+  {
+   "osm_id": "node/2927151387",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8123234,
+   "lon": 9.2355767
+  },
+  {
+   "osm_id": "node/2927151388",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8123275,
+   "lon": 9.2356387
+  },
+  {
+   "osm_id": "node/2982154551",
+   "activity_type": "football",
+   "name": "VfB Obertürkheim e.V.",
+   "lat": 48.7593532,
+   "lon": 9.2678116
+  },
+  {
+   "osm_id": "node/3139265730",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Armmuskulatur",
+   "lat": 48.7877695,
+   "lon": 9.1455743
+  },
+  {
+   "osm_id": "node/3139265731",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Bauchmuskulatur",
+   "lat": 48.7878095,
+   "lon": 9.145553
+  },
+  {
+   "osm_id": "node/3139265732",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Rückenmuskulatur",
+   "lat": 48.7878293,
+   "lon": 9.1455213
+  },
+  {
+   "osm_id": "node/3178040010",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8410049,
+   "lon": 9.1531131
+  },
+  {
+   "osm_id": "node/3187235179",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8471481,
+   "lon": 9.1702131
+  },
+  {
+   "osm_id": "node/3207936203",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7420655,
+   "lon": 9.1021887
+  },
+  {
+   "osm_id": "node/3355835433",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.8268977,
+   "lon": 9.160325
+  },
+  {
+   "osm_id": "node/3355856014",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Brust- und Schultermuskulatur",
+   "lat": 48.8228232,
+   "lon": 9.1553664
+  },
+  {
+   "osm_id": "node/3355856015",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Hintere Oberschenkelmuskulatur",
+   "lat": 48.8228013,
+   "lon": 9.1553224
+  },
+  {
+   "osm_id": "node/3355856016",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelinnenseite",
+   "lat": 48.8228505,
+   "lon": 9.1553655
+  },
+  {
+   "osm_id": "node/3355856017",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelvorderseite, Hüftbeugemuskulatur",
+   "lat": 48.8227972,
+   "lon": 9.1552677
+  },
+  {
+   "osm_id": "node/3355856018",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Wadenmuskulatur",
+   "lat": 48.822879,
+   "lon": 9.1553438
+  },
+  {
+   "osm_id": "node/3458457890",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7960266,
+   "lon": 9.1726831
+  },
+  {
+   "osm_id": "node/3458458407",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7990747,
+   "lon": 9.1758547
+  },
+  {
+   "osm_id": "node/3554798554",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8066213,
+   "lon": 9.2503971
+  },
+  {
+   "osm_id": "node/3554798555",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8066587,
+   "lon": 9.2504018
+  },
+  {
+   "osm_id": "node/3623986639",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7336634,
+   "lon": 9.0904701
+  },
+  {
+   "osm_id": "node/3623986643",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7338742,
+   "lon": 9.0912038
+  },
+  {
+   "osm_id": "node/3623986648",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.73418,
+   "lon": 9.0913946
+  },
+  {
+   "osm_id": "node/3637399559",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Armmuskulatur",
+   "lat": 48.7413188,
+   "lon": 9.0713741
+  },
+  {
+   "osm_id": "node/3637399560",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Bauchmuskulatur",
+   "lat": 48.7412765,
+   "lon": 9.0713016
+  },
+  {
+   "osm_id": "node/3637399561",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Rückenmuskulatur",
+   "lat": 48.741307,
+   "lon": 9.0713305
+  },
+  {
+   "osm_id": "node/3653919479",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7933483,
+   "lon": 9.1979357
+  },
+  {
+   "osm_id": "node/3653919481",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7934192,
+   "lon": 9.1980461
+  },
+  {
+   "osm_id": "node/3657665931",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7744635,
+   "lon": 9.1454725
+  },
+  {
+   "osm_id": "node/3698611893",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7762863,
+   "lon": 9.155115
+  },
+  {
+   "osm_id": "node/3702311305",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8032326,
+   "lon": 9.1476272
+  },
+  {
+   "osm_id": "node/3873363609",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.780616,
+   "lon": 9.1743173
+  },
+  {
+   "osm_id": "node/3891034839",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7320735,
+   "lon": 9.1379335
+  },
+  {
+   "osm_id": "node/3891034840",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7320434,
+   "lon": 9.138014
+  },
+  {
+   "osm_id": "node/3891034841",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7319349,
+   "lon": 9.1379198
+  },
+  {
+   "osm_id": "node/3891034842",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7319226,
+   "lon": 9.1379816
+  },
+  {
+   "osm_id": "node/4031955019",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Brust- und Schultermuskulatur",
+   "lat": 48.743524,
+   "lon": 9.0754021
+  },
+  {
+   "osm_id": "node/4031955020",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Hintere Oberschenkelmuskulatur",
+   "lat": 48.743465,
+   "lon": 9.0752838
+  },
+  {
+   "osm_id": "node/4031955021",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelinnenseite",
+   "lat": 48.7434513,
+   "lon": 9.0752634
+  },
+  {
+   "osm_id": "node/4031955022",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelvorderseite, Hüftbeugemuskulatur",
+   "lat": 48.7434957,
+   "lon": 9.0753412
+  },
+  {
+   "osm_id": "node/4031955023",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Wadenmuskulatur",
+   "lat": 48.7434862,
+   "lon": 9.0753194
+  },
+  {
+   "osm_id": "node/4147908908",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8129836,
+   "lon": 9.1867324
+  },
+  {
+   "osm_id": "node/4147908910",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8129668,
+   "lon": 9.1866796
+  },
+  {
+   "osm_id": "node/4156328947",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8201465,
+   "lon": 9.1921228
+  },
+  {
+   "osm_id": "node/4269851420",
+   "activity_type": "outdoor_fitness",
+   "name": "Waldsportpfad Steinprügel - Kräftigung II",
+   "lat": 48.7461234,
+   "lon": 9.2530274
+  },
+  {
+   "osm_id": "node/4584342458",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7618087,
+   "lon": 9.1607999
+  },
+  {
+   "osm_id": "node/4821345148",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7632338,
+   "lon": 9.1102797
+  },
+  {
+   "osm_id": "node/4836746543",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.8262695,
+   "lon": 9.1571415
+  },
+  {
+   "osm_id": "node/4836746544",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Armmuskulatur",
+   "lat": 48.8261322,
+   "lon": 9.1614607
+  },
+  {
+   "osm_id": "node/4960428654",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7301107,
+   "lon": 9.1397943
+  },
+  {
+   "osm_id": "node/4960428655",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7301134,
+   "lon": 9.1400297
+  },
+  {
+   "osm_id": "node/5141334010",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7943935,
+   "lon": 9.1907106
+  },
+  {
+   "osm_id": "node/5565975983",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7969394,
+   "lon": 9.205439
+  },
+  {
+   "osm_id": "node/5877799898",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7112356,
+   "lon": 9.1458446
+  },
+  {
+   "osm_id": "node/5897509033",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7558837,
+   "lon": 9.1443707
+  },
+  {
+   "osm_id": "node/5897509034",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7559067,
+   "lon": 9.1443023
+  },
+  {
+   "osm_id": "node/5952488842",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7805154,
+   "lon": 9.1740064
+  },
+  {
+   "osm_id": "node/59701808",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8268207,
+   "lon": 9.1774102
+  },
+  {
+   "osm_id": "node/6110487499",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Bauchmuskulatur",
+   "lat": 48.7409819,
+   "lon": 9.0748841
+  },
+  {
+   "osm_id": "node/6110487500",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Rückenmuskulatur",
+   "lat": 48.7409677,
+   "lon": 9.074868
+  },
+  {
+   "osm_id": "node/6112434046",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Wadenmuskulatur",
+   "lat": 48.7301484,
+   "lon": 9.1762327
+  },
+  {
+   "osm_id": "node/6112434047",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Hintere Oberschenkelmuskulatur",
+   "lat": 48.730144,
+   "lon": 9.1761965
+  },
+  {
+   "osm_id": "node/6112434048",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelinnenseite",
+   "lat": 48.7301405,
+   "lon": 9.1761656
+  },
+  {
+   "osm_id": "node/6112434049",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelvorderseite, Hüftbeugemuskulatur",
+   "lat": 48.7302148,
+   "lon": 9.1761991
+  },
+  {
+   "osm_id": "node/6112434059",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Brust- und Schultermuskulatur",
+   "lat": 48.7302024,
+   "lon": 9.1761455
+  },
+  {
+   "osm_id": "node/6112442231",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation",
+   "lat": 48.7299286,
+   "lon": 9.1819699
+  },
+  {
+   "osm_id": "node/6112442232",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Rückenmuskulatur",
+   "lat": 48.7300087,
+   "lon": 9.1821248
+  },
+  {
+   "osm_id": "node/6112442233",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Bauchmuskulatur",
+   "lat": 48.7300029,
+   "lon": 9.182092
+  },
+  {
+   "osm_id": "node/6112442234",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Rückenmuskulatur",
+   "lat": 48.7299636,
+   "lon": 9.1820993
+  },
+  {
+   "osm_id": "node/6112442235",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Bauchmuskulatur",
+   "lat": 48.7299888,
+   "lon": 9.1821945
+  },
+  {
+   "osm_id": "node/6112442236",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Armmuskulatur",
+   "lat": 48.730018,
+   "lon": 9.1821831
+  },
+  {
+   "osm_id": "node/6117761851",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelinnenseite",
+   "lat": 48.8063423,
+   "lon": 9.125673
+  },
+  {
+   "osm_id": "node/6117761852",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Wadenmuskulatur",
+   "lat": 48.80636,
+   "lon": 9.1256703
+  },
+  {
+   "osm_id": "node/6117761853",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Brust- und Schultermuskulatur",
+   "lat": 48.8064015,
+   "lon": 9.1257092
+  },
+  {
+   "osm_id": "node/6117761854",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Hintere Oberschenkelmuskulatur",
+   "lat": 48.8064121,
+   "lon": 9.1257508
+  },
+  {
+   "osm_id": "node/6117761855",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelvorderseite, Hüftbeugemuskulatur",
+   "lat": 48.8063953,
+   "lon": 9.1258112
+  },
+  {
+   "osm_id": "node/6118060777",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Rückenmuskulatur",
+   "lat": 48.8030026,
+   "lon": 9.1214539
+  },
+  {
+   "osm_id": "node/6118060778",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Armmuskulatur",
+   "lat": 48.8030203,
+   "lon": 9.1215599
+  },
+  {
+   "osm_id": "node/6118060779",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Bauchmuskulatur",
+   "lat": 48.8030918,
+   "lon": 9.1215129
+  },
+  {
+   "osm_id": "node/6118233933",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Armmuskulatur",
+   "lat": 48.8029059,
+   "lon": 9.1236761
+  },
+  {
+   "osm_id": "node/6118233934",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Rückenmuskulatur",
+   "lat": 48.8029227,
+   "lon": 9.1237257
+  },
+  {
+   "osm_id": "node/6118233935",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Bauchmuskulatur",
+   "lat": 48.8029258,
+   "lon": 9.1237593
+  },
+  {
+   "osm_id": "node/6120133660",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Rückenmuskulatur",
+   "lat": 48.8260952,
+   "lon": 9.1615744
+  },
+  {
+   "osm_id": "node/6120133661",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Bauchmuskulatur",
+   "lat": 48.826112,
+   "lon": 9.1616093
+  },
+  {
+   "osm_id": "node/6120925991",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Bauchmuskulatur",
+   "lat": 48.8262285,
+   "lon": 9.1572346
+  },
+  {
+   "osm_id": "node/6120925992",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Armmuskulatur",
+   "lat": 48.826308,
+   "lon": 9.1572493
+  },
+  {
+   "osm_id": "node/6120925993",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Rückenmuskulatur",
+   "lat": 48.8263,
+   "lon": 9.157134
+  },
+  {
+   "osm_id": "node/6265402563",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelinnenseite",
+   "lat": 48.7484002,
+   "lon": 9.1847305
+  },
+  {
+   "osm_id": "node/6265402564",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelvorderseite, Hüftbeugemuskulatur",
+   "lat": 48.748379,
+   "lon": 9.1847454
+  },
+  {
+   "osm_id": "node/6265402565",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Hintere Oberschenkelmuskulatur",
+   "lat": 48.7484267,
+   "lon": 9.1847332
+  },
+  {
+   "osm_id": "node/6265402566",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Brust- und Schultermuskulatur",
+   "lat": 48.7483542,
+   "lon": 9.1847158
+  },
+  {
+   "osm_id": "node/6265402567",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Wadenmuskulatur",
+   "lat": 48.7484188,
+   "lon": 9.1847648
+  },
+  {
+   "osm_id": "node/6265549800",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Rückenmuskulatur",
+   "lat": 48.7419669,
+   "lon": 9.1838414
+  },
+  {
+   "osm_id": "node/6265549801",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Armmuskulatur",
+   "lat": 48.7418672,
+   "lon": 9.183835
+  },
+  {
+   "osm_id": "node/6265549802",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Bauchmuskulatur",
+   "lat": 48.7419677,
+   "lon": 9.1838736
+  },
+  {
+   "osm_id": "node/6265563246",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Armmuskulatur",
+   "lat": 48.7444168,
+   "lon": 9.1831514
+  },
+  {
+   "osm_id": "node/6265563247",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Rückenmuskulatur",
+   "lat": 48.744369,
+   "lon": 9.1832748
+  },
+  {
+   "osm_id": "node/6265563248",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Bauchmuskulatur",
+   "lat": 48.7443399,
+   "lon": 9.1831648
+  },
+  {
+   "osm_id": "node/6265842587",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelvorderseite, Hüftbeugemuskulatur",
+   "lat": 48.76974,
+   "lon": 9.2144059
+  },
+  {
+   "osm_id": "node/6265842588",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelrückseite",
+   "lat": 48.7697364,
+   "lon": 9.2143495
+  },
+  {
+   "osm_id": "node/6265842589",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Brust- und Schultermuskulatur",
+   "lat": 48.7696162,
+   "lon": 9.2142597
+  },
+  {
+   "osm_id": "node/6265842590",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Wadenmuskulatur",
+   "lat": 48.7696423,
+   "lon": 9.2142697
+  },
+  {
+   "osm_id": "node/6265842591",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelinnenseite",
+   "lat": 48.7696556,
+   "lon": 9.2142891
+  },
+  {
+   "osm_id": "node/6266286935",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Bauchmuskulatur",
+   "lat": 48.7738707,
+   "lon": 9.219834
+  },
+  {
+   "osm_id": "node/6266286936",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Armmuskulatur",
+   "lat": 48.7738765,
+   "lon": 9.2202464
+  },
+  {
+   "osm_id": "node/6266286937",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Bauchmuskulatur",
+   "lat": 48.7738888,
+   "lon": 9.2200861
+  },
+  {
+   "osm_id": "node/6266286938",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Rückenmuskulatur",
+   "lat": 48.7738539,
+   "lon": 9.2198568
+  },
+  {
+   "osm_id": "node/6266286939",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Armmuskulatur",
+   "lat": 48.7738022,
+   "lon": 9.2199507
+  },
+  {
+   "osm_id": "node/6266286944",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Rückenmuskulatur",
+   "lat": 48.7738257,
+   "lon": 9.2201813
+  },
+  {
+   "osm_id": "node/6295487653",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Bauchmuskulatur",
+   "lat": 48.7457756,
+   "lon": 9.2503998
+  },
+  {
+   "osm_id": "node/6295487654",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Bauchmuskulatur",
+   "lat": 48.7458587,
+   "lon": 9.2503683
+  },
+  {
+   "osm_id": "node/6295487655",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Armmuskulatur",
+   "lat": 48.7458406,
+   "lon": 9.2503133
+  },
+  {
+   "osm_id": "node/6296103039",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Rückenmuskulatur",
+   "lat": 48.7462182,
+   "lon": 9.2529733
+  },
+  {
+   "osm_id": "node/6296103040",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Brust- und Schultermuskulatur",
+   "lat": 48.7461448,
+   "lon": 9.2530686
+  },
+  {
+   "osm_id": "node/6296103041",
+   "activity_type": "outdoor_fitness",
+   "name": "Kräftigungsstation Rückenmuskulatur",
+   "lat": 48.7461271,
+   "lon": 9.252909
+  },
+  {
+   "osm_id": "node/6297212276",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Brust- und Schultermuskulatur",
+   "lat": 48.7492367,
+   "lon": 9.255783
+  },
+  {
+   "osm_id": "node/6297212277",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelvorderseite, Hüftbeugemuskulatur",
+   "lat": 48.7492548,
+   "lon": 9.2559117
+  },
+  {
+   "osm_id": "node/6297212278",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Wadenmuskulatur",
+   "lat": 48.7492513,
+   "lon": 9.2558849
+  },
+  {
+   "osm_id": "node/6297212279",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelinnenseite",
+   "lat": 48.7492429,
+   "lon": 9.2558158
+  },
+  {
+   "osm_id": "node/6297212280",
+   "activity_type": "outdoor_fitness",
+   "name": "Dehnstation Oberschenkelrückseite",
+   "lat": 48.7493061,
+   "lon": 9.255787
+  },
+  {
+   "osm_id": "node/6299525826",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7145877,
+   "lon": 9.1194765
+  },
+  {
+   "osm_id": "node/6303068609",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7851225,
+   "lon": 9.2161265
+  },
+  {
+   "osm_id": "node/6925619276",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7827189,
+   "lon": 9.2052338
+  },
+  {
+   "osm_id": "node/6925619277",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7820544,
+   "lon": 9.2047591
+  },
+  {
+   "osm_id": "node/6955853444",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7436904,
+   "lon": 9.1317068
+  },
+  {
+   "osm_id": "node/7335085707",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7553856,
+   "lon": 9.2528723
+  },
+  {
+   "osm_id": "node/7511188974",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8045752,
+   "lon": 9.2217281
+  },
+  {
+   "osm_id": "node/7511188981",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.8045465,
+   "lon": 9.2219661
+  },
+  {
+   "osm_id": "node/7511188982",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.8045398,
+   "lon": 9.2218301
+  },
+  {
+   "osm_id": "node/7511284987",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8072128,
+   "lon": 9.2266602
+  },
+  {
+   "osm_id": "node/7511284988",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7999337,
+   "lon": 9.2272227
+  },
+  {
+   "osm_id": "node/7511284989",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7999634,
+   "lon": 9.2272404
+  },
+  {
+   "osm_id": "node/7540231383",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.779258,
+   "lon": 9.2059627
+  },
+  {
+   "osm_id": "node/7540231384",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7792838,
+   "lon": 9.2058207
+  },
+  {
+   "osm_id": "node/7626907416",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7690796,
+   "lon": 9.1684391
+  },
+  {
+   "osm_id": "node/7653680732",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7609038,
+   "lon": 9.1730772
+  },
+  {
+   "osm_id": "node/7745288968",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.705925,
+   "lon": 9.2180279
+  },
+  {
+   "osm_id": "node/8022926578",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.8080337,
+   "lon": 9.1414496
+  },
+  {
+   "osm_id": "node/8022926579",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.8080608,
+   "lon": 9.141461
+  },
+  {
+   "osm_id": "node/8022926580",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.8080523,
+   "lon": 9.1414128
+  },
+  {
+   "osm_id": "node/8022926581",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.8080231,
+   "lon": 9.1414224
+  },
+  {
+   "osm_id": "node/8022926582",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.8080554,
+   "lon": 9.1414336
+  },
+  {
+   "osm_id": "node/8022926583",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8080646,
+   "lon": 9.1409554
+  },
+  {
+   "osm_id": "node/8022926584",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.8080235,
+   "lon": 9.1412852
+  },
+  {
+   "osm_id": "node/8022953085",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.8080567,
+   "lon": 9.1406326
+  },
+  {
+   "osm_id": "node/8025436986",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7825876,
+   "lon": 9.2128961
+  },
+  {
+   "osm_id": "node/8035603386",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7788166,
+   "lon": 9.2205908
+  },
+  {
+   "osm_id": "node/8278923963",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7775934,
+   "lon": 9.1483482
+  },
+  {
+   "osm_id": "node/8504918449",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8211617,
+   "lon": 9.2228899
+  },
+  {
+   "osm_id": "node/8593045459",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7433004,
+   "lon": 9.125611
+  },
+  {
+   "osm_id": "node/8664647216",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7410024,
+   "lon": 9.1054475
+  },
+  {
+   "osm_id": "node/8713398849",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7673219,
+   "lon": 9.2001431
+  },
+  {
+   "osm_id": "node/8809288819",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.8326236,
+   "lon": 9.1918961
+  },
+  {
+   "osm_id": "node/8809290417",
+   "activity_type": "outdoor_fitness",
+   "name": "Calisthenics Parcour Neugereut",
+   "lat": 48.8361121,
+   "lon": 9.2361348
+  },
+  {
+   "osm_id": "node/8936314851",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7087958,
+   "lon": 9.1502474
+  },
+  {
+   "osm_id": "node/8936314857",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7094662,
+   "lon": 9.1510548
+  },
+  {
+   "osm_id": "node/8960645511",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7307221,
+   "lon": 9.1530478
+  },
+  {
+   "osm_id": "node/8960645512",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7306424,
+   "lon": 9.1529201
+  },
+  {
+   "osm_id": "node/8967886632",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7274612,
+   "lon": 9.1465432
+  },
+  {
+   "osm_id": "node/9028564017",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7958651,
+   "lon": 9.1718215
+  },
+  {
+   "osm_id": "node/9029397672",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7325305,
+   "lon": 9.119381
+  },
+  {
+   "osm_id": "node/9271922990",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.727621,
+   "lon": 9.1105288
+  },
+  {
+   "osm_id": "node/9271934981",
+   "activity_type": "outdoor_fitness",
+   "name": "Trendsportanlage Stuttgart Vaihingen",
+   "lat": 48.7273478,
+   "lon": 9.1108429
+  },
+  {
+   "osm_id": "node/9275019667",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7763142,
+   "lon": 9.1551084
+  },
+  {
+   "osm_id": "node/9591698764",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7410997,
+   "lon": 9.1761849
+  },
+  {
+   "osm_id": "node/9739619870",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7727984,
+   "lon": 9.1824238
+  },
+  {
+   "osm_id": "node/9742084543",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7362726,
+   "lon": 9.2314648
+  },
+  {
+   "osm_id": "node/9773625445",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7233023,
+   "lon": 9.1054363
+  },
+  {
+   "osm_id": "node/9773625446",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7233055,
+   "lon": 9.1053659
+  },
+  {
+   "osm_id": "node/9843753249",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7777536,
+   "lon": 9.2084622
+  },
+  {
+   "osm_id": "node/9926362944",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8030109,
+   "lon": 9.1053751
+  },
+  {
+   "osm_id": "node/9926362945",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8030153,
+   "lon": 9.1054377
+  },
+  {
+   "osm_id": "node/9926362946",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8030205,
+   "lon": 9.1054993
+  },
+  {
+   "osm_id": "node/9926362947",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8030416,
+   "lon": 9.105593
+  },
+  {
+   "osm_id": "relation/17731292",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8425462,
+   "lon": 9.1585807
+  },
+  {
+   "osm_id": "relation/5845110",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8443305,
+   "lon": 9.2102443
+  },
+  {
+   "osm_id": "relation/5845111",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8422958,
+   "lon": 9.2051795
+  },
+  {
+   "osm_id": "way/100157129",
+   "activity_type": "football",
+   "name": "Fußballfeld",
+   "lat": 48.8491877,
+   "lon": 9.1499979
+  },
+  {
+   "osm_id": "way/100479353",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8415076,
+   "lon": 9.2148657
+  },
+  {
+   "osm_id": "way/101960710",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.799995,
+   "lon": 9.0895535
+  },
+  {
+   "osm_id": "way/101960712",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8024762,
+   "lon": 9.1048675
+  },
+  {
+   "osm_id": "way/101960931",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8030651,
+   "lon": 9.104848
+  },
+  {
+   "osm_id": "way/101960931",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8030651,
+   "lon": 9.104848
+  },
+  {
+   "osm_id": "way/101967862",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8065505,
+   "lon": 9.0994167
+  },
+  {
+   "osm_id": "way/101967877",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8068582,
+   "lon": 9.1028484
+  },
+  {
+   "osm_id": "way/102133689",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7860537,
+   "lon": 9.1293912
+  },
+  {
+   "osm_id": "way/102143797",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8173325,
+   "lon": 9.1228946
+  },
+  {
+   "osm_id": "way/102143797",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8173325,
+   "lon": 9.1228946
+  },
+  {
+   "osm_id": "way/102343994",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.805334,
+   "lon": 9.0903745
+  },
+  {
+   "osm_id": "way/102344075",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8081799,
+   "lon": 9.0905082
+  },
+  {
+   "osm_id": "way/1023444109",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8391414,
+   "lon": 9.209639
+  },
+  {
+   "osm_id": "way/102959309",
+   "activity_type": "basketball",
+   "name": "Bolzplatz Gemsenweg",
+   "lat": 48.8026296,
+   "lon": 9.1064953
+  },
+  {
+   "osm_id": "way/102959309",
+   "activity_type": "football",
+   "name": "Bolzplatz Gemsenweg",
+   "lat": 48.8026296,
+   "lon": 9.1064953
+  },
+  {
+   "osm_id": "way/103058740",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8081165,
+   "lon": 9.1221397
+  },
+  {
+   "osm_id": "way/103914931",
+   "activity_type": "football",
+   "name": "Fußballplatz auf dem Frauenkopf",
+   "lat": 48.7617275,
+   "lon": 9.2271001
+  },
+  {
+   "osm_id": "way/10593721",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7170188,
+   "lon": 9.1447888
+  },
+  {
+   "osm_id": "way/10593727",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7175691,
+   "lon": 9.1459527
+  },
+  {
+   "osm_id": "way/10593762",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7177351,
+   "lon": 9.1469873
+  },
+  {
+   "osm_id": "way/10594251",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7082616,
+   "lon": 9.1626696
+  },
+  {
+   "osm_id": "way/10595945",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7341638,
+   "lon": 9.171003
+  },
+  {
+   "osm_id": "way/10595947",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7341502,
+   "lon": 9.1724297
+  },
+  {
+   "osm_id": "way/10595950",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7330751,
+   "lon": 9.171866
+  },
+  {
+   "osm_id": "way/1059655525",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7513351,
+   "lon": 9.1867902
+  },
+  {
+   "osm_id": "way/1059655526",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7514367,
+   "lon": 9.1865638
+  },
+  {
+   "osm_id": "way/1059655528",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7517567,
+   "lon": 9.1870363
+  },
+  {
+   "osm_id": "way/106701822",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.789474,
+   "lon": 9.1531133
+  },
+  {
+   "osm_id": "way/106701822",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.789474,
+   "lon": 9.1531133
+  },
+  {
+   "osm_id": "way/1068833846",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyball TSV Georgii Allianz",
+   "lat": 48.7220499,
+   "lon": 9.1138988
+  },
+  {
+   "osm_id": "way/1071005815",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7635981,
+   "lon": 9.1262543
+  },
+  {
+   "osm_id": "way/1071392910",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7903305,
+   "lon": 9.2381038
+  },
+  {
+   "osm_id": "way/109438781",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8272781,
+   "lon": 9.1856804
+  },
+  {
+   "osm_id": "way/11015560",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8526096,
+   "lon": 9.1392066
+  },
+  {
+   "osm_id": "way/1107532042",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8359882,
+   "lon": 9.1844129
+  },
+  {
+   "osm_id": "way/111712487",
+   "activity_type": "basketball",
+   "name": "Bolzplatz Elisabeth-Bauser-Weg",
+   "lat": 48.7479259,
+   "lon": 9.0805423
+  },
+  {
+   "osm_id": "way/111712487",
+   "activity_type": "football",
+   "name": "Bolzplatz Elisabeth-Bauser-Weg",
+   "lat": 48.7479259,
+   "lon": 9.0805423
+  },
+  {
+   "osm_id": "way/1164526688",
+   "activity_type": "outdoor_fitness",
+   "name": "Calisthenics Park des LAC Degerloch",
+   "lat": 48.733783,
+   "lon": 9.1737188
+  },
+  {
+   "osm_id": "way/117204514",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7899608,
+   "lon": 9.2272444
+  },
+  {
+   "osm_id": "way/117204516",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7915127,
+   "lon": 9.2359754
+  },
+  {
+   "osm_id": "way/118496227",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7730163,
+   "lon": 9.1819718
+  },
+  {
+   "osm_id": "way/118496227",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7730163,
+   "lon": 9.1819718
+  },
+  {
+   "osm_id": "way/120247195",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8214927,
+   "lon": 9.1165698
+  },
+  {
+   "osm_id": "way/120247206",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.815929,
+   "lon": 9.1122683
+  },
+  {
+   "osm_id": "way/1209185863",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7642747,
+   "lon": 9.160165
+  },
+  {
+   "osm_id": "way/121009678",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7915684,
+   "lon": 9.1948122
+  },
+  {
+   "osm_id": "way/121550536",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7999013,
+   "lon": 9.1905004
+  },
+  {
+   "osm_id": "way/1217104469",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7838167,
+   "lon": 9.1299129
+  },
+  {
+   "osm_id": "way/121927131",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7843601,
+   "lon": 9.1336281
+  },
+  {
+   "osm_id": "way/121927132",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7852084,
+   "lon": 9.1331428
+  },
+  {
+   "osm_id": "way/121927135",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7845112,
+   "lon": 9.1337739
+  },
+  {
+   "osm_id": "way/122387055",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8005322,
+   "lon": 9.2328874
+  },
+  {
+   "osm_id": "way/1225604040",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7145687,
+   "lon": 9.1190513
+  },
+  {
+   "osm_id": "way/1225604042",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7143787,
+   "lon": 9.1193107
+  },
+  {
+   "osm_id": "way/12291815",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7094321,
+   "lon": 9.1506985
+  },
+  {
+   "osm_id": "way/123008377",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8077888,
+   "lon": 9.1051633
+  },
+  {
+   "osm_id": "way/123009216",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8084996,
+   "lon": 9.1136988
+  },
+  {
+   "osm_id": "way/123080238",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8154565,
+   "lon": 9.1074331
+  },
+  {
+   "osm_id": "way/1238314175",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7408201,
+   "lon": 9.188217
+  },
+  {
+   "osm_id": "way/123856244",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7895031,
+   "lon": 9.211702
+  },
+  {
+   "osm_id": "way/124040765",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8188556,
+   "lon": 9.2113225
+  },
+  {
+   "osm_id": "way/124040767",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8183415,
+   "lon": 9.2100778
+  },
+  {
+   "osm_id": "way/124040769",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8201927,
+   "lon": 9.2107988
+  },
+  {
+   "osm_id": "way/124645010",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7222364,
+   "lon": 9.1168796
+  },
+  {
+   "osm_id": "way/124658858",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7805923,
+   "lon": 9.2420494
+  },
+  {
+   "osm_id": "way/1247623253",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7476084,
+   "lon": 9.1874499
+  },
+  {
+   "osm_id": "way/125741430",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.8028942,
+   "lon": 9.2102554
+  },
+  {
+   "osm_id": "way/125746670",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.817804,
+   "lon": 9.2233233
+  },
+  {
+   "osm_id": "way/1267792226",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7666318,
+   "lon": 9.2460787
+  },
+  {
+   "osm_id": "way/1267792237",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7667246,
+   "lon": 9.2460257
+  },
+  {
+   "osm_id": "way/1267796054",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7705357,
+   "lon": 9.2466853
+  },
+  {
+   "osm_id": "way/128224631",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7220294,
+   "lon": 9.157491
+  },
+  {
+   "osm_id": "way/1282632657",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7789911,
+   "lon": 9.2465311
+  },
+  {
+   "osm_id": "way/1282632658",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7790547,
+   "lon": 9.2466253
+  },
+  {
+   "osm_id": "way/128820401",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8073957,
+   "lon": 9.1036646
+  },
+  {
+   "osm_id": "way/1290337820",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7984554,
+   "lon": 9.2273999
+  },
+  {
+   "osm_id": "way/1290337820",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7984554,
+   "lon": 9.2273999
+  },
+  {
+   "osm_id": "way/1293932823",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7253389,
+   "lon": 9.1364449
+  },
+  {
+   "osm_id": "way/129550295",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7933765,
+   "lon": 9.1877517
+  },
+  {
+   "osm_id": "way/129826811",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8087294,
+   "lon": 9.1422298
+  },
+  {
+   "osm_id": "way/129826811",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8087294,
+   "lon": 9.1422298
+  },
+  {
+   "osm_id": "way/1302887472",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7815093,
+   "lon": 9.1368409
+  },
+  {
+   "osm_id": "way/130351085",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8015612,
+   "lon": 9.2341225
+  },
+  {
+   "osm_id": "way/130351090",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8018971,
+   "lon": 9.2339181
+  },
+  {
+   "osm_id": "way/1306330366",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7284807,
+   "lon": 9.0969683
+  },
+  {
+   "osm_id": "way/1311326541",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8318556,
+   "lon": 9.231105
+  },
+  {
+   "osm_id": "way/1311326541",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8318556,
+   "lon": 9.231105
+  },
+  {
+   "osm_id": "way/1314111082",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7845928,
+   "lon": 9.2185378
+  },
+  {
+   "osm_id": "way/131420982",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7823703,
+   "lon": 9.1341606
+  },
+  {
+   "osm_id": "way/132220830",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8435463,
+   "lon": 9.2295749
+  },
+  {
+   "osm_id": "way/132676084",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.6972414,
+   "lon": 9.2144737
+  },
+  {
+   "osm_id": "way/132676087",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.696867,
+   "lon": 9.2150116
+  },
+  {
+   "osm_id": "way/1332477684",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7757172,
+   "lon": 9.1343057
+  },
+  {
+   "osm_id": "way/1333514678",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7367289,
+   "lon": 9.2204666
+  },
+  {
+   "osm_id": "way/133635464",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8120698,
+   "lon": 9.2121205
+  },
+  {
+   "osm_id": "way/135863391",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8068852,
+   "lon": 9.21769
+  },
+  {
+   "osm_id": "way/136213573",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8055264,
+   "lon": 9.2246339
+  },
+  {
+   "osm_id": "way/136215429",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.807986,
+   "lon": 9.2173544
+  },
+  {
+   "osm_id": "way/136527040",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7814517,
+   "lon": 9.1882276
+  },
+  {
+   "osm_id": "way/1367995773",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7831671,
+   "lon": 9.142739
+  },
+  {
+   "osm_id": "way/1375359532",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.83056,
+   "lon": 9.2242147
+  },
+  {
+   "osm_id": "way/1375359533",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8305157,
+   "lon": 9.224214
+  },
+  {
+   "osm_id": "way/137592677",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7769478,
+   "lon": 9.1702138
+  },
+  {
+   "osm_id": "way/137592679",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7770674,
+   "lon": 9.1703959
+  },
+  {
+   "osm_id": "way/13865178",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.825048,
+   "lon": 9.1521914
+  },
+  {
+   "osm_id": "way/13871234",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7657411,
+   "lon": 9.2506867
+  },
+  {
+   "osm_id": "way/1395891696",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7619745,
+   "lon": 9.1615012
+  },
+  {
+   "osm_id": "way/1409264902",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7594001,
+   "lon": 9.1413983
+  },
+  {
+   "osm_id": "way/1409264903",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7593119,
+   "lon": 9.1412524
+  },
+  {
+   "osm_id": "way/1413439985",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8228716,
+   "lon": 9.2191549
+  },
+  {
+   "osm_id": "way/1413439986",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.8229515,
+   "lon": 9.2190196
+  },
+  {
+   "osm_id": "way/141560003",
+   "activity_type": "football",
+   "name": "Bolzplatz Galileistraße",
+   "lat": 48.7190588,
+   "lon": 9.1194672
+  },
+  {
+   "osm_id": "way/141700728",
+   "activity_type": "football",
+   "name": "Sportplatz Hofen",
+   "lat": 48.8332874,
+   "lon": 9.2253167
+  },
+  {
+   "osm_id": "way/141791171",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8303821,
+   "lon": 9.2245598
+  },
+  {
+   "osm_id": "way/144318533",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8110403,
+   "lon": 9.2156285
+  },
+  {
+   "osm_id": "way/144487775",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.844863,
+   "lon": 9.1524936
+  },
+  {
+   "osm_id": "way/145198047",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.809173,
+   "lon": 9.2303945
+  },
+  {
+   "osm_id": "way/145421265",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8368923,
+   "lon": 9.1429247
+  },
+  {
+   "osm_id": "way/145423183",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8398644,
+   "lon": 9.1387712
+  },
+  {
+   "osm_id": "way/145564180",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8065349,
+   "lon": 9.2507656
+  },
+  {
+   "osm_id": "way/1457648825",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7953555,
+   "lon": 9.2059179
+  },
+  {
+   "osm_id": "way/145829726",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.8264476,
+   "lon": 9.1514765
+  },
+  {
+   "osm_id": "way/145829734",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8288842,
+   "lon": 9.1507002
+  },
+  {
+   "osm_id": "way/146304972",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8081633,
+   "lon": 9.1184654
+  },
+  {
+   "osm_id": "way/1463473420",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.732402,
+   "lon": 9.1683093
+  },
+  {
+   "osm_id": "way/146412080",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.8294554,
+   "lon": 9.1946909
+  },
+  {
+   "osm_id": "way/146745607",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.802879,
+   "lon": 9.2431192
+  },
+  {
+   "osm_id": "way/146745613",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8031285,
+   "lon": 9.2431131
+  },
+  {
+   "osm_id": "way/146842562",
+   "activity_type": "football",
+   "name": "Bolzplatz Ottmarsheimer Straße",
+   "lat": 48.8460736,
+   "lon": 9.1658323
+  },
+  {
+   "osm_id": "way/147841211",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8415549,
+   "lon": 9.2137036
+  },
+  {
+   "osm_id": "way/1486529638",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8461164,
+   "lon": 9.1654481
+  },
+  {
+   "osm_id": "way/149930484",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8255146,
+   "lon": 9.1759823
+  },
+  {
+   "osm_id": "way/1517371354",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7481878,
+   "lon": 9.1059383
+  },
+  {
+   "osm_id": "way/1525070683",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7193971,
+   "lon": 9.2051547
+  },
+  {
+   "osm_id": "way/1541299141",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7275786,
+   "lon": 9.0981651
+  },
+  {
+   "osm_id": "way/1544919306",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7794909,
+   "lon": 9.2458301
+  },
+  {
+   "osm_id": "way/1545615750",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7323353,
+   "lon": 9.110945
+  },
+  {
+   "osm_id": "way/1547187495",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7442979,
+   "lon": 9.2072841
+  },
+  {
+   "osm_id": "way/1547770902",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8047106,
+   "lon": 9.2115914
+  },
+  {
+   "osm_id": "way/1548156978",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7722693,
+   "lon": 9.0914016
+  },
+  {
+   "osm_id": "way/1549610488",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7563313,
+   "lon": 9.2289544
+  },
+  {
+   "osm_id": "way/1554215407",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7173564,
+   "lon": 9.1129217
+  },
+  {
+   "osm_id": "way/163282632",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7524218,
+   "lon": 9.1901841
+  },
+  {
+   "osm_id": "way/163282633",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7524698,
+   "lon": 9.190279
+  },
+  {
+   "osm_id": "way/163282634",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7525102,
+   "lon": 9.1902373
+  },
+  {
+   "osm_id": "way/165820885",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7911934,
+   "lon": 9.1977261
+  },
+  {
+   "osm_id": "way/166851450",
+   "activity_type": "basketball",
+   "name": "Bolzplatz Rembrandtstraße",
+   "lat": 48.7318332,
+   "lon": 9.1503782
+  },
+  {
+   "osm_id": "way/166851450",
+   "activity_type": "football",
+   "name": "Bolzplatz Rembrandtstraße",
+   "lat": 48.7318332,
+   "lon": 9.1503782
+  },
+  {
+   "osm_id": "way/168172404",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.793577,
+   "lon": 9.1879481
+  },
+  {
+   "osm_id": "way/168352436",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7691253,
+   "lon": 9.1712761
+  },
+  {
+   "osm_id": "way/168352436",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7691253,
+   "lon": 9.1712761
+  },
+  {
+   "osm_id": "way/169974069",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7347299,
+   "lon": 9.0880335
+  },
+  {
+   "osm_id": "way/169974070",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7345458,
+   "lon": 9.0880143
+  },
+  {
+   "osm_id": "way/17542980",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8395484,
+   "lon": 9.1396536
+  },
+  {
+   "osm_id": "way/177904421",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7607919,
+   "lon": 9.1727321
+  },
+  {
+   "osm_id": "way/178849916",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7746763,
+   "lon": 9.1573939
+  },
+  {
+   "osm_id": "way/187530832",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7497967,
+   "lon": 9.1696729
+  },
+  {
+   "osm_id": "way/187530832",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7497967,
+   "lon": 9.1696729
+  },
+  {
+   "osm_id": "way/189261178",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8122282,
+   "lon": 9.1431809
+  },
+  {
+   "osm_id": "way/197273500",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.798309,
+   "lon": 9.1942347
+  },
+  {
+   "osm_id": "way/197273725",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.79697,
+   "lon": 9.193288
+  },
+  {
+   "osm_id": "way/210107041",
+   "activity_type": "football",
+   "name": "ADM Sportpark Platz 3",
+   "lat": 48.7464944,
+   "lon": 9.187022
+  },
+  {
+   "osm_id": "way/21137205",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7720003,
+   "lon": 9.2188492
+  },
+  {
+   "osm_id": "way/21137206",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.771283,
+   "lon": 9.2187355
+  },
+  {
+   "osm_id": "way/21137207",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7720961,
+   "lon": 9.22027
+  },
+  {
+   "osm_id": "way/21137210",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7718023,
+   "lon": 9.2243717
+  },
+  {
+   "osm_id": "way/21137211",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7720269,
+   "lon": 9.2215748
+  },
+  {
+   "osm_id": "way/21137213",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7719063,
+   "lon": 9.222914
+  },
+  {
+   "osm_id": "way/21143931",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7748377,
+   "lon": 9.2193348
+  },
+  {
+   "osm_id": "way/21143932",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7764385,
+   "lon": 9.2243347
+  },
+  {
+   "osm_id": "way/223983041",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8118271,
+   "lon": 9.1871348
+  },
+  {
+   "osm_id": "way/22735087",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7088357,
+   "lon": 9.1986573
+  },
+  {
+   "osm_id": "way/22735096",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7089676,
+   "lon": 9.2007052
+  },
+  {
+   "osm_id": "way/22741025",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoorfitnessplatz Universität Stuttgart",
+   "lat": 48.7483089,
+   "lon": 9.1060787
+  },
+  {
+   "osm_id": "way/22746357",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8528583,
+   "lon": 9.1405552
+  },
+  {
+   "osm_id": "way/22880262",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8312301,
+   "lon": 9.191915
+  },
+  {
+   "osm_id": "way/22880263",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8302714,
+   "lon": 9.1928838
+  },
+  {
+   "osm_id": "way/22890915",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8207921,
+   "lon": 9.2054911
+  },
+  {
+   "osm_id": "way/231847976",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7404084,
+   "lon": 9.1766576
+  },
+  {
+   "osm_id": "way/236469829",
+   "activity_type": "football",
+   "name": "Bolzplatz Lohengrinstraße",
+   "lat": 48.7512896,
+   "lon": 9.1703671
+  },
+  {
+   "osm_id": "way/23691592",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7425367,
+   "lon": 9.0941355
+  },
+  {
+   "osm_id": "way/23691969",
+   "activity_type": "football",
+   "name": "Birkenwald2",
+   "lat": 48.7399974,
+   "lon": 9.0923241
+  },
+  {
+   "osm_id": "way/23691970",
+   "activity_type": "football",
+   "name": "Birkenwald",
+   "lat": 48.7409478,
+   "lon": 9.0918904
+  },
+  {
+   "osm_id": "way/23691971",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7417018,
+   "lon": 9.0919958
+  },
+  {
+   "osm_id": "way/23885137",
+   "activity_type": "football",
+   "name": "TSV Jahn Büsnau",
+   "lat": 48.7480011,
+   "lon": 9.0822546
+  },
+  {
+   "osm_id": "way/23986495",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.770711,
+   "lon": 9.1196133
+  },
+  {
+   "osm_id": "way/23986497",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7710642,
+   "lon": 9.1188203
+  },
+  {
+   "osm_id": "way/23986684",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7844934,
+   "lon": 9.1329142
+  },
+  {
+   "osm_id": "way/24007778",
+   "activity_type": "football",
+   "name": "TSV Jahn Büsnau",
+   "lat": 48.7482554,
+   "lon": 9.0834614
+  },
+  {
+   "osm_id": "way/24035286",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8101161,
+   "lon": 9.1394709
+  },
+  {
+   "osm_id": "way/24035320",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.808621,
+   "lon": 9.1361672
+  },
+  {
+   "osm_id": "way/24035368",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8092448,
+   "lon": 9.1409293
+  },
+  {
+   "osm_id": "way/241804972",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8443375,
+   "lon": 9.2107111
+  },
+  {
+   "osm_id": "way/24358981",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8139788,
+   "lon": 9.2450721
+  },
+  {
+   "osm_id": "way/24538241",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7689507,
+   "lon": 9.1687596
+  },
+  {
+   "osm_id": "way/24549838",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8090909,
+   "lon": 9.0881466
+  },
+  {
+   "osm_id": "way/24549842",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8087766,
+   "lon": 9.08949
+  },
+  {
+   "osm_id": "way/24550123",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7970526,
+   "lon": 9.1515066
+  },
+  {
+   "osm_id": "way/24579920",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8426141,
+   "lon": 9.1911227
+  },
+  {
+   "osm_id": "way/24580088",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8454761,
+   "lon": 9.2177033
+  },
+  {
+   "osm_id": "way/24580093",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8448212,
+   "lon": 9.2159319
+  },
+  {
+   "osm_id": "way/24580657",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8426158,
+   "lon": 9.2130223
+  },
+  {
+   "osm_id": "way/24590769",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8147861,
+   "lon": 9.2027968
+  },
+  {
+   "osm_id": "way/24753266",
+   "activity_type": "football",
+   "name": "TSV Uhlbach",
+   "lat": 48.7745594,
+   "lon": 9.2880783
+  },
+  {
+   "osm_id": "way/24780085",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7440379,
+   "lon": 9.1416261
+  },
+  {
+   "osm_id": "way/24786468",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7883714,
+   "lon": 9.2672172
+  },
+  {
+   "osm_id": "way/24824524",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8357993,
+   "lon": 9.1841907
+  },
+  {
+   "osm_id": "way/24839736",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8362984,
+   "lon": 9.1983141
+  },
+  {
+   "osm_id": "way/24996215",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7600067,
+   "lon": 9.2682196
+  },
+  {
+   "osm_id": "way/24996228",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7588394,
+   "lon": 9.269066
+  },
+  {
+   "osm_id": "way/250830304",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7252544,
+   "lon": 9.1961363
+  },
+  {
+   "osm_id": "way/25095056",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7292602,
+   "lon": 9.1648548
+  },
+  {
+   "osm_id": "way/25095221",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7298962,
+   "lon": 9.1647103
+  },
+  {
+   "osm_id": "way/25212950",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7664707,
+   "lon": 9.1730247
+  },
+  {
+   "osm_id": "way/25216080",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7907469,
+   "lon": 9.2373421
+  },
+  {
+   "osm_id": "way/25216081",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7896884,
+   "lon": 9.2372052
+  },
+  {
+   "osm_id": "way/25216082",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.790338,
+   "lon": 9.2360149
+  },
+  {
+   "osm_id": "way/25216083",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7893744,
+   "lon": 9.2361292
+  },
+  {
+   "osm_id": "way/25216084",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7909719,
+   "lon": 9.2348917
+  },
+  {
+   "osm_id": "way/25216085",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7904714,
+   "lon": 9.2338455
+  },
+  {
+   "osm_id": "way/25216190",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.792219,
+   "lon": 9.2351537
+  },
+  {
+   "osm_id": "way/25216192",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7937836,
+   "lon": 9.2341195
+  },
+  {
+   "osm_id": "way/25216194",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7942259,
+   "lon": 9.2335479
+  },
+  {
+   "osm_id": "way/25216445",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7895628,
+   "lon": 9.2320474
+  },
+  {
+   "osm_id": "way/25216446",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7890405,
+   "lon": 9.231397
+  },
+  {
+   "osm_id": "way/25216447",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7896662,
+   "lon": 9.2302391
+  },
+  {
+   "osm_id": "way/25216448",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7902694,
+   "lon": 9.2291232
+  },
+  {
+   "osm_id": "way/25216449",
+   "activity_type": "football",
+   "name": "VfB Hockeyplatz",
+   "lat": 48.7914267,
+   "lon": 9.2284782
+  },
+  {
+   "osm_id": "way/25216521",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7892268,
+   "lon": 9.2286941
+  },
+  {
+   "osm_id": "way/25240662",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7315026,
+   "lon": 9.1536836
+  },
+  {
+   "osm_id": "way/25240663",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7319496,
+   "lon": 9.1541773
+  },
+  {
+   "osm_id": "way/252978479",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7644157,
+   "lon": 9.1595778
+  },
+  {
+   "osm_id": "way/254360047",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.709577,
+   "lon": 9.1512448
+  },
+  {
+   "osm_id": "way/25561848",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7951633,
+   "lon": 9.1708893
+  },
+  {
+   "osm_id": "way/25654106",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7759505,
+   "lon": 9.2541177
+  },
+  {
+   "osm_id": "way/25654107",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7759782,
+   "lon": 9.2528511
+  },
+  {
+   "osm_id": "way/25708446",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7579209,
+   "lon": 9.2385604
+  },
+  {
+   "osm_id": "way/25717502",
+   "activity_type": "football",
+   "name": "MTV Stuttgart 1843 E.V.",
+   "lat": 48.7844958,
+   "lon": 9.1438087
+  },
+  {
+   "osm_id": "way/25873801",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7476745,
+   "lon": 9.1083466
+  },
+  {
+   "osm_id": "way/25934717",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8077458,
+   "lon": 9.1410086
+  },
+  {
+   "osm_id": "way/25996689",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7299603,
+   "lon": 9.1398713
+  },
+  {
+   "osm_id": "way/25997286",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7293197,
+   "lon": 9.1287756
+  },
+  {
+   "osm_id": "way/26127713",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7558859,
+   "lon": 9.1607952
+  },
+  {
+   "osm_id": "way/262595795",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7318078,
+   "lon": 9.1532639
+  },
+  {
+   "osm_id": "way/26767224",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7282769,
+   "lon": 9.1685326
+  },
+  {
+   "osm_id": "way/26767479",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7285114,
+   "lon": 9.167594
+  },
+  {
+   "osm_id": "way/27076096",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7186745,
+   "lon": 9.1414192
+  },
+  {
+   "osm_id": "way/27195079",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7363502,
+   "lon": 9.1823699
+  },
+  {
+   "osm_id": "way/276100504",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7338498,
+   "lon": 9.0906399
+  },
+  {
+   "osm_id": "way/282433804",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7898629,
+   "lon": 9.2680765
+  },
+  {
+   "osm_id": "way/28282184",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8257607,
+   "lon": 9.1503499
+  },
+  {
+   "osm_id": "way/28282188",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8254278,
+   "lon": 9.1513457
+  },
+  {
+   "osm_id": "way/284272376",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8427251,
+   "lon": 9.229124
+  },
+  {
+   "osm_id": "way/284272376",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8427251,
+   "lon": 9.229124
+  },
+  {
+   "osm_id": "way/28438663",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8174248,
+   "lon": 9.1535052
+  },
+  {
+   "osm_id": "way/287235504",
+   "activity_type": "football",
+   "name": "Kleiner Kunstrasen SV Vaihingen",
+   "lat": 48.7206141,
+   "lon": 9.1148149
+  },
+  {
+   "osm_id": "way/287719084",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7338465,
+   "lon": 9.1717481
+  },
+  {
+   "osm_id": "way/288715887",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7796426,
+   "lon": 9.1643843
+  },
+  {
+   "osm_id": "way/288715887",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7796426,
+   "lon": 9.1643843
+  },
+  {
+   "osm_id": "way/28934348",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7743644,
+   "lon": 9.1588407
+  },
+  {
+   "osm_id": "way/294665079",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7257224,
+   "lon": 9.1784519
+  },
+  {
+   "osm_id": "way/297341638",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7761774,
+   "lon": 9.1541726
+  },
+  {
+   "osm_id": "way/302050007",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8347939,
+   "lon": 9.2441939
+  },
+  {
+   "osm_id": "way/30573682",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8295607,
+   "lon": 9.2397623
+  },
+  {
+   "osm_id": "way/30573683",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8295146,
+   "lon": 9.2394616
+  },
+  {
+   "osm_id": "way/30607040",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8289325,
+   "lon": 9.2277504
+  },
+  {
+   "osm_id": "way/30607040",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8289325,
+   "lon": 9.2277504
+  },
+  {
+   "osm_id": "way/30627575",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8333679,
+   "lon": 9.2304664
+  },
+  {
+   "osm_id": "way/30627578",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8345643,
+   "lon": 9.2317209
+  },
+  {
+   "osm_id": "way/30628531",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8361214,
+   "lon": 9.236414
+  },
+  {
+   "osm_id": "way/30899523",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7506894,
+   "lon": 9.1290111
+  },
+  {
+   "osm_id": "way/312952176",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.8128947,
+   "lon": 9.2377824
+  },
+  {
+   "osm_id": "way/31511438",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7295307,
+   "lon": 9.1980953
+  },
+  {
+   "osm_id": "way/319238124",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8330813,
+   "lon": 9.1989219
+  },
+  {
+   "osm_id": "way/319675208",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8310887,
+   "lon": 9.2011603
+  },
+  {
+   "osm_id": "way/33114371",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7089534,
+   "lon": 9.1998615
+  },
+  {
+   "osm_id": "way/333475757",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7951273,
+   "lon": 9.1808459
+  },
+  {
+   "osm_id": "way/336349247",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8144545,
+   "lon": 9.2544427
+  },
+  {
+   "osm_id": "way/339028549",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.81868,
+   "lon": 9.2491
+  },
+  {
+   "osm_id": "way/341003539",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7814974,
+   "lon": 9.183697
+  },
+  {
+   "osm_id": "way/341514859",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7710394,
+   "lon": 9.1183775
+  },
+  {
+   "osm_id": "way/34685362",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7922532,
+   "lon": 9.2320788
+  },
+  {
+   "osm_id": "way/349627282",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8070853,
+   "lon": 9.2519263
+  },
+  {
+   "osm_id": "way/353468259",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8434832,
+   "lon": 9.1609079
+  },
+  {
+   "osm_id": "way/35375469",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7932098,
+   "lon": 9.1977147
+  },
+  {
+   "osm_id": "way/35433711",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7727637,
+   "lon": 9.2474647
+  },
+  {
+   "osm_id": "way/357924339",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.8073173,
+   "lon": 9.1145762
+  },
+  {
+   "osm_id": "way/365400366",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8217042,
+   "lon": 9.1170333
+  },
+  {
+   "osm_id": "way/368062757",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8163499,
+   "lon": 9.228059
+  },
+  {
+   "osm_id": "way/36832716",
+   "activity_type": "football",
+   "name": "ADM Sportpark Platz 2",
+   "lat": 48.7468823,
+   "lon": 9.1878123
+  },
+  {
+   "osm_id": "way/36832720",
+   "activity_type": "football",
+   "name": "BZA Waldau Kunstrasen",
+   "lat": 48.7502045,
+   "lon": 9.1869334
+  },
+  {
+   "osm_id": "way/36832721",
+   "activity_type": "football",
+   "name": "ABV 1863 Stuttgart",
+   "lat": 48.75142,
+   "lon": 9.1900131
+  },
+  {
+   "osm_id": "way/36832722",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7498524,
+   "lon": 9.1906159
+  },
+  {
+   "osm_id": "way/36832723",
+   "activity_type": "football",
+   "name": "SV Eintracht Stuttgart",
+   "lat": 48.7532147,
+   "lon": 9.1893303
+  },
+  {
+   "osm_id": "way/36832726",
+   "activity_type": "football",
+   "name": "TuS Stuttgart Platz 2",
+   "lat": 48.7520864,
+   "lon": 9.186347
+  },
+  {
+   "osm_id": "way/36832728",
+   "activity_type": "football",
+   "name": "Sportfreunde Stuttgart",
+   "lat": 48.7531136,
+   "lon": 9.1862249
+  },
+  {
+   "osm_id": "way/36832731",
+   "activity_type": "football",
+   "name": "FV Germania Degerloch",
+   "lat": 48.7525972,
+   "lon": 9.1840003
+  },
+  {
+   "osm_id": "way/36832732",
+   "activity_type": "football",
+   "name": "TuS Stuttgart Platz 1",
+   "lat": 48.7541089,
+   "lon": 9.185859
+  },
+  {
+   "osm_id": "way/36832735",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.750836,
+   "lon": 9.1890554
+  },
+  {
+   "osm_id": "way/36832736",
+   "activity_type": "football",
+   "name": "TSV 07 Stuttgart",
+   "lat": 48.7503744,
+   "lon": 9.1899308
+  },
+  {
+   "osm_id": "way/36832738",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7517356,
+   "lon": 9.191491
+  },
+  {
+   "osm_id": "way/36832738",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7517356,
+   "lon": 9.191491
+  },
+  {
+   "osm_id": "way/370104888",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7815463,
+   "lon": 9.1840167
+  },
+  {
+   "osm_id": "way/371357063",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7159879,
+   "lon": 9.2109003
+  },
+  {
+   "osm_id": "way/37190045",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8524283,
+   "lon": 9.1407172
+  },
+  {
+   "osm_id": "way/376877120",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8422009,
+   "lon": 9.1890617
+  },
+  {
+   "osm_id": "way/376877121",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.8420336,
+   "lon": 9.1894474
+  },
+  {
+   "osm_id": "way/380726719",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7726061,
+   "lon": 9.1818066
+  },
+  {
+   "osm_id": "way/384345392",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7731195,
+   "lon": 9.1419942
+  },
+  {
+   "osm_id": "way/388770831",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.843676,
+   "lon": 9.1953948
+  },
+  {
+   "osm_id": "way/389497316",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8196693,
+   "lon": 9.1855529
+  },
+  {
+   "osm_id": "way/389875734",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8094018,
+   "lon": 9.1419726
+  },
+  {
+   "osm_id": "way/389876818",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8089693,
+   "lon": 9.1434098
+  },
+  {
+   "osm_id": "way/389878555",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.8078057,
+   "lon": 9.1426042
+  },
+  {
+   "osm_id": "way/389878556",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.8078796,
+   "lon": 9.1430157
+  },
+  {
+   "osm_id": "way/390512925",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.84433,
+   "lon": 9.2111022
+  },
+  {
+   "osm_id": "way/391331716",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7739473,
+   "lon": 9.182387
+  },
+  {
+   "osm_id": "way/391331716",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7739473,
+   "lon": 9.182387
+  },
+  {
+   "osm_id": "way/391716518",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.789881,
+   "lon": 9.1540889
+  },
+  {
+   "osm_id": "way/39187655",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7792378,
+   "lon": 9.2147464
+  },
+  {
+   "osm_id": "way/394729053",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8068519,
+   "lon": 9.1602742
+  },
+  {
+   "osm_id": "way/394729053",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8068519,
+   "lon": 9.1602742
+  },
+  {
+   "osm_id": "way/396331580",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7229883,
+   "lon": 9.1045226
+  },
+  {
+   "osm_id": "way/396331580",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7229883,
+   "lon": 9.1045226
+  },
+  {
+   "osm_id": "way/397061643",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.8025889,
+   "lon": 9.1053878
+  },
+  {
+   "osm_id": "way/39762769",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7284772,
+   "lon": 9.0972464
+  },
+  {
+   "osm_id": "way/39816288",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7214669,
+   "lon": 9.0901947
+  },
+  {
+   "osm_id": "way/40231720",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7232029,
+   "lon": 9.1057499
+  },
+  {
+   "osm_id": "way/40234930",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7213888,
+   "lon": 9.1011386
+  },
+  {
+   "osm_id": "way/405308351",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8197699,
+   "lon": 9.1918983
+  },
+  {
+   "osm_id": "way/406951889",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7420609,
+   "lon": 9.1357221
+  },
+  {
+   "osm_id": "way/412087550",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7751198,
+   "lon": 9.1659649
+  },
+  {
+   "osm_id": "way/41683554",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7729645,
+   "lon": 9.2346135
+  },
+  {
+   "osm_id": "way/418335634",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7314711,
+   "lon": 9.1174084
+  },
+  {
+   "osm_id": "way/42346897",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7227149,
+   "lon": 9.0988013
+  },
+  {
+   "osm_id": "way/42509614",
+   "activity_type": "football",
+   "name": "Bolzplatz Bogenstraße",
+   "lat": 48.7450698,
+   "lon": 9.1200591
+  },
+  {
+   "osm_id": "way/429779075",
+   "activity_type": "outdoor_fitness",
+   "name": "Calisthenics Park Südheimer Platz",
+   "lat": 48.7566933,
+   "lon": 9.1449545
+  },
+  {
+   "osm_id": "way/42995582",
+   "activity_type": "basketball",
+   "name": "Bolzplatz Widmaierstraße",
+   "lat": 48.7230204,
+   "lon": 9.1584144
+  },
+  {
+   "osm_id": "way/43042857",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7282583,
+   "lon": 9.1484483
+  },
+  {
+   "osm_id": "way/432256577",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.823851,
+   "lon": 9.1747826
+  },
+  {
+   "osm_id": "way/436140398",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8300273,
+   "lon": 9.1777082
+  },
+  {
+   "osm_id": "way/437652747",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8096151,
+   "lon": 9.1559715
+  },
+  {
+   "osm_id": "way/439415555",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7284758,
+   "lon": 9.0974344
+  },
+  {
+   "osm_id": "way/439415556",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7284744,
+   "lon": 9.0976103
+  },
+  {
+   "osm_id": "way/439415557",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7284438,
+   "lon": 9.0978782
+  },
+  {
+   "osm_id": "way/439418197",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.8072162,
+   "lon": 9.1695799
+  },
+  {
+   "osm_id": "way/439418198",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.8071587,
+   "lon": 9.1698372
+  },
+  {
+   "osm_id": "way/439418199",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.8071,
+   "lon": 9.1700959
+  },
+  {
+   "osm_id": "way/456207014",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8168079,
+   "lon": 9.2072569
+  },
+  {
+   "osm_id": "way/464442662",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8422225,
+   "lon": 9.1894483
+  },
+  {
+   "osm_id": "way/474874719",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.850327,
+   "lon": 9.1588158
+  },
+  {
+   "osm_id": "way/480637987",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7931889,
+   "lon": 9.214037
+  },
+  {
+   "osm_id": "way/490993681",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.717365,
+   "lon": 9.2014492
+  },
+  {
+   "osm_id": "way/493756403",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7416756,
+   "lon": 9.1627748
+  },
+  {
+   "osm_id": "way/517085090",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7967831,
+   "lon": 9.2227211
+  },
+  {
+   "osm_id": "way/521547200",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8339583,
+   "lon": 9.1904179
+  },
+  {
+   "osm_id": "way/52360362",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7180747,
+   "lon": 9.1454589
+  },
+  {
+   "osm_id": "way/52909137",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7554398,
+   "lon": 9.2533224
+  },
+  {
+   "osm_id": "way/52909137",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7554398,
+   "lon": 9.2533224
+  },
+  {
+   "osm_id": "way/53424656",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7384065,
+   "lon": 9.2276046
+  },
+  {
+   "osm_id": "way/535939410",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7711071,
+   "lon": 9.1545866
+  },
+  {
+   "osm_id": "way/539970422",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.807552,
+   "lon": 9.1146847
+  },
+  {
+   "osm_id": "way/56456374",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.8092791,
+   "lon": 9.0893927
+  },
+  {
+   "osm_id": "way/608049891",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8393169,
+   "lon": 9.2045965
+  },
+  {
+   "osm_id": "way/608049892",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.8393508,
+   "lon": 9.2046522
+  },
+  {
+   "osm_id": "way/61309279",
+   "activity_type": "football",
+   "name": "Kunstrasenplatz FC LL/Omonia",
+   "lat": 48.7341996,
+   "lon": 9.089988
+  },
+  {
+   "osm_id": "way/616177009",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7308639,
+   "lon": 9.12946
+  },
+  {
+   "osm_id": "way/620306268",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8125149,
+   "lon": 9.2366667
+  },
+  {
+   "osm_id": "way/634623405",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.8367157,
+   "lon": 9.222015
+  },
+  {
+   "osm_id": "way/651748837",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7341331,
+   "lon": 9.1717393
+  },
+  {
+   "osm_id": "way/652853958",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.8264281,
+   "lon": 9.1516556
+  },
+  {
+   "osm_id": "way/657155211",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.797809,
+   "lon": 9.2116764
+  },
+  {
+   "osm_id": "way/657155212",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7978389,
+   "lon": 9.2116749
+  },
+  {
+   "osm_id": "way/657155213",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7978682,
+   "lon": 9.2116736
+  },
+  {
+   "osm_id": "way/674587007",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7252474,
+   "lon": 9.1366927
+  },
+  {
+   "osm_id": "way/68254186",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7868443,
+   "lon": 9.2493001
+  },
+  {
+   "osm_id": "way/68254186",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7868443,
+   "lon": 9.2493001
+  },
+  {
+   "osm_id": "way/70585663",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8066249,
+   "lon": 9.1011133
+  },
+  {
+   "osm_id": "way/70742622",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7416662,
+   "lon": 9.0916363
+  },
+  {
+   "osm_id": "way/70743180",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7421126,
+   "lon": 9.09177
+  },
+  {
+   "osm_id": "way/708264066",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7860322,
+   "lon": 9.1281355
+  },
+  {
+   "osm_id": "way/708264067",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7859165,
+   "lon": 9.128402
+  },
+  {
+   "osm_id": "way/70983044",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.764003,
+   "lon": 9.2086955
+  },
+  {
+   "osm_id": "way/71038744",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7384924,
+   "lon": 9.1648291
+  },
+  {
+   "osm_id": "way/74180176",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7500383,
+   "lon": 9.215383
+  },
+  {
+   "osm_id": "way/74216977",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8136941,
+   "lon": 9.2435688
+  },
+  {
+   "osm_id": "way/74607126",
+   "activity_type": "football",
+   "name": "Bolzplatz Don-Carlos-Straße",
+   "lat": 48.7383426,
+   "lon": 9.1227857
+  },
+  {
+   "osm_id": "way/74819379",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7386243,
+   "lon": 9.1044416
+  },
+  {
+   "osm_id": "way/74819379",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7386243,
+   "lon": 9.1044416
+  },
+  {
+   "osm_id": "way/79378856",
+   "activity_type": "football",
+   "name": "TSV Heumaden Kunstrasen",
+   "lat": 48.7352661,
+   "lon": 9.2219747
+  },
+  {
+   "osm_id": "way/800656698",
+   "activity_type": "outdoor_fitness",
+   "name": "Calisthenics",
+   "lat": 48.7760072,
+   "lon": 9.1551576
+  },
+  {
+   "osm_id": "way/8063290",
+   "activity_type": "football",
+   "name": "TSV Rohr Rasenplatz",
+   "lat": 48.72009,
+   "lon": 9.1127513
+  },
+  {
+   "osm_id": "way/8063291",
+   "activity_type": "football",
+   "name": "TSV Rohr Kunstrasenplatz",
+   "lat": 48.7204008,
+   "lon": 9.1138582
+  },
+  {
+   "osm_id": "way/8063307",
+   "activity_type": "football",
+   "name": "SV Vaihingen Kunstrasenplatz",
+   "lat": 48.721086,
+   "lon": 9.1149738
+  },
+  {
+   "osm_id": "way/8063317",
+   "activity_type": "football",
+   "name": "Rasenplatz Hegelgymnasium",
+   "lat": 48.7223476,
+   "lon": 9.1035168
+  },
+  {
+   "osm_id": "way/8063329",
+   "activity_type": "football",
+   "name": "SV Vaihingen Rasenplatz",
+   "lat": 48.7211845,
+   "lon": 9.1130106
+  },
+  {
+   "osm_id": "way/80928662",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8409535,
+   "lon": 9.2343466
+  },
+  {
+   "osm_id": "way/80928685",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8405011,
+   "lon": 9.2332941
+  },
+  {
+   "osm_id": "way/81399267",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7184672,
+   "lon": 9.1411961
+  },
+  {
+   "osm_id": "way/816606922",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.7691375,
+   "lon": 9.1684678
+  },
+  {
+   "osm_id": "way/82251085",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8138635,
+   "lon": 9.2236942
+  },
+  {
+   "osm_id": "way/829857484",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7061342,
+   "lon": 9.2179904
+  },
+  {
+   "osm_id": "way/839926067",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7815113,
+   "lon": 9.1840606
+  },
+  {
+   "osm_id": "way/84506861",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8151834,
+   "lon": 9.2256077
+  },
+  {
+   "osm_id": "way/84506862",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8143772,
+   "lon": 9.2242744
+  },
+  {
+   "osm_id": "way/860784171",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.8153411,
+   "lon": 9.1269047
+  },
+  {
+   "osm_id": "way/860792888",
+   "activity_type": "outdoor_fitness",
+   "name": "Outdoor-Fitness",
+   "lat": 48.8080384,
+   "lon": 9.1414406
+  },
+  {
+   "osm_id": "way/864306396",
+   "activity_type": "football",
+   "name": "TSV Georgii Allianz Kunstrasenplatz",
+   "lat": 48.7221575,
+   "lon": 9.115799
+  },
+  {
+   "osm_id": "way/864502695",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7310851,
+   "lon": 9.1534335
+  },
+  {
+   "osm_id": "way/878939724",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7164342,
+   "lon": 9.0904656
+  },
+  {
+   "osm_id": "way/878939724",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7164342,
+   "lon": 9.0904656
+  },
+  {
+   "osm_id": "way/88645271",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7883906,
+   "lon": 9.2665815
+  },
+  {
+   "osm_id": "way/88704894",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.757854,
+   "lon": 9.2389473
+  },
+  {
+   "osm_id": "way/90114796",
+   "activity_type": "football",
+   "name": "Bolzplatz Paradiesstraße",
+   "lat": 48.7365328,
+   "lon": 9.1092964
+  },
+  {
+   "osm_id": "way/903749791",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7391013,
+   "lon": 9.1440085
+  },
+  {
+   "osm_id": "way/903749804",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7382202,
+   "lon": 9.135879
+  },
+  {
+   "osm_id": "way/92988026",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.8248287,
+   "lon": 9.2140562
+  },
+  {
+   "osm_id": "way/935879086",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7940485,
+   "lon": 9.2315129
+  },
+  {
+   "osm_id": "way/93733281",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7437729,
+   "lon": 9.2066419
+  },
+  {
+   "osm_id": "way/93733407",
+   "activity_type": "football",
+   "name": "SV Sillenbuch Kunstrasen",
+   "lat": 48.7476125,
+   "lon": 9.2021727
+  },
+  {
+   "osm_id": "way/93733421",
+   "activity_type": "football",
+   "name": "SV Sillenbuch",
+   "lat": 48.747044,
+   "lon": 9.2029122
+  },
+  {
+   "osm_id": "way/937765409",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7641392,
+   "lon": 9.1690397
+  },
+  {
+   "osm_id": "way/93785506",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7687069,
+   "lon": 9.2652644
+  },
+  {
+   "osm_id": "way/94163352",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7562478,
+   "lon": 9.2206985
+  },
+  {
+   "osm_id": "way/94163352",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7562478,
+   "lon": 9.2206985
+  },
+  {
+   "osm_id": "way/94170388",
+   "activity_type": "football",
+   "name": "BZA Waldau",
+   "lat": 48.7503452,
+   "lon": 9.1882809
+  },
+  {
+   "osm_id": "way/94170462",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7520104,
+   "lon": 9.1845491
+  },
+  {
+   "osm_id": "way/94170462",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7520104,
+   "lon": 9.1845491
+  },
+  {
+   "osm_id": "way/94170499",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7539932,
+   "lon": 9.1883104
+  },
+  {
+   "osm_id": "way/94253888",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7363801,
+   "lon": 9.2222847
+  },
+  {
+   "osm_id": "way/94253929",
+   "activity_type": "football",
+   "name": "TSV Heumaden",
+   "lat": 48.7357624,
+   "lon": 9.2209345
+  },
+  {
+   "osm_id": "way/94253948",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7363053,
+   "lon": 9.223186
+  },
+  {
+   "osm_id": "way/95210025",
+   "activity_type": "beach_volleyball",
+   "name": "Beachvolleyballfeld",
+   "lat": 48.7478857,
+   "lon": 9.1871483
+  },
+  {
+   "osm_id": "way/95212563",
+   "activity_type": "football",
+   "name": "ADM Sportpark Platz 1",
+   "lat": 48.7472295,
+   "lon": 9.1860783
+  },
+  {
+   "osm_id": "way/954541753",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7273342,
+   "lon": 9.1580012
+  },
+  {
+   "osm_id": "way/958644448",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7443763,
+   "lon": 9.0610387
+  },
+  {
+   "osm_id": "way/961636525",
+   "activity_type": "table_tennis",
+   "name": "Tischtennisplatte",
+   "lat": 48.7733695,
+   "lon": 9.1505479
+  },
+  {
+   "osm_id": "way/96770509",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7357951,
+   "lon": 9.214372
+  },
+  {
+   "osm_id": "way/97222980",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7557341,
+   "lon": 9.1442037
+  },
+  {
+   "osm_id": "way/9729047",
+   "activity_type": "football",
+   "name": "Bolzplatz",
+   "lat": 48.7720875,
+   "lon": 9.1420187
+  },
+  {
+   "osm_id": "way/998721460",
+   "activity_type": "basketball",
+   "name": "Basketballplatz",
+   "lat": 48.7761498,
+   "lon": 9.2533392
+  }
+ ]
+}

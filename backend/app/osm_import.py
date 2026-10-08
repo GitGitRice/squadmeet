@@ -4,20 +4,23 @@ Two steps, so that a deploy or the demo never depends on a public Overpass serve
 often too busy to answer):
 
     python -m app.osm_import fetch Leipzig   # Overpass -> data/osm/leipzig.json; commit the file
-    python -m app.osm_import load            # data/osm/*.json -> database, only if it has no Places
+    python -m app.osm_import load            # data/osm/*.json -> database (new + refreshed Places)
 
 `docker compose up` runs `load` through app/seed.py. The city is a parameter, so another city
-is one more `fetch` (SCRUM-25). OSM data is © OpenStreetMap contributors, ODbL; the map shows
-the attribution.
+is one more `fetch` (SCRUM-25). `load` can run any number of times: a Place keeps its OSM id,
+so a second run adds no duplicates, and it never deletes a Place.
+OSM data is © OpenStreetMap contributors, ODbL; the map shows the attribution.
 """
 
 import json
 import re
 import sys
+from dataclasses import dataclass
 import urllib.parse
 import urllib.request
 from pathlib import Path
 
+from sqlalchemy.dialects.postgresql import insert
 from sqlmodel import Session, select
 
 from app.activities import LABELS, ActivityType
@@ -113,10 +116,16 @@ def check_answer(city: str, answer: dict) -> None:
     # A server that runs out of time still answers 200, with a "remark" and only some elements.
     if answer.get("remark"):
         raise RuntimeError(f"Overpass answer for {city} is incomplete: {answer['remark']}")
-    areas = [e for e in answer["elements"] if e["type"] == "area"]
-    if len(areas) != 1:
+    # One municipality can be mapped twice (Stuttgart: as Stadtkreis and as Gemeinde); both
+    # areas then carry the same official key, so count keys, not areas.
+    keys = {
+        e.get("tags", {}).get("de:regionalschluessel")
+        for e in answer["elements"]
+        if e["type"] == "area"
+    }
+    if len(keys) != 1:
         raise RuntimeError(
-            f"{len(areas)} municipalities are called {city!r}; the import needs exactly one"
+            f"{len(keys)} municipalities are called {city!r}; the import needs exactly one"
         )
 
 
@@ -126,7 +135,7 @@ def overpass_query(city: str) -> str:
     return f"""
 [out:json][timeout:180];
 area["name"="{city}"]["boundary"="administrative"]["de:regionalschluessel"]->.city;
-.city out ids;
+.city out tags;
 (
   nwr["leisure"="pitch"]["sport"~"(^|;)({sports})(;|$)"](area.city);
   nwr["leisure"="fitness_station"](area.city);
@@ -167,42 +176,56 @@ def fetch(city: str) -> Path:
     return path
 
 
-def load(session: Session, files: list[Path] | None = None) -> int:
-    """Puts the Places from the snapshot files into an empty database. Returns how many.
+@dataclass(frozen=True)
+class LoadResult:
+    added: int  # Places that were not in the database yet
+    refreshed: int  # Places that were there; name and location now match the snapshot
+    kept: int  # OSM Places in the database that the snapshots no longer have; never deleted
 
-    A database that already has Places stays as it is; a repeated import without duplicates
-    is SCRUM-25. Until then it warns when a snapshot has Places that the database lacks
-    (for example a new city file): reset the database to load them.
+
+def load(session: Session, files: list[Path] | None = None) -> LoadResult:
+    """Puts the Places from the snapshot files into the database (SCRUM-25).
+
+    A Place is known by its OSM id and Activity type, so running this twice adds no
+    duplicates and keeps each Place's database id. It never deletes a Place: one that left
+    OpenStreetMap may already have Ratings or Meetups.
     """
     rows = [
         row
         for path in (files if files is not None else sorted(DATA_DIR.glob("*.json")))
         for row in json.loads(path.read_text())["places"]
     ]
-    known = {tuple(row) for row in session.exec(select(Place.osm_id, Place.activity_type))}
-    if known:
-        missing = [r for r in rows if (r["osm_id"], r["activity_type"]) not in known]
-        if missing:
-            print(
-                f"WARNING: {len(missing)} Places from data/osm are not in the database. "
-                "The database already has Places, so they are not loaded. Reset it "
-                "(docker compose down -v) or wait for SCRUM-25.",
-                file=sys.stderr,
-            )
-        return 0
-    count = 0
-    for row in rows:
-        session.add(
-            Place(
-                name=row["name"],
-                activity_type=row["activity_type"],
-                osm_id=row["osm_id"],
-                location=f"SRID=4326;POINT({row['lon']} {row['lat']})",
+    known = {
+        tuple(key)
+        for key in session.exec(
+            select(Place.osm_id, Place.activity_type).where(Place.osm_id.is_not(None))
+        )
+    }
+    in_snapshots = {(row["osm_id"], row["activity_type"]) for row in rows}
+    if rows:
+        statement = insert(Place.__table__).values(
+            [
+                {
+                    "name": row["name"],
+                    "activity_type": row["activity_type"],
+                    "osm_id": row["osm_id"],
+                    "location": f"SRID=4326;POINT({row['lon']} {row['lat']})",
+                }
+                for row in rows
+            ]
+        )
+        session.exec(
+            statement.on_conflict_do_update(
+                constraint="uq_place_osm_id_activity_type",
+                set_={"name": statement.excluded.name, "location": statement.excluded.location},
             )
         )
-        count += 1
-    session.commit()
-    return count
+        session.commit()
+    return LoadResult(
+        added=len(in_snapshots - known),
+        refreshed=len(in_snapshots & known),
+        kept=len(known - in_snapshots),
+    )
 
 
 def main(args: list[str]) -> None:
@@ -212,7 +235,7 @@ def main(args: list[str]) -> None:
         from app.db import engine
 
         with Session(engine) as session:
-            print(f"OSM import: loaded {load(session)} Places")
+            print(f"OSM import: {load(session)}")
     else:
         sys.exit("usage: python -m app.osm_import fetch <City> | load")
 
