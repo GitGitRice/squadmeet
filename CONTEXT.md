@@ -85,7 +85,9 @@ A predefined text block that explains a Rating, positive or negative. Users cann
 _Avoid_: comment, tag
 
 **Condition** (Zustand):
-The state of a Place, derived from the negative Reasons in recent Ratings.
+The state of a Place, derived from the negative Reasons in recent Ratings that name a problem the
+city or the operator must fix (broken or missing equipment, litter, broken glass, standing water).
+Negative Reasons such as "Oft überfüllt" do not change it.
 _Avoid_: status, quality
 
 **Photo** (Foto):
