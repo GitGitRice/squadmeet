@@ -12,6 +12,7 @@ import {
   type User,
 } from './api/auth'
 import AuthDialog from './auth/AuthDialog'
+import MfaDialog from './auth/MfaDialog'
 import { AVATARS } from './auth/avatars'
 import ActivityFilter from './places/ActivityFilter'
 import { ACTIVITY_TYPES, activityOf, type ActivityType } from './places/activities'
@@ -66,6 +67,7 @@ export default function App() {
   const placesRequest = useRef<AbortController | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [showAuth, setShowAuth] = useState(false)
+  const [showMfa, setShowMfa] = useState(false)
   const [chosen, setChosen] = useState<Set<ActivityType>>(() => new Set(ACTIVITY_TYPES))
   const [path, navigate] = usePath()
   const selectedId = placeIdFromPath(path)
@@ -137,6 +139,7 @@ export default function App() {
     const token = loadToken()
     clearToken()
     setUser(null)
+    setShowMfa(false)
     if (token) await logout(token).catch(() => {})
   }
 
@@ -150,6 +153,9 @@ export default function App() {
             <span>
               {AVATARS[user.avatar]?.emoji} {user.nickname}
             </span>
+            <button type="button" onClick={() => setShowMfa(true)}>
+              Zwei-Faktor
+            </button>
             <button type="button" onClick={handleLogout}>
               Abmelden
             </button>
@@ -161,6 +167,14 @@ export default function App() {
         )}
       </div>
       {showAuth && <AuthDialog onLoggedIn={handleLoggedIn} onClose={() => setShowAuth(false)} />}
+      {showMfa && user && (
+        <MfaDialog
+          token={loadToken() ?? ''}
+          user={user}
+          onChanged={setUser}
+          onClose={() => setShowMfa(false)}
+        />
+      )}
       <ActivityFilter chosen={chosen} onChange={setChosen} />
       {selectedId !== null && (
         <PlaceDetail

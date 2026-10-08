@@ -2,7 +2,18 @@ from datetime import datetime
 from typing import Any
 
 from geoalchemy2 import Geometry
-from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, Index, UniqueConstraint, text
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    CheckConstraint,
+    Column,
+    DateTime,
+    ForeignKey,
+    Index,
+    UniqueConstraint,
+    false,
+    text,
+)
 from sqlmodel import Field, SQLModel
 
 from app.activities import ACTIVITY_TYPES
@@ -52,10 +63,23 @@ class User(SQLModel, table=True):
     password_hash: str
     avatar: str
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    # Set only by `python -m app.admin grant` (app/admin.py). Admin routes also need MFA on.
+    is_admin: bool = Field(
+        default=False, sa_column=Column(Boolean, nullable=False, server_default=false())
+    )
+    # Base32 TOTP secret (SCRUM-26). Stored in plain text: the server must compute the codes.
+    # Set by MFA setup; MFA is on only once a code confirmed it (mfa_enabled_at).
+    mfa_secret: str | None = None
+    mfa_enabled_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True))
+    )
+    # The 30-second time step of the last accepted code, so a code works only once.
+    mfa_last_step: int | None = Field(default=None, sa_column=Column(BigInteger))
 
 
 class RecoveryCode(SQLModel, table=True):
-    """A one-time code for a password reset (see CONTEXT.md). Only the hash is stored."""
+    """A one-time code for a password reset or an MFA login (see CONTEXT.md). Only the hash is
+    stored."""
 
     __tablename__ = "recovery_code"
 

@@ -7,7 +7,7 @@ debugging case.
 Each person's own progress (*Now*, *In flight*, *Next*, *Log*) is in **`HANDOFF.local.md`**.
 That file is not in git (`.gitignore`), because each person's progress differs.
 
-**Last update:** 2026-10-08 · Steven · `SCRUM-23` decisions (automatic deploy)
+**Last update:** 2026-10-08 · Steven · `SCRUM-26` decisions (MFA login, Admin role)
 
 ---
 
@@ -158,6 +158,8 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 
 | Date | Decision | Why | Where |
 |------|----------|-----|-------|
+| 2026-10-08 | MFA login uses one endpoint: `POST /api/auth/login` takes an optional `code`. With MFA on and no valid code, the answer is 401 with `detail` = `mfa_required`; the dialog then asks for the code and sends the password again with it. The `code` can be a 6-digit TOTP code or a Recovery code (used up) | No ticket table and no second endpoint. The password stays only in the dialog's memory | `SCRUM-26`, [backend/app/auth.py](backend/app/auth.py) |
+| 2026-10-08 | Admin = column `app_user.is_admin`. Only a command sets it: `docker compose exec backend python -m app.admin grant <Nickname>`. Admin routes need `is_admin` **and** MFA on, else 403 | No Admin UI needed for a 2-person team. A command checks the Nickname, so no typo in hand-written SQL | `SCRUM-26`, `SCRUM-39` (Admin functions) |
 | 2026-10-07 | Use Jira with Epics, Stories and Tasks | Team of 3 needs one shared task list | this file → Jira |
 | 2026-10-07 | Atlassian MCP at project scope | Same agent setup for all three, no secrets in the repo | [.mcp.json](.mcp.json) |
 | 2026-10-07 | Topic: Stefan's activity-place map with Meetups; main demo workflow = Meetup, second = Place suggestion with 3 Confirmations | Real use case, two workflows with states | [CONTEXT.md](CONTEXT.md) |

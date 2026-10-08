@@ -101,7 +101,8 @@ The only name other users see, and the login name. Unique.
 _Avoid_: username, display name
 
 **Recovery code** (Wiederherstellungscode):
-A one-time code shown at registration that lets a user reset a forgotten password.
+A one-time code shown at registration that lets a user reset a forgotten password, or log in
+without the authenticator app when MFA is on.
 _Avoid_: backup code, reset link
 
 **Avatar**:

@@ -2,6 +2,8 @@ export type User = {
   id: number
   nickname: string
   avatar: string
+  mfa_enabled: boolean
+  is_admin: boolean
 }
 
 export type LoginResult = {
@@ -20,6 +22,23 @@ export type RegisterInput = {
   avatar: string
   is_adult: boolean
 }
+
+export type MfaSetup = {
+  // For manual entry when the QR code cannot be scanned.
+  secret: string
+  otpauth_uri: string
+  // An SVG data URI for <img src>.
+  qr_code: string
+}
+
+/** Login needs a code from the authenticator app (or a Recovery code) as well. */
+export class MfaRequiredError extends Error {
+  constructor() {
+    super('Bitte gib den Code aus deiner Authenticator-App ein.')
+  }
+}
+
+const MFA_REQUIRED = 'mfa_required'
 
 const TOKEN_KEY = 'squadmeet.token'
 
@@ -47,14 +66,18 @@ async function errorMessage(response: Response): Promise<string> {
   return `Fehler ${response.status}`
 }
 
-async function postJson<T>(url: string, body: unknown): Promise<T> {
+async function postJson<T>(url: string, body: unknown, token?: string): Promise<T> {
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
     body: JSON.stringify(body),
   })
   if (!response.ok) {
-    throw new Error(await errorMessage(response))
+    const message = await errorMessage(response)
+    throw message === MFA_REQUIRED ? new MfaRequiredError() : new Error(message)
   }
   return response.json()
 }
@@ -63,8 +86,23 @@ export function register(input: RegisterInput): Promise<RegisterResult> {
   return postJson('/api/auth/register', input)
 }
 
-export function login(nickname: string, password: string): Promise<LoginResult> {
-  return postJson('/api/auth/login', { nickname, password })
+/** `code` is needed only when MFA is on; without it, a user with MFA gets MfaRequiredError. */
+export function login(nickname: string, password: string, code?: string): Promise<LoginResult> {
+  return postJson('/api/auth/login', { nickname, password, ...(code && { code }) })
+}
+
+/** A new secret for the authenticator app. MFA is on only after mfaEnable. */
+export function mfaSetup(token: string): Promise<MfaSetup> {
+  return postJson('/api/auth/mfa/setup', {}, token)
+}
+
+export function mfaEnable(token: string, code: string): Promise<User> {
+  return postJson('/api/auth/mfa/enable', { code }, token)
+}
+
+/** `code` from the authenticator app or a Recovery code. */
+export function mfaDisable(token: string, code: string): Promise<User> {
+  return postJson('/api/auth/mfa/disable', { code }, token)
 }
 
 export async function logout(token: string): Promise<void> {

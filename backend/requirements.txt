@@ -3,5 +3,7 @@ fastapi==0.142.*
 geoalchemy2==0.20.*
 psycopg[binary]==3.3.*
 pwdlib[argon2]==0.3.*
+pyotp==2.10.*
+segno==1.6.*
 sqlmodel==0.0.48
 uvicorn[standard]==0.54.*
