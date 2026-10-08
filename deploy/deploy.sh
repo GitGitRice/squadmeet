@@ -32,12 +32,26 @@ command_id=$(aws ssm send-command --instance-ids "$EC2_INSTANCE_ID" \
   --document-name AWS-RunShellScript --comment "squadmeet deploy ${TAG:0:40}" \
   --parameters "$params" --query Command.CommandId --output text)
 
+# Wait at most 35 minutes (the host command itself stops after 30, executionTimeout).
+# Right after send-command the invocation may not exist yet, so a few errors are normal;
+# 6 errors in a row (1 minute) mean a real problem, e.g. a missing permission.
 status=Pending
-while [[ "$status" =~ ^(Pending|InProgress|Delayed)$ ]]; do
+errors=0
+for _ in $(seq 1 210); do
   sleep 10
-  status=$(aws ssm get-command-invocation --command-id "$command_id" \
-    --instance-id "$EC2_INSTANCE_ID" --query Status --output text 2>/dev/null || echo Pending)
+  if status=$(aws ssm get-command-invocation --command-id "$command_id" \
+      --instance-id "$EC2_INSTANCE_ID" --query Status --output text 2>&1); then
+    errors=0
+  else
+    errors=$((errors + 1))
+    if (( errors >= 6 )); then
+      echo "✗ get-command-invocation failed 6 times in a row: $status" >&2
+      exit 1
+    fi
+    status=Pending
+  fi
   echo "  … $status"
+  [[ "$status" =~ ^(Pending|InProgress|Delayed)$ ]] || break
 done
 aws ssm get-command-invocation --command-id "$command_id" --instance-id "$EC2_INSTANCE_ID" \
   --query '[StandardOutputContent,StandardErrorContent]' --output text | tail -n 25
