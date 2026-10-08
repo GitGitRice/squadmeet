@@ -1,8 +1,10 @@
 // PROTOTYPE (SCRUM-17): the parts of the bottom sheet. No polish beyond what the team must judge.
 import { useState, type Dispatch } from 'react'
-import { AVATARS } from '../auth/avatars'
 import {
   ACTIVITIES,
+  HOUR,
+  avatarOf,
+  earliestJoin,
   USERS,
   formatWhen,
   partyTotal,
@@ -14,8 +16,6 @@ import {
   type Meetup,
   type State,
 } from './data'
-
-const HOUR = 60 * 60 * 1000
 
 // Party size 1–10 with big − / + buttons instead of a small select.
 export function PartySize({ value, onChange }: { value: number; onChange: (n: number) => void }) {
@@ -46,7 +46,7 @@ export function MeetupCard({ meetup, me, onOpen }: { meetup: Meetup; me: string;
           {formatWhen(meetup)}
         </span>
         <span className="pt-card-sub">
-          {AVATARS[host.avatar].emoji} {host.nickname}
+          {avatarOf(host.id)} {host.nickname}
           {meetup.cancelled && ' · Abgesagt'}
           {joined && !meetup.cancelled && ' · du bist dabei'}
         </span>
@@ -63,22 +63,24 @@ export function MeetupDetail({
   meetup,
   state,
   dispatch,
-  notify,
+  showMessage,
 }: {
   meetup: Meetup
   state: State
   dispatch: Dispatch<Action>
-  notify: (text: string) => void
+  showMessage: (text: string) => void
 }) {
   const [partySize, setPartySize] = useState(1)
   const [confirmCancel, setConfirmCancel] = useState(false)
   const place = placeById(meetup.placeId)
   const isHost = meetup.hostId === state.me
   const myJoin = meetup.joins.find((j) => j.userId === state.me)
+  // The Host can Leave only when others have joined (CONTEXT.md); the earliest of them becomes Host.
+  const nextHost = earliestJoin(meetup.joins.filter((j) => j.userId !== state.me))
 
-  function act(action: Action, text: string) {
+  function dispatchWithMessage(action: Action, text: string) {
     dispatch(action)
-    notify(text)
+    showMessage(text)
   }
 
   return (
@@ -97,7 +99,7 @@ export function MeetupDetail({
           const user = userById(j.userId)
           return (
             <li key={j.userId}>
-              <span className="pt-avatar">{AVATARS[user.avatar].emoji}</span>
+              <span className="pt-avatar">{avatarOf(user.id)}</span>
               <span className="pt-name">
                 {user.nickname}
                 {j.userId === state.me && ' (du)'}
@@ -117,25 +119,33 @@ export function MeetupDetail({
               <button
                 type="button"
                 className="pt-btn primary"
-                onClick={() => act({ type: 'join', meetupId: meetup.id, partySize }, 'Du kommst mit. Der Gastgeber sieht dich in der Liste.')}
+                onClick={() => dispatchWithMessage({ type: 'join', meetupId: meetup.id, partySize }, 'Du kommst mit. Der Gastgeber sieht dich in der Liste.')}
               >
                 Ich komme mit
               </button>
             </>
           )}
-          {myJoin && !isHost && (
-            <>
-              <p className="pt-joined">✓ Du bist dabei</p>
-              <button type="button" className="pt-btn" onClick={() => act({ type: 'leave', meetupId: meetup.id }, 'Du bist raus.')}>
-                Verlassen
-              </button>
-            </>
+          {myJoin && !isHost && <p className="pt-joined">✓ Du bist dabei</p>}
+          {myJoin && (!isHost || nextHost) && (
+            <button
+              type="button"
+              className="pt-btn"
+              onClick={() =>
+                dispatchWithMessage(
+                  { type: 'leave', meetupId: meetup.id },
+                  isHost ? `Du bist raus. ${userById(nextHost!.userId).nickname} ist jetzt Gastgeber.` : 'Du bist raus.',
+                )
+              }
+            >
+              Verlassen
+              {isHost && <small>{userById(nextHost!.userId).nickname} wird Gastgeber</small>}
+            </button>
           )}
           {isHost &&
             (confirmCancel ? (
               <div className="pt-confirm">
                 <p>Für alle absagen? Alle Mitkommenden sehen es als abgesagt.</p>
-                <button type="button" className="pt-btn danger" onClick={() => act({ type: 'cancel', meetupId: meetup.id }, 'Treffen abgesagt.')}>
+                <button type="button" className="pt-btn danger" onClick={() => dispatchWithMessage({ type: 'cancel', meetupId: meetup.id }, 'Treffen abgesagt.')}>
                   Ja, absagen
                 </button>
                 <button type="button" className="pt-btn" onClick={() => setConfirmCancel(false)}>
@@ -181,7 +191,7 @@ export function NowForm({ onSubmit }: { onSubmit: (hours: number, partySize: num
 
 // Shows the timestamps in the state dump as readable dates.
 function showTimes(key: string, value: unknown) {
-  return ['start', 'end'].includes(key) && typeof value === 'number'
+  return ['start', 'end', 'joinedAt'].includes(key) && typeof value === 'number'
     ? new Date(value).toLocaleString('de-DE')
     : value
 }
@@ -191,17 +201,17 @@ export function PrototypeBar({ state, dispatch }: { state: State; dispatch: Disp
   return (
     <details className="pt-proto">
       <summary>
-        PROTOTYP · {AVATARS[userById(state.me).avatar].emoji} {userById(state.me).nickname}
+        PROTOTYP · {avatarOf(state.me)} {userById(state.me).nickname}
       </summary>
       <div className="pt-proto-body">
         <span>Ich bin:</span>
         {USERS.map((u) => (
           <button key={u.id} type="button" className={u.id === state.me ? 'selected' : ''} onClick={() => dispatch({ type: 'setMe', userId: u.id })}>
-            {AVATARS[u.avatar].emoji} {u.nickname}
+            {avatarOf(u.id)} {u.nickname}
           </button>
         ))}
         <details>
-          <summary>Zustand</summary>
+          <summary>Daten</summary>
           <pre>{JSON.stringify(state.meetups, showTimes, 2)}</pre>
         </details>
       </div>
