@@ -32,3 +32,14 @@ export async function fetchPlaces(area: MapArea, signal?: AbortSignal): Promise<
   }
   return { places: await response.json(), truncated: response.headers.get('X-Places-Truncated') === 'true' }
 }
+
+export async function fetchPlace(id: number): Promise<Place> {
+  const response = await fetch(`/api/places/${id}`)
+  if (response.status === 404) {
+    throw new Error('Diesen Platz gibt es nicht (mehr).')
+  }
+  if (!response.ok) {
+    throw new Error(`GET /api/places/${id} failed: ${response.status}`)
+  }
+  return response.json()
+}

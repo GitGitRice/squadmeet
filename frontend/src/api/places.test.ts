@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { clampArea, fetchPlaces, type MapArea, type Place } from './places'
+import { clampArea, fetchPlace, fetchPlaces, type MapArea, type Place } from './places'
 
 const place: Place = {
   id: 1,
@@ -62,5 +62,21 @@ describe('clampArea', () => {
 
   it('leaves a normal area as it is', () => {
     expect(clampArea(leipzig)).toEqual(leipzig)
+  })
+})
+
+describe('fetchPlace', () => {
+  it('asks for one Place by id', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json(place))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(fetchPlace(1)).resolves.toEqual(place)
+    expect(fetchMock).toHaveBeenCalledWith('/api/places/1')
+  })
+
+  it('says in German when the Place does not exist', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 404 })))
+
+    await expect(fetchPlace(9)).rejects.toThrow('Diesen Platz gibt es nicht')
   })
 })

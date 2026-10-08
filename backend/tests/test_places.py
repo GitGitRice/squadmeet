@@ -62,3 +62,25 @@ def test_the_model_declares_the_activity_type_check():
     names = {c.name for c in Place.__table__.constraints}
 
     assert "ck_place_activity_type" in names
+
+
+def test_one_place_by_id(client, session):
+    place = Place(name="Korb", activity_type="basketball", location="SRID=4326;POINT(-30.5 0.5)")
+    session.add(place)
+    session.commit()
+
+    response = client.get(f"/api/places/{place.id}")
+
+    assert response.status_code == 200
+    assert response.json()["name"] == "Korb"
+    assert response.json()["activity_type"] == "basketball"
+    assert response.json()["lat"] == pytest.approx(0.5)
+
+
+def test_an_unknown_place_is_404(client):
+    assert client.get("/api/places/999999999").status_code == 404
+
+
+@pytest.mark.parametrize("place_id", ["0", "-1", "99999999999"])
+def test_an_id_outside_the_database_range_is_404(client, place_id):
+    assert client.get(f"/api/places/{place_id}").status_code == 404

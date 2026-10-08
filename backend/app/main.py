@@ -15,6 +15,17 @@ def health():
     return {"status": "ok"}
 
 
+def select_place_reads():
+    """The columns of a PlaceRead: the PostGIS point as lat and lon."""
+    return select(
+        Place.id,
+        Place.name,
+        Place.activity_type,
+        func.ST_Y(Place.location).label("lat"),
+        func.ST_X(Place.location).label("lon"),
+    )
+
+
 # A whole city is about 700 Places; more than this only happens when the map is zoomed far out.
 MAX_PLACES = 2000
 # Set on the answer when there were more Places than MAX_PLACES, so the map can ask to zoom in.
@@ -42,13 +53,7 @@ def list_places(
     west, south, east, north = parse_bbox(bbox)
     area = func.ST_MakeEnvelope(west, south, east, north, 4326)
     rows = session.exec(
-        select(
-            Place.id,
-            Place.name,
-            Place.activity_type,
-            func.ST_Y(Place.location).label("lat"),
-            func.ST_X(Place.location).label("lon"),
-        )
+        select_place_reads()
         # && compares bounding boxes, so PostgreSQL can use the spatial index.
         .where(Place.location.op("&&")(area))
         .order_by(Place.id)
@@ -58,6 +63,21 @@ def list_places(
         rows = rows[:MAX_PLACES]
         response.headers[TRUNCATED_HEADER] = "true"
     return [PlaceRead.model_validate(row, from_attributes=True) for row in rows]
+
+
+# place.id is a PostgreSQL integer; a bigger number in the URL would make the query fail.
+MAX_DB_INT = 2_147_483_647
+
+
+@api.get("/places/{place_id}", response_model=PlaceRead)
+def get_place(place_id: int, session: Session = Depends(get_session)):
+    """One Place, for the Place detail page (SCRUM-24): its URL can be shared and reloaded."""
+    if not 1 <= place_id <= MAX_DB_INT:
+        raise HTTPException(status_code=404, detail="Place not found")
+    row = session.exec(select_place_reads().where(Place.id == place_id)).first()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Place not found")
+    return PlaceRead.model_validate(row, from_attributes=True)
 
 
 api.include_router(auth_router)
