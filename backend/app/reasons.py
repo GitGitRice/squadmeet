@@ -12,9 +12,6 @@ may change.
 
 from dataclasses import dataclass
 
-# The Activity types (see CONTEXT.md). Place.activity_type holds one of these keys.
-ACTIVITY_TYPES = ("table_tennis", "basketball", "football", "beach_volleyball", "outdoor_fitness")
-
 
 @dataclass(frozen=True)
 class Reason:
