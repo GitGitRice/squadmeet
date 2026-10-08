@@ -112,6 +112,9 @@ Should since 2026-10-08 (`SCRUM-46`): `SCRUM-38` Series (Stefan); `SCRUM-30` sug
 Should: `SCRUM-40` in-app Notifications, `SCRUM-41` Favorites (Steven); `SCRUM-42` Photos,
 `SCRUM-32` Contacts + Block (Stefan). Could: `SCRUM-43` Contact notifications (Stefan), `SCRUM-44`
 web push, `SCRUM-45` Home area (Steven). Each ticket's "Blocked by" is a Jira link.
+In Jira (since 2026-10-08), each ticket has the label `must`, `should` or `could` and the priority
+High, Medium or Low to match. Change both when a ticket changes category. `SCRUM-47` (deploy role
+permissions) has no category yet.
 
 "Blocked by" on `SCRUM-6` means only the walking skeleton, not the whole Epic. Stories come
 next; each owner writes them (for example with `/mattpocock-skills:to-tickets`).
