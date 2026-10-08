@@ -4,7 +4,7 @@ A living handoff for the team (3 people) and their coding agents. Read it at the
 session. Update it at the end of a session. It answers one question: **what is in flight
 right now, why, and what comes next?**
 
-**Last update:** 2026-10-08 · Stefan · `SCRUM-17`/`SCRUM-18` merged (PR #8, #7); Steven's review has open decisions; Host-Leave fix for `SCRUM-17` on branch `feature/SCRUM-17-host-leave`
+**Last update:** 2026-10-08 · Stefan · `SCRUM-17`/`SCRUM-18` merged (PR #8, #7); Steven's review has open decisions; fixes on branches `feature/SCRUM-17-host-leave` and `feature/SCRUM-18-review-decisions`, not pushed
 
 ---
 
@@ -149,14 +149,14 @@ shows one example Place on the map (how to run: [README.md](README.md) → *Run 
 
 | Who | What | Jira | State |
 |-----|------|------|-------|
-| Stefan | Reasons per Activity type in [backend/app/reasons.py](backend/app/reasons.py) | `SCRUM-18` (Reasons) | Merged ([PR #7](https://github.com/GitGitRice/squadmeet/pull/7)); Jira "Wird überprüft". Steven's review (comment on `SCRUM-18`) asks 5 team decisions: which negative Reasons change the Condition (code vs. `CONTEXT.md`), what `broken` means, "Oft abgeschlossen" vs. Locked place, a Reason for bad lighting, where Activity types live. **Open:** Stefan decides, then a new PR. Team agreement (acceptance criterion) open |
+| Stefan | Reasons per Activity type in [backend/app/reasons.py](backend/app/reasons.py) | `SCRUM-18` (Reasons) | Merged ([PR #7](https://github.com/GitGitRice/squadmeet/pull/7)); Jira "Wird überprüft". Steven's review (comment on `SCRUM-18`) asked 5 decisions; Stefan answered 4 (see *Decisions*), on local branch `feature/SCRUM-18-review-decisions`, **not pushed yet**. Still open: where the Activity types live (one shared type + DB check), left to `SCRUM-21` or `SCRUM-31`. Team agreement (acceptance criterion) open |
 | Stefan | Clickable Meetup prototype, layout "map + bottom sheet", `cd frontend && npm run prototype` | `SCRUM-17` (Meetup prototype) | Merged ([PR #8](https://github.com/GitGitRice/squadmeet/pull/8)); Jira "Wird überprüft". Fixes from Steven's review (Host can Leave → earliest Join becomes Host; cancelled text bug; glossary names) on local branch `feature/SCRUM-17-host-leave`, **not pushed yet**. **Open:** Steven and David agree on the screens; write the decision on `SCRUM-17` (acceptance criterion) |
 | Steven | GitHub Actions: pytest (with a PostgreSQL+PostGIS service) + Vitest + Docker image build on every PR; push images to GHCR on merge into `dev` | `SCRUM-19` (CI) | In Review: [PR #6](https://github.com/GitGitRice/squadmeet/pull/6) into `dev`, all 5 checks green on GitHub. Needs one approval (Stefan or David). **Not checked yet:** the GHCR push, because it runs only after the merge into `dev`. After the merge, look at the run on `dev` and at the packages under github.com/GitGitRice → Packages |
 
 ## Next
 
 0. Stefan: push `feature/SCRUM-17-host-leave` and open its PR. Show the prototype to Steven and
-   David, then write the agreed screens on `SCRUM-17`. Answer the 5 decisions on `SCRUM-18`.
+   David, then write the agreed screens on `SCRUM-17`. Push `feature/SCRUM-18-review-decisions`, open its PR, and write the decisions on `SCRUM-18`.
    Stefan or David: review and approve [PR #6](https://github.com/GitGitRice/squadmeet/pull/6) (`SCRUM-19`, CI). Steven: merge it,
    check the GHCR push, set `SCRUM-19` to Done. Then `SCRUM-20` (AWS host). David can start `SCRUM-21`
    (Leipzig Places). `SCRUM-26` (MFA), `SCRUM-27` (captcha), `SCRUM-28` (privacy) and `SCRUM-32`
@@ -214,6 +214,7 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-07 | Images in GHCR: `ghcr.io/gitgitrice/squadmeet-{backend,frontend,db}`, tags = commit SHA + `dev`; pushed only after both test jobs are green | Deploy (`SCRUM-23`) picks an exact commit; no image from a red build | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
 | 2026-10-07 | Ruleset "protect main and dev" requires the 5 CI checks (backend tests, frontend tests, 3 Docker images) | A red pipeline blocks the merge ("Done" means the pipeline is green) | GitHub → Settings → Rules |
 | 2026-10-08 | Reasons live as code in [backend/app/reasons.py](backend/app/reasons.py): a stable key (stored in the DB) + a German label; general Reasons + Reasons per Activity type | One list for API validation and UI; a label can change without a migration | `SCRUM-18` |
+| 2026-10-08 | Condition: only negative Reasons that the city or the operator must fix change it (`condition_issue` in code); "Oft überfüllt", "Schwer zu finden", "Zeitweise nicht zugänglich" do not. No Reason for bad lighting. "Oft abgeschlossen" renamed so it does not clash with Locked place | Stefan (product owner) after Steven's review; a Condition should say what needs a repair | [CONTEXT.md](CONTEXT.md), `SCRUM-18` |
 | 2026-10-08 | Meetup screens: map + bottom sheet (Place → "Ich bin jetzt hier" → Meetup detail), not a list or an assistant. Red pin with people count = someone is there now. The prototype covers only the `SCRUM-17` flow plus Host Leave (Stefan, after Steven's review): the Host can Leave when others have joined, the earliest Join becomes Host. Later Meetups, Series, ending early and Closed are left to their own tickets | The map is the core of the app; one tap from Place to Meetup. Team still has to agree | `SCRUM-17`, commits `627dc81`, `825a44a` |
 | 2026-10-08 | The Meetup prototype is a separate dev-only page (`frontend/prototype.html`), not part of the app | Not in the production build, so test data and fake screens never ship | `SCRUM-17` |
 | 2026-10-07 | Jira is the only issue tracker; dependencies as Jira "Blocks" links | One source of truth; shows who is blocked | [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md) |
@@ -255,7 +256,7 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
 
 Newest first. One line per session: date · who · what changed.
 
-- 2026-10-08 · Stefan · PR #7 and #8 merged by Steven, with review comments on `SCRUM-17`/`SCRUM-18`. Decision: in the prototype the Host can Leave and hands over to the earliest Join. Fix branch `feature/SCRUM-17-host-leave` (Host Leave, cancelled-text bug, glossary names). `SCRUM-18` decisions still open.
+- 2026-10-08 · Stefan · PR #7 and #8 merged by Steven, with review comments on `SCRUM-17`/`SCRUM-18`. Decision: in the prototype the Host can Leave and hands over to the earliest Join. Fix branch `feature/SCRUM-17-host-leave` (Host Leave, cancelled-text bug, glossary names). `SCRUM-18` decisions answered (Condition = what the city must fix; "Oft abgeschlossen" → "Zeitweise nicht zugänglich"; no lighting Reason) on branch `feature/SCRUM-18-review-decisions`.
 
 - 2026-10-08 · Stefan · `SCRUM-18`: Reasons per Activity type ([backend/app/reasons.py](backend/app/reasons.py) + tests). `SCRUM-17`: clickable Meetup prototype with 3 layouts (`frontend/src/prototype/`). Both on local feature branches, not pushed. Later the same day: Stefan picked layout A (map + bottom sheet), design reworked; Jira connected; SCRUM-18 now marks which negative Reasons change the Condition (acceptance criterion). Old empty branches `scrum-17`/`scrum-18` deleted. Then trimmed both to their tickets' acceptance criteria only (no work of other tickets).
 
