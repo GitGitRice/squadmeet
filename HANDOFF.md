@@ -87,10 +87,10 @@ Rules. Keep them short so everybody follows them.
 ### Sprints
 
 - **Sprint 1** ("SCRUM Sprint 1", sprint ID 1) — Wed 07.10. – Fri 09.10.: walking skeleton, `SCRUM-16` – `SCRUM-25`.
-  **Done on 2026-10-08:** all tickets Done, the app deploys automatically from `main`. Complete the sprint in the Jira UI.
-- **Sprint 2** — starts 2026-10-08 (Sprint 1 finished early), ends Fri 16.10. (feature freeze):
-  `SCRUM-26` – `SCRUM-45` and `SCRUM-47`. Create and start it in the Jira UI. Tickets not yet moved
-  into the sprint (sprint ID unknown; drag one ticket in, then an agent can move the rest).
+  **Done on 2026-10-08:** all tickets Done, the app deploys automatically from `main`. Sprint completed in Jira.
+- **Sprint 2** ("SCRUM Sprint 2", sprint ID 34) — created 2026-10-08 (Sprint 1 finished early), ends
+  Fri 16.10. (feature freeze). 21 tickets: `SCRUM-26` – `SCRUM-45` and `SCRUM-47`. An agent moves a
+  ticket in with `customfield_10020: 34`.
 - Sprints must be created in the Jira UI (the agent's Jira tools cannot create sprints). An agent
   reads a sprint ID from the `customfield_10020` (Sprint) field of an issue in that sprint.
 
