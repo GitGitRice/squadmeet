@@ -22,6 +22,7 @@ Sprint 1 = Mi 07.10. – Fr 09.10. (Walking Skeleton live). Sprint 2 = Mo 12.10.
 | ✓ | SCRUM-19 | CI: Tests und Images bei jedem Pull Request | SCRUM-6 Infrastruktur & Pipeline | 1 | | 16 |
 | ✓ | SCRUM-20 | AWS Host mit HTTPS | SCRUM-6 Infrastruktur & Pipeline | 1 | | 16 |
 | ● | SCRUM-23 | Automatisches Deploy + Smoke-Test | SCRUM-6 Infrastruktur & Pipeline | 1 | | 19, 20 |
+| | SCRUM-47 | Deploy-Rolle: nur die Befehle, die das Deploy braucht (vor v1) | SCRUM-6 Infrastruktur & Pipeline | 2 | Should | 23 |
 | ▶ | SCRUM-26 | MFA mit einer Authenticator-App | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22 |
 | ▶ | SCRUM-27 | Captcha (Turnstile) und Login-Rate-Limit | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22 |
 | ▶ | SCRUM-28 | Datenschutzseite, Impressum und "Mein Konto löschen" | SCRUM-14 Datenschutz & Konto | 2 | Must | 22 |
