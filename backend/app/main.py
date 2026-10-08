@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response
 from sqlalchemy import func
 from sqlmodel import Session, select
@@ -12,7 +14,9 @@ api = APIRouter(prefix="/api")
 
 @api.get("/health")
 def health():
-    return {"status": "ok"}
+    # APP_VERSION is the commit SHA of the image (backend/Dockerfile). The deploy smoke
+    # test waits for it, so an old container that still answers does not pass (SCRUM-23).
+    return {"status": "ok", "version": os.environ.get("APP_VERSION", "local")}
 
 
 def select_place_reads():
