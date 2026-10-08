@@ -134,3 +134,29 @@ body {
   list-style: none;
   font-family: ui-monospace, monospace;
 }
+
+/* A spot with Places of more than one Activity type: one marker with the number of types. */
+.spot-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-weight: 800;
+  color: white;
+  background: #1a5fb4;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 40%);
+  box-sizing: border-box;
+}
+
+.spot-choice {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.spot-choice li {
+  padding: 4px 0;
+}

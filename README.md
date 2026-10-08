@@ -76,6 +76,11 @@ The Places come from a snapshot file per city in `backend/data/osm/`, so a start
 docker compose exec backend python -m app.osm_import fetch Leipzig
 ```
 
+`app.seed` loads the snapshots **only into an empty database**. After you add or refresh a
+city file, reset the local database with `docker compose down -v` (it deletes all local data);
+the backend log warns when snapshot Places are missing. Re-importing without a reset is
+`SCRUM-25`.
+
 Private, paid and indoor places are skipped ([backend/app/osm_import.py](backend/app/osm_import.py)).
 Map data © OpenStreetMap contributors (ODbL); the map shows the attribution.
 

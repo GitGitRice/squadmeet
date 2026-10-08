@@ -12,6 +12,8 @@ may change.
 
 from dataclasses import dataclass
 
+from app.activities import ActivityType
+
 
 @dataclass(frozen=True)
 class Reason:
@@ -49,15 +51,15 @@ GENERAL_REASONS = (
     condition_issue("puddles", "Steht nach Regen unter Wasser"),
 )
 
-ACTIVITY_REASONS: dict[str, tuple[Reason, ...]] = {
-    "table_tennis": (
+ACTIVITY_REASONS: dict[ActivityType, tuple[Reason, ...]] = {
+    ActivityType.TABLE_TENNIS: (
         good("table_good", "Platte in gutem Zustand"),
         good("fixed_net", "Festes Netz vorhanden"),
         good("wind_protected", "Windgeschützt"),
         condition_issue("net_missing", "Netz fehlt oder ist kaputt"),
         condition_issue("table_damaged", "Platte beschädigt oder uneben"),
     ),
-    "basketball": (
+    ActivityType.BASKETBALL: (
         good("hoops_with_nets", "Körbe mit Netz"),
         good("court_surface_good", "Guter, ebener Belag"),
         good("lines_visible", "Linien gut sichtbar"),
@@ -65,7 +67,7 @@ ACTIVITY_REASONS: dict[str, tuple[Reason, ...]] = {
         condition_issue("hoop_net_missing", "Korbnetz fehlt"),
         condition_issue("court_surface_bad", "Belag rissig oder rutschig"),
     ),
-    "football": (
+    ActivityType.FOOTBALL: (
         good("goals_with_nets", "Tore mit Netz"),
         good("pitch_good", "Rasen oder Belag in gutem Zustand"),
         good("fenced", "Eingezäunt, der Ball bleibt drin"),
@@ -73,7 +75,7 @@ ACTIVITY_REASONS: dict[str, tuple[Reason, ...]] = {
         condition_issue("pitch_bad", "Löcher oder kaputter Belag"),
         bad("temporarily_closed", "Zeitweise nicht zugänglich"),
     ),
-    "beach_volleyball": (
+    ActivityType.BEACH_VOLLEYBALL: (
         good("sand_good", "Feiner, sauberer Sand"),
         good("net_tight", "Netz gespannt und in richtiger Höhe"),
         good("court_marked", "Spielfeld markiert"),
@@ -81,7 +83,7 @@ ACTIVITY_REASONS: dict[str, tuple[Reason, ...]] = {
         condition_issue("volleyball_net_missing", "Netz fehlt oder ist kaputt"),
         condition_issue("too_little_sand", "Zu wenig Sand, harter Boden"),
     ),
-    "outdoor_fitness": (
+    ActivityType.OUTDOOR_FITNESS: (
         good("equipment_good", "Geräte in gutem Zustand"),
         good("equipment_varied", "Viele verschiedene Geräte"),
         good("instructions", "Übungsanleitungen an den Geräten"),

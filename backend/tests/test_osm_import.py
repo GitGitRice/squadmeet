@@ -5,7 +5,15 @@ from sqlmodel import select
 
 from app.activities import ActivityType
 from app.models import Place
-from app.osm_import import activity_types, is_public, load, places_from_overpass
+from app.osm_import import (
+    activity_types,
+    check_answer,
+    check_city,
+    is_public,
+    load,
+    places_from_overpass,
+    snapshot_name,
+)
 
 
 @pytest.mark.parametrize(
@@ -101,3 +109,52 @@ def test_load_fills_an_empty_database_only(session, tmp_path):
     assert load(session, [snapshot]) == 1
     assert load(session, [snapshot]) == 0
     assert len(session.exec(select(Place)).all()) == 1
+
+
+AREA = {"type": "area", "id": 3600062649}
+
+
+def test_an_incomplete_overpass_answer_is_rejected():
+    answer = {"remark": "runtime error: Query timed out", "elements": [AREA]}
+
+    with pytest.raises(RuntimeError, match="incomplete"):
+        check_answer("Leipzig", answer)
+
+
+@pytest.mark.parametrize("areas", [[], [AREA, {"type": "area", "id": 1}]])
+def test_a_city_name_must_match_exactly_one_municipality(areas):
+    with pytest.raises(RuntimeError, match="municipalities"):
+        check_answer("Neustadt", {"elements": areas})
+
+
+def test_a_complete_answer_for_one_municipality_passes():
+    check_answer("Leipzig", {"elements": [AREA]})
+
+
+@pytest.mark.parametrize("city", ['Leip"zig', "Leipzig;", "", "../x"])
+def test_city_names_that_could_break_the_query_are_rejected(city):
+    with pytest.raises(ValueError):
+        check_city(city)
+
+
+@pytest.mark.parametrize(
+    ("city", "file"),
+    [("Leipzig", "leipzig"), ("Halle (Saale)", "halle-saale"), ("Lübben", "luebben")],
+)
+def test_snapshot_file_names_are_plain(city, file):
+    check_city(city)
+    assert snapshot_name(city) == file
+
+
+def test_load_warns_about_snapshot_places_that_an_old_database_lacks(session, tmp_path, capsys):
+    first = {"osm_id": "node/1", "activity_type": "basketball", "name": "A", "lat": 1, "lon": 2}
+    second = {"osm_id": "node/2", "activity_type": "football", "name": "B", "lat": 1, "lon": 2}
+    snapshot = tmp_path / "test.json"
+    session.exec(Place.__table__.delete())
+    snapshot.write_text(json.dumps({"places": [first]}))
+    load(session, [snapshot])
+
+    snapshot.write_text(json.dumps({"places": [first, second]}))
+
+    assert load(session, [snapshot]) == 0
+    assert "1 Places from data/osm are not in the database" in capsys.readouterr().err
