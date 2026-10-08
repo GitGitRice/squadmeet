@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fetchPlace, fetchPlaces, type MapArea, type Place } from './places'
+import { clampArea, fetchPlace, fetchPlaces, type MapArea, type Place } from './places'
 
 const place: Place = {
   id: 1,
@@ -20,14 +20,48 @@ describe('fetchPlaces', () => {
     const fetchMock = vi.fn().mockResolvedValue(Response.json([place]))
     vi.stubGlobal('fetch', fetchMock)
 
-    await expect(fetchPlaces(leipzig)).resolves.toEqual([place])
-    expect(fetchMock).toHaveBeenCalledWith('/api/places?bbox=12.30000,51.30000,12.40000,51.35000')
+    await expect(fetchPlaces(leipzig)).resolves.toEqual({ places: [place], truncated: false })
+    expect(fetchMock).toHaveBeenCalledWith('/api/places?bbox=12.30000,51.30000,12.40000,51.35000', {
+      signal: undefined,
+    })
+  })
+
+  it('reports when the API left Places out', async () => {
+    const answer = Response.json([place], { headers: { 'X-Places-Truncated': 'true' } })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(answer))
+
+    await expect(fetchPlaces(leipzig)).resolves.toEqual({ places: [place], truncated: true })
+  })
+
+  it('passes the abort signal on', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json([]))
+    vi.stubGlobal('fetch', fetchMock)
+    const request = new AbortController()
+
+    await fetchPlaces(leipzig, request.signal)
+
+    expect(fetchMock.mock.calls[0][1]).toEqual({ signal: request.signal })
   })
 
   it('throws when the API answers with an error', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 500 })))
 
     await expect(fetchPlaces(leipzig)).rejects.toThrow('500')
+  })
+})
+
+describe('clampArea', () => {
+  it('keeps longitudes and latitudes inside the real range', () => {
+    expect(clampArea({ west: -250, south: -95, east: 400, north: 91 })).toEqual({
+      west: -180,
+      south: -90,
+      east: 180,
+      north: 90,
+    })
+  })
+
+  it('leaves a normal area as it is', () => {
+    expect(clampArea(leipzig)).toEqual(leipzig)
   })
 })
 

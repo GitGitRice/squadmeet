@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet'
+import { useEffect, useRef, useState } from 'react'
+import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { fetchPlace, fetchPlaces, type MapArea, type Place } from './api/places'
 import {
@@ -14,13 +14,16 @@ import {
 import AuthDialog from './auth/AuthDialog'
 import { AVATARS } from './auth/avatars'
 import ActivityFilter from './places/ActivityFilter'
-import { ACTIVITY_TYPES, type ActivityType } from './places/activities'
+import { ACTIVITY_TYPES, activityOf, type ActivityType } from './places/activities'
 import { filterPlaces } from './places/filter'
-import { placeIcon } from './places/markers'
+import { placeIcon, spotIcon } from './places/markers'
 import PlaceDetail from './places/PlaceDetail'
 import { placeIdFromPath, placePath, usePath } from './places/route'
+import { groupBySpot } from './places/spots'
 
 const LEIPZIG: [number, number] = [51.3397, 12.3731]
+// Zoomed out further, an area could hold more Places than the API sends (MAX_PLACES).
+const MIN_ZOOM = 11
 
 // Calls onMove with the visible map area at the start and after each pan or zoom.
 function MapAreaWatcher({ onMove }: { onMove: (area: MapArea) => void }) {
@@ -46,7 +49,11 @@ function CenterOn({ place }: { place: Place }) {
 
 export default function App() {
   const [places, setPlaces] = useState<Place[]>([])
+  const [truncated, setTruncated] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // The request for the last map area; a newer pan or zoom cancels it, so an old answer
+  // cannot replace a newer one.
+  const placesRequest = useRef<AbortController | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [showAuth, setShowAuth] = useState(false)
   const [chosen, setChosen] = useState<Set<ActivityType>>(() => new Set(ACTIVITY_TYPES))
@@ -70,12 +77,18 @@ export default function App() {
   }, [selectedId])
 
   function loadPlaces(area: MapArea) {
-    fetchPlaces(area)
-      .then((found) => {
-        setPlaces(found)
+    placesRequest.current?.abort()
+    const request = new AbortController()
+    placesRequest.current = request
+    fetchPlaces(area, request.signal)
+      .then((answer) => {
+        setPlaces(answer.places)
+        setTruncated(answer.truncated)
         setError(null)
       })
-      .catch((err: Error) => setError(err.message))
+      .catch((err: Error) => {
+        if (!request.signal.aborted) setError(err.message)
+      })
   }
 
   // Restore the login from an earlier visit; drop the token when the server no longer knows it.
@@ -106,6 +119,7 @@ export default function App() {
   return (
     <>
       {error && <div className="error">Plätze konnten nicht geladen werden: {error}</div>}
+      {truncated && !error && <div className="error">Zu viele Plätze. Bitte näher heranzoomen.</div>}
       <div className="account">
         {user ? (
           <>
@@ -127,22 +141,53 @@ export default function App() {
       {selectedId !== null && (
         <PlaceDetail place={selected} error={current?.error ?? null} onClose={() => navigate('/')} />
       )}
-      <MapContainer center={LEIPZIG} zoom={13} style={{ height: '100%' }}>
+      <MapContainer center={LEIPZIG} zoom={13} minZoom={MIN_ZOOM} style={{ height: '100%' }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapAreaWatcher onMove={loadPlaces} />
         {selected && <CenterOn place={selected} />}
-        {filterPlaces(places, chosen).map((place) => (
-          <Marker
-            key={place.id}
-            position={[place.lat, place.lon]}
-            icon={placeIcon(place.activity_type, place.id === selectedId)}
-            title={place.name}
-            eventHandlers={{ click: () => navigate(placePath(place.id)) }}
-          />
-        ))}
+        {groupBySpot(filterPlaces(places, chosen)).map((spot) => {
+          const isSelected = spot.places.some((place) => place.id === selectedId)
+          if (spot.places.length === 1) {
+            const [place] = spot.places
+            return (
+              <Marker
+                key={place.id}
+                position={[spot.lat, spot.lon]}
+                icon={placeIcon(place.activity_type, isSelected)}
+                title={place.name}
+                eventHandlers={{ click: () => navigate(placePath(place.id)) }}
+              />
+            )
+          }
+          // Several Activity types on one spot: the marker shows how many; a tap shows the choice.
+          return (
+            <Marker key={`spot-${spot.places[0].id}`} position={[spot.lat, spot.lon]} icon={spotIcon(spot, isSelected)}>
+              <Popup>
+                <ul className="spot-choice">
+                  {spot.places.map((place) => {
+                    const activity = activityOf(place.activity_type)
+                    return (
+                      <li key={place.id}>
+                        <a
+                          href={placePath(place.id)}
+                          onClick={(event) => {
+                            event.preventDefault()
+                            navigate(placePath(place.id))
+                          }}
+                        >
+                          {activity.emoji} {activity.label}
+                        </a>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </Popup>
+            </Marker>
+          )
+        })}
       </MapContainer>
     </>
   )

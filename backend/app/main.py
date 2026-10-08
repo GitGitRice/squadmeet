@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response
 from sqlalchemy import func
 from sqlmodel import Session, select
 
@@ -28,6 +28,8 @@ def select_place_reads():
 
 # A whole city is about 700 Places; more than this only happens when the map is zoomed far out.
 MAX_PLACES = 2000
+# Set on the answer when there were more Places than MAX_PLACES, so the map can ask to zoom in.
+TRUNCATED_HEADER = "X-Places-Truncated"
 
 
 def parse_bbox(bbox: str) -> tuple[float, float, float, float]:
@@ -43,10 +45,11 @@ def parse_bbox(bbox: str) -> tuple[float, float, float, float]:
 
 @api.get("/places", response_model=list[PlaceRead])
 def list_places(
+    response: Response,
     bbox: str = Query(description="The visible map area: west,south,east,north"),
     session: Session = Depends(get_session),
 ):
-    """The Places inside the visible map area (SCRUM-21)."""
+    """The Places inside the visible map area (SCRUM-21), at most MAX_PLACES."""
     west, south, east, north = parse_bbox(bbox)
     area = func.ST_MakeEnvelope(west, south, east, north, 4326)
     rows = session.exec(
@@ -54,8 +57,11 @@ def list_places(
         # && compares bounding boxes, so PostgreSQL can use the spatial index.
         .where(Place.location.op("&&")(area))
         .order_by(Place.id)
-        .limit(MAX_PLACES)
+        .limit(MAX_PLACES + 1)
     ).all()
+    if len(rows) > MAX_PLACES:
+        rows = rows[:MAX_PLACES]
+        response.headers[TRUNCATED_HEADER] = "true"
     return [PlaceRead.model_validate(row, from_attributes=True) for row in rows]
 
 

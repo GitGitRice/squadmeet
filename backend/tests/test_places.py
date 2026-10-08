@@ -36,6 +36,32 @@ def test_the_database_rejects_an_unknown_activity_type(session):
         session.flush()
 
 
+def test_places_says_when_it_left_places_out(client, session, monkeypatch):
+    monkeypatch.setattr("app.main.MAX_PLACES", 1)
+    session.add_all(
+        [
+            Place(name="A", activity_type="football", location="SRID=4326;POINT(-30.5 0.5)"),
+            Place(name="B", activity_type="football", location="SRID=4326;POINT(-30.4 0.5)"),
+        ]
+    )
+    session.commit()
+
+    response = client.get("/api/places", params={"bbox": "-31,0,-30,1"})
+
+    assert len(response.json()) == 1
+    assert response.headers["X-Places-Truncated"] == "true"
+
+
+def test_places_has_no_truncated_header_when_all_places_fit(client):
+    response = client.get("/api/places", params={"bbox": "-31,0,-30,1"})
+
+    assert "X-Places-Truncated" not in response.headers
+
+
+def test_the_model_declares_the_activity_type_check():
+    names = {c.name for c in Place.__table__.constraints}
+
+    assert "ck_place_activity_type" in names
 def test_one_place_by_id(client, session):
     place = Place(name="Korb", activity_type="basketball", location="SRID=4326;POINT(-30.5 0.5)")
     session.add(place)

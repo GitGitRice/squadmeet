@@ -1,5 +1,6 @@
 import L from 'leaflet'
 import { activityOf } from './activities'
+import { typeCount, type Spot } from './spots'
 
 // One marker per Activity type: the emoji in a ring of the type's colour. A divIcon needs no
 // image file, so the Leaflet image-path problem from SCRUM-16 cannot come back.
@@ -20,4 +21,15 @@ export function placeIcon(activityType: string, selected = false): L.DivIcon {
     cache.set(key, icon)
   }
   return icon
+}
+
+// Several Activity types on one spot: one marker with the number of types (SCRUM-21 review).
+export function spotIcon(spot: Spot, selected = false): L.DivIcon {
+  const size = selected ? 42 : 34
+  return L.divIcon({
+    className: '',
+    html: `<div class="spot-pin${selected ? ' selected' : ''}">${typeCount(spot)}</div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  })
 }
