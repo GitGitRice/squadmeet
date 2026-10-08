@@ -19,3 +19,6 @@ __pycache__/
 # Node
 node_modules/
 dist/
+
+# Personal handoff (each person keeps their own)
+HANDOFF.md

@@ -30,7 +30,7 @@ Presentation with live demo: **Wed 21.10.2026**.
 
 | File | What it holds |
 |------|---------------|
-| [HANDOFF.md](HANDOFF.md) | What is in flight now, decisions, next steps. Read it first. |
+| [HANDOFF.md](HANDOFF.md) | Your own local handoff (not in git): what is in flight now, decisions, next steps. Read it first. |
 | [TICKETS.md](TICKETS.md) | Jira tickets per person, in start order |
 | [DIARY.md](DIARY.md) | What each person did each day |
 | [CONTEXT.md](CONTEXT.md) | Glossary: the domain terms we use |
