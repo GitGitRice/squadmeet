@@ -31,8 +31,12 @@ else
   echo "✓ OIDC provider for GitHub created"
 fi
 
-# StringEquals is case-sensitive: the repo name must match GitHub's spelling.
-trust=$(jq -n --arg provider "$provider_arn" --arg sub "repo:$REPO:ref:refs/heads/main" '{
+# The repo uses GitHub's immutable subject, so the token's sub claim carries the owner
+# and repo IDs (repo:Owner@id/name@id:...). Ask GitHub for the prefix instead of building
+# it from $REPO; a wrong prefix fails with "Not authorized to perform
+# sts:AssumeRoleWithWebIdentity". StringEquals is case-sensitive.
+sub_prefix=$(gh api "repos/$REPO/actions/oidc/customization/sub" --jq .sub_claim_prefix)
+trust=$(jq -n --arg provider "$provider_arn" --arg sub "$sub_prefix:ref:refs/heads/main" '{
   Version: "2012-10-17",
   Statement: [{
     Effect: "Allow",
