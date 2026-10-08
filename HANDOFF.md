@@ -7,7 +7,7 @@ debugging case.
 Each person's own progress (*Now*, *In flight*, *Next*, *Log*) is in **`HANDOFF.local.md`**.
 That file is not in git (`.gitignore`), because each person's progress differs.
 
-**Last update:** 2026-10-08 · Steven · Split into this shared file and `HANDOFF.local.md`
+**Last update:** 2026-10-08 · Stefan · Scope decisions from `SCRUM-46`; Condition rule from `SCRUM-18`
 
 ---
 
@@ -43,6 +43,7 @@ Rules. Keep them short so everybody follows them.
 - **Must-haves:** cloud deployment, Docker, CI/CD (test → build → deploy), one complete
   business workflow, tests, docs, one debugging case.
 - **Deadline:** presentation on **Wed 21.10.2026** (15–20 min, live demo).
+- **Live:** https://squadmeet.duckdns.org (since 2026-10-08, `SCRUM-20`). It runs on one EC2 host in the Syntax course AWS account (SSO role "Student", region `eu-central-1`). Setup, shell access and troubleshooting: [deploy/README.md](deploy/README.md).
 - **Repo:** https://github.com/GitGitRice/squadmeet (private). Who starts with which ticket:
   [TICKETS.md](TICKETS.md).
 
@@ -103,8 +104,9 @@ No blockers: `SCRUM-17` Meetup prototype, `SCRUM-18` list of Reasons (Stefan).
 Must: `SCRUM-26` MFA, `SCRUM-27` captcha + rate limit, `SCRUM-33` password reset, `SCRUM-28` privacy +
 delete account (Steven); main workflow `SCRUM-29` Now-meetup (Stefan, start Mon morning) → `SCRUM-34`
 Join/Leave (Stefan) → `SCRUM-37` Host Cancel/handover/Closed (Stefan) and `SCRUM-35` later Meetup
-(Stefan) → `SCRUM-38` Series (Stefan); `SCRUM-30` suggest Place → `SCRUM-36` confirm (Steven);
-`SCRUM-31` Ratings (Stefan); `SCRUM-39` Admin lock/delete (Steven).
+(Stefan); `SCRUM-31` Ratings (Stefan); `SCRUM-39` Admin lock/unlock/delete (Steven).
+Should since 2026-10-08 (`SCRUM-46`): `SCRUM-38` Series (Stefan); `SCRUM-30` suggest Place →
+`SCRUM-36` confirm (Steven).
 Should: `SCRUM-40` in-app Notifications, `SCRUM-41` Favorites (Steven); `SCRUM-42` Photos,
 `SCRUM-32` Contacts + Block (Stefan). Could: `SCRUM-43` Contact notifications (Stefan), `SCRUM-44`
 web push, `SCRUM-45` Home area (Steven). Each ticket's "Blocked by" is a Jira link.
@@ -143,7 +145,6 @@ authenticate. There are no shared credentials.
 
 - Final app name. Working name: **SquadMeet** (2026-10-07; quick web search found no app with this name, but similar "Squadsheet" and "squadSet" exist; no brand or domain check yet). "Meetup" rejected: Meetup.com brand, and it is our glossary term.
 - Demo data and demo devices (decided later, `SCRUM-15`).
-- Set an AWS budget alarm (Free Tier + 15 $ credit).
 
 ## Decisions
 
@@ -181,8 +182,8 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-07 | Images in GHCR: `ghcr.io/gitgitrice/squadmeet-{backend,frontend,db}`, tags = commit SHA + `dev`; pushed only after both test jobs are green | Deploy (`SCRUM-23`) picks an exact commit; no image from a red build | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
 | 2026-10-07 | Ruleset "protect main and dev" requires the 5 CI checks (backend tests, frontend tests, 3 Docker images) | A red pipeline blocks the merge ("Done" means the pipeline is green) | GitHub → Settings → Rules |
 | 2026-10-08 | Reasons live as code in [backend/app/reasons.py](backend/app/reasons.py): a stable key (stored in the DB) + a German label; general Reasons + Reasons per Activity type | One list for API validation and UI; a label can change without a migration | `SCRUM-18` |
-| 2026-10-08 | Condition: only negative Reasons that the city or the operator must fix change it (`condition_issue` in code); "Oft überfüllt", "Schwer zu finden", "Zeitweise nicht zugänglich" do not. No Reason for bad lighting. "Oft abgeschlossen" renamed so it does not clash with Locked place | Stefan (product owner) after Steven's review; a Condition should say what needs a repair | [CONTEXT.md](CONTEXT.md), `SCRUM-18` |
-| 2026-10-08 | Meetup screens: map + bottom sheet (Place → "Ich bin jetzt hier" → Meetup detail), not a list or an assistant. Red pin with people count = someone is there now. The prototype covers only the `SCRUM-17` flow plus Host Leave (Stefan, after Steven's review): the Host can Leave when others have joined, the earliest Join becomes Host. Later Meetups, Series, ending early and Closed are left to their own tickets | The map is the core of the app; one tap from Place to Meetup. Team still has to agree | `SCRUM-17`, commits `627dc81`, `825a44a` |
+| 2026-10-08 | Condition: only negative Reasons that the city or the operator must fix change it (`condition_issue` in code); "Oft überfüllt", "Schwer zu finden", "Zeitweise nicht zugänglich" do not. No Reason for bad lighting. "Oft abgeschlossen" renamed so it does not clash with Locked place | Stefan (product owner) after Steven's review; a Condition should say what needs a repair | [CONTEXT.md](CONTEXT.md), `SCRUM-18`, [PR #11](https://github.com/GitGitRice/squadmeet/pull/11) |
+| 2026-10-08 | Meetup screens: map + bottom sheet (Place → "Ich bin jetzt hier" → Meetup detail), not a list or an assistant. Red pin with people count = someone is there now. The prototype covers only the `SCRUM-17` flow, plus Host Leave (Stefan after Steven's review, [PR #10](https://github.com/GitGitRice/squadmeet/pull/10)): the Host can Leave when others have joined, the earliest Join becomes Host. Later Meetups, Series, ending early and Closed are left to their own tickets | The map is the core of the app; one tap from Place to Meetup. Team still has to agree | `SCRUM-17`, commits `627dc81`, `825a44a` |
 | 2026-10-08 | The Meetup prototype is a separate dev-only page (`frontend/prototype.html`), not part of the app | Not in the production build, so test data and fake screens never ship | `SCRUM-17` |
 | 2026-10-08 | PR title and description may be English; `DIARY.md` stays German | Team decision after David left; replaces the 2026-10-07 "PR in German" rule | this file → *Conventions* |
 | 2026-10-08 | Places come from an OSM snapshot file per city (`backend/data/osm/<city>.json`, made by `python -m app.osm_import fetch <City>`, committed); `python -m app.seed` loads it into an empty database (`docker compose up` runs it) | Public Overpass servers were busy or out of date while we tested (504, old data); deploy and demo must not depend on them | `SCRUM-21`, [backend/app/osm_import.py](backend/app/osm_import.py) |
@@ -195,7 +196,7 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-08 | The open Place always stays on the map, even when the filter switches its Activity type off; Activity types the frontend does not know are never filtered out | Stefan after Steven's review of `SCRUM-24` (point 3): the detail panel must not point to an invisible marker | `SCRUM-24`, [frontend/src/places/filter.ts](frontend/src/places/filter.ts) |
 | 2026-10-08 | HANDOFF split: shared parts stay in `HANDOFF.md` (in git); each person's *Now*/*In flight*/*Next*/*Log* go to `HANDOFF.local.md` (`.gitignore`) | Each person's progress differs; removing `HANDOFF.md` from git would delete the other person's copy on `git pull` | this file → *How to use these files* |
 | 2026-10-08 | David left. Split his tickets by area: Stefan = Meetup workflow + Places data (21, 25, 34, 37, 38); Steven = Place suggestions + Admin (30, 36, 39) | 21 unblocks Stefan's own 24/29/31; one person owns the whole demo workflow; Admin needs MFA (Steven) | `SCRUM-46` |
-| 2026-10-08 | EC2 host: t3.micro (x86, because the CI images are amd64 only) + 2 GB swap file + Elastic IP, Amazon Linux 2023, region `eu-central-1`; free subdomain from DuckDNS | Free Tier; the IP stays the same after a stop and start; DuckDNS is free and works with Let's Encrypt | `SCRUM-20`, [deploy/](deploy/) |
+| 2026-10-08 | EC2 host: t2.micro (x86, because the CI images are amd64 only) + 2 GB swap file + Elastic IP, Amazon Linux 2023, region `eu-central-1`; free subdomain from DuckDNS. Changed from t3.micro on the same day | The course account has the older Free Tier: only t2.micro is free (`aws ec2 describe-instance-types` → `FreeTierEligible`), t3.micro costs about 0.012 USD an hour; the IP stays the same after a stop and start; DuckDNS is free and works with Let's Encrypt | `SCRUM-20`, [deploy/](deploy/) |
 | 2026-10-08 | Caddy is in the production frontend image (built files + reverse proxy to the backend); only ports 80 and 443 are open; no SSH, access through AWS SSM | One image less; no open SSH port (same path as the automatic deploy, `SCRUM-23`) | `SCRUM-20`, [frontend/Dockerfile](frontend/Dockerfile) |
 | 2026-10-08 | The AWS setup is a script ([deploy/setup-aws.sh](deploy/setup-aws.sh)) that uses the AWS CLI, not console clicks | Repeatable, and written down for the later move to the NAS (ADR-0002) | `SCRUM-20` |
 | 2026-10-08 | EC2 pulls the private GHCR images with a classic GitHub token (only `read:packages`). The token and the DB password are in AWS SSM Parameter Store (`/squadmeet/*`, SecureString), not in GitHub and not in the command history | Packages stay private; the host reads its secrets with its own IAM role | `SCRUM-20`, [deploy/host-deploy.sh](deploy/host-deploy.sh) |

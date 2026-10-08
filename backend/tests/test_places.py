@@ -62,6 +62,8 @@ def test_the_model_declares_the_activity_type_check():
     names = {c.name for c in Place.__table__.constraints}
 
     assert "ck_place_activity_type" in names
+
+
 def test_one_place_by_id(client, session):
     place = Place(name="Korb", activity_type="basketball", location="SRID=4326;POINT(-30.5 0.5)")
     session.add(place)
