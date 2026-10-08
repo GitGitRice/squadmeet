@@ -35,7 +35,7 @@ before (by the name `squadmeet`) and keeps the values in `.env.aws` (not in git)
    `read:packages`), `/squadmeet/ghcr-user`, `/squadmeet/postgres-password` (random, made once).
 5. **Firewall** `squadmeet-web` (only TCP 80, TCP 443 and UDP 443) and the **IAM role**
    `squadmeet-ec2` (SSM may run commands; the host may read `/squadmeet/*`).
-6. **EC2** `t3.micro`, Amazon Linux 2023, 20 GB, CPU credits "standard", and an **Elastic IP**.
+6. **EC2** `t2.micro` (Free Tier eligible; `t3.micro` is not in this account), Amazon Linux 2023, 20 GB, CPU credits "standard", and an **Elastic IP**.
 7. **DuckDNS** points the subdomain to the Elastic IP.
 8. **Deploy** through SSM: copies `compose.yml` and `host-deploy.sh` to `/opt/squadmeet` and runs it.
 9. **Check** `https://<subdomain>.duckdns.org/api/health`, and set the GitHub variables

@@ -43,6 +43,7 @@ Rules. Keep them short so everybody follows them.
 - **Must-haves:** cloud deployment, Docker, CI/CD (test → build → deploy), one complete
   business workflow, tests, docs, one debugging case.
 - **Deadline:** presentation on **Wed 21.10.2026** (15–20 min, live demo).
+- **Live:** https://squadmeet.duckdns.org (since 2026-10-08, `SCRUM-20`). It runs on one EC2 host in the Syntax course AWS account (SSO role "Student", region `eu-central-1`). Setup, shell access and troubleshooting: [deploy/README.md](deploy/README.md).
 - **Repo:** https://github.com/GitGitRice/squadmeet (private). Who starts with which ticket:
   [TICKETS.md](TICKETS.md).
 
@@ -144,7 +145,6 @@ authenticate. There are no shared credentials.
 
 - Final app name. Working name: **SquadMeet** (2026-10-07; quick web search found no app with this name, but similar "Squadsheet" and "squadSet" exist; no brand or domain check yet). "Meetup" rejected: Meetup.com brand, and it is our glossary term.
 - Demo data and demo devices (decided later, `SCRUM-15`).
-- Set an AWS budget alarm (Free Tier + 15 $ credit).
 
 ## Decisions
 
@@ -188,8 +188,7 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-08 | PR title and description may be English; `DIARY.md` stays German | Team decision after David left; replaces the 2026-10-07 "PR in German" rule | this file → *Conventions* |
 | 2026-10-08 | HANDOFF split: shared parts stay in `HANDOFF.md` (in git); each person's *Now*/*In flight*/*Next*/*Log* go to `HANDOFF.local.md` (`.gitignore`) | Each person's progress differs; removing `HANDOFF.md` from git would delete the other person's copy on `git pull` | this file → *How to use these files* |
 | 2026-10-08 | David left. Split his tickets by area: Stefan = Meetup workflow + Places data (21, 25, 34, 37, 38); Steven = Place suggestions + Admin (30, 36, 39) | 21 unblocks Stefan's own 24/29/31; one person owns the whole demo workflow; Admin needs MFA (Steven) | `SCRUM-46` |
-| 2026-10-08 | Scope for 2 people: `SCRUM-30`, `-36` (Place suggestions) and `-38` (Series) are Should; all Should/Could tickets only after the Musts; `SCRUM-25` = the `SCRUM-21` import script with a city parameter; PRs reviewed the same day. `SCRUM-39` stays complete (lock, unlock **and** delete) | About 9 Musts each in 5 days was too much; the brief asks for one complete workflow (Meetup) | `SCRUM-46` (Stefan's answer to Steven's proposals 1–6) |
-| 2026-10-08 | EC2 host: t3.micro (x86, because the CI images are amd64 only) + 2 GB swap file + Elastic IP, Amazon Linux 2023, region `eu-central-1`; free subdomain from DuckDNS | Free Tier; the IP stays the same after a stop and start; DuckDNS is free and works with Let's Encrypt | `SCRUM-20`, [deploy/](deploy/) |
+| 2026-10-08 | EC2 host: t2.micro (x86, because the CI images are amd64 only) + 2 GB swap file + Elastic IP, Amazon Linux 2023, region `eu-central-1`; free subdomain from DuckDNS. Changed from t3.micro on the same day | The course account has the older Free Tier: only t2.micro is free (`aws ec2 describe-instance-types` → `FreeTierEligible`), t3.micro costs about 0.012 USD an hour; the IP stays the same after a stop and start; DuckDNS is free and works with Let's Encrypt | `SCRUM-20`, [deploy/](deploy/) |
 | 2026-10-08 | Caddy is in the production frontend image (built files + reverse proxy to the backend); only ports 80 and 443 are open; no SSH, access through AWS SSM | One image less; no open SSH port (same path as the automatic deploy, `SCRUM-23`) | `SCRUM-20`, [frontend/Dockerfile](frontend/Dockerfile) |
 | 2026-10-08 | The AWS setup is a script ([deploy/setup-aws.sh](deploy/setup-aws.sh)) that uses the AWS CLI, not console clicks | Repeatable, and written down for the later move to the NAS (ADR-0002) | `SCRUM-20` |
 | 2026-10-08 | EC2 pulls the private GHCR images with a classic GitHub token (only `read:packages`). The token and the DB password are in AWS SSM Parameter Store (`/squadmeet/*`, SecureString), not in GitHub and not in the command history | Packages stay private; the host reads its secrets with its own IAM role | `SCRUM-20`, [deploy/host-deploy.sh](deploy/host-deploy.sh) |
