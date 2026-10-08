@@ -6,11 +6,13 @@ often too busy to answer):
     python -m app.osm_import fetch Leipzig   # Overpass -> data/osm/leipzig.json; commit the file
     python -m app.osm_import load            # data/osm/*.json -> database, only if it has no Places
 
-`docker compose up` runs `load` through app/seed.py. The city is a parameter, so another city is one more `fetch`
-(SCRUM-25). OSM data is © OpenStreetMap contributors, ODbL; the map shows the attribution.
+`docker compose up` runs `load` through app/seed.py. The city is a parameter, so another city
+is one more `fetch` (SCRUM-25). OSM data is © OpenStreetMap contributors, ODbL; the map shows
+the attribution.
 """
 
 import json
+import re
 import sys
 import urllib.parse
 import urllib.request
@@ -28,6 +30,10 @@ OVERPASS_URLS = (
     "https://overpass-api.de/api/interpreter",
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 )
+
+# A German municipality name: letters, spaces, dots, hyphens and brackets ("Halle (Saale)").
+# No quotes, so the name cannot break the Overpass query.
+CITY_NAME = re.compile(r"^[A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß .()-]*$")
 
 # OSM sport=* values on a leisure=pitch, per Activity type.
 SPORTS = {
@@ -89,12 +95,38 @@ def places_from_overpass(elements: list[dict]) -> list[dict]:
     return sorted(places, key=lambda p: (p["osm_id"], p["activity_type"]))
 
 
+def check_city(city: str) -> None:
+    if not CITY_NAME.fullmatch(city):
+        raise ValueError(f"not a city name: {city!r} (letters, spaces, . - ( ) only)")
+
+
+def snapshot_name(city: str) -> str:
+    """The file name for a city: "Halle (Saale)" -> "halle-saale"."""
+    name = city.lower()
+    for umlaut, plain in (("ä", "ae"), ("ö", "oe"), ("ü", "ue"), ("ß", "ss")):
+        name = name.replace(umlaut, plain)
+    return re.sub(r"[^a-z0-9]+", "-", name).strip("-")
+
+
+def check_answer(city: str, answer: dict) -> None:
+    """Rejects an Overpass answer that is cut off or covers more than one municipality."""
+    # A server that runs out of time still answers 200, with a "remark" and only some elements.
+    if answer.get("remark"):
+        raise RuntimeError(f"Overpass answer for {city} is incomplete: {answer['remark']}")
+    areas = [e for e in answer["elements"] if e["type"] == "area"]
+    if len(areas) != 1:
+        raise RuntimeError(
+            f"{len(areas)} municipalities are called {city!r}; the import needs exactly one"
+        )
+
+
 def overpass_query(city: str) -> str:
     sports = "|".join(SPORTS)
     # de:regionalschluessel is set only on German municipalities, so "Leipzig" means the city.
     return f"""
 [out:json][timeout:180];
 area["name"="{city}"]["boundary"="administrative"]["de:regionalschluessel"]->.city;
+.city out ids;
 (
   nwr["leisure"="pitch"]["sport"~"(^|;)({sports})(;|$)"](area.city);
   nwr["leisure"="fitness_station"](area.city);
@@ -105,6 +137,7 @@ out center tags;
 
 def fetch(city: str) -> Path:
     """Asks Overpass for the Places of a city and writes them to data/osm/<city>.json."""
+    check_city(city)
     body = urllib.parse.urlencode({"data": overpass_query(city)}).encode()
     last_error: Exception | None = None
     for url in OVERPASS_URLS:
@@ -112,8 +145,9 @@ def fetch(city: str) -> Path:
         try:
             with urllib.request.urlopen(request, timeout=240) as response:
                 answer = json.load(response)
+            check_answer(city, answer)
             break
-        except Exception as error:  # a busy server answers 429/504 or times out
+        except Exception as error:  # a busy server answers 429/504, times out or cuts off
             print(f"{url}: {error}", file=sys.stderr)
             last_error = error
     else:
@@ -121,7 +155,7 @@ def fetch(city: str) -> Path:
 
     places = places_from_overpass(answer["elements"])
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    path = DATA_DIR / f"{city.lower()}.json"
+    path = DATA_DIR / f"{snapshot_name(city)}.json"
     snapshot = {
         "city": city,
         "source": "© OpenStreetMap contributors, ODbL 1.0, openstreetmap.org/copyright",
@@ -137,22 +171,36 @@ def load(session: Session, files: list[Path] | None = None) -> int:
     """Puts the Places from the snapshot files into an empty database. Returns how many.
 
     A database that already has Places stays as it is; a repeated import without duplicates
-    is SCRUM-25.
+    is SCRUM-25. Until then it warns when a snapshot has Places that the database lacks
+    (for example a new city file): reset the database to load them.
     """
-    if session.exec(select(Place.id).limit(1)).first() is not None:
+    rows = [
+        row
+        for path in (files if files is not None else sorted(DATA_DIR.glob("*.json")))
+        for row in json.loads(path.read_text())["places"]
+    ]
+    known = {tuple(row) for row in session.exec(select(Place.osm_id, Place.activity_type))}
+    if known:
+        missing = [r for r in rows if (r["osm_id"], r["activity_type"]) not in known]
+        if missing:
+            print(
+                f"WARNING: {len(missing)} Places from data/osm are not in the database. "
+                "The database already has Places, so they are not loaded. Reset it "
+                "(docker compose down -v) or wait for SCRUM-25.",
+                file=sys.stderr,
+            )
         return 0
     count = 0
-    for path in files if files is not None else sorted(DATA_DIR.glob("*.json")):
-        for row in json.loads(path.read_text())["places"]:
-            session.add(
-                Place(
-                    name=row["name"],
-                    activity_type=row["activity_type"],
-                    osm_id=row["osm_id"],
-                    location=f"SRID=4326;POINT({row['lon']} {row['lat']})",
-                )
+    for row in rows:
+        session.add(
+            Place(
+                name=row["name"],
+                activity_type=row["activity_type"],
+                osm_id=row["osm_id"],
+                location=f"SRID=4326;POINT({row['lon']} {row['lat']})",
             )
-            count += 1
+        )
+        count += 1
     session.commit()
     return count
 
