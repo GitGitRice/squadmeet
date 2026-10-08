@@ -486,9 +486,10 @@ for _ in $(seq 1 30); do
 done
 [[ "$healthy" == y ]] || die "https://$DOMAIN/api/health does not answer. Logs: see deploy/README.md → Troubleshooting."
 say "${GREEN}✓${RESET} https://$DOMAIN/api/health answers, the certificate is valid."
-say "Places in the API: $(curl -fsS "https://$DOMAIN/api/places" | jq length)"
+# The bbox (Leipzig) is required since SCRUM-21; the API before SCRUM-21 ignores it.
+say "Places in Leipzig: $(curl -fsS "https://$DOMAIN/api/places?bbox=12.2,51.2,12.6,51.5" | jq length)"
 open_url "https://$DOMAIN"
-step "You should see the map with the example Place in the Clara-Zetkin-Park, Leipzig."
+step "You should see the map with Places in Leipzig."
 confirm "Do you see the map with the Place?" || warn "Not as expected. See deploy/README.md → Troubleshooting."
 
 say "The automatic deploy (SCRUM-23) needs these values as GitHub variables (not secret):"

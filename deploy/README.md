@@ -12,7 +12,7 @@ browser ──HTTPS──▶ web (Caddy: built React app + /api/* → backend) �
 | [setup-aws.sh](setup-aws.sh) | Wizard for the first setup. You run it on your laptop; it uses the AWS CLI |
 | [compose.yml](compose.yml) | The production stack. It pulls the images from GHCR; nothing is built on the host |
 | [host-deploy.sh](host-deploy.sh) | Runs on the host: writes `.env`, logs in to GHCR, pulls the images, restarts the stack |
-| [ec2-user-data.sh](ec2-user-data.sh) | First boot of the EC2 host: Docker, Compose plugin, 2 GB swap file |
+| [ec2-user-data.sh](ec2-user-data.sh) | First boot of the EC2 host: Docker, Compose plugin (fixed version, checksum checked), 2 GB swap file |
 | [../frontend/Caddyfile](../frontend/Caddyfile) | Caddy: HTTPS certificate, the static files, the proxy to the API |
 
 ## First setup on AWS
