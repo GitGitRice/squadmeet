@@ -1,0 +1,49 @@
+# Production stack on the EC2 host (later the NAS, ADR-0002). It runs the images that CI
+# pushed to GHCR; nothing is built here. host-deploy.sh writes the .env next to this file.
+# Only Caddy ("web") has open ports; the database and the API are reachable only inside.
+services:
+  db:
+    image: ghcr.io/gitgitrice/squadmeet-db:${IMAGE_TAG:-dev}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: ${POSTGRES_DB:?}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  backend:
+    image: ghcr.io/gitgitrice/squadmeet-backend:${IMAGE_TAG:-dev}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    command: sh -c "alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    image: ghcr.io/gitgitrice/squadmeet-frontend:${IMAGE_TAG:-dev}
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      # Caddy keeps the certificate here, so a restart does not ask Let's Encrypt again.
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - backend
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:
