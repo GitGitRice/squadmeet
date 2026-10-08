@@ -1,6 +1,6 @@
 # Ticket-Übersicht — wer womit anfängt
 
-Snapshot von Jira (Projekt `SCRUM`) am 08.10.2026, nach dem Ende von Sprint 1 (alle Sprint-1-Tickets Done). David ist raus, seine Tickets sind auf Steven und Stefan verteilt (`SCRUM-46`). Jira ist die Single Source of Truth; diese Datei kann
+Snapshot von Jira (Projekt `SCRUM`) am 08.10.2026, nach dem Ende von Sprint 1 (alle Sprint-1-Tickets Done) und dem Start von SCRUM-26. David ist raus, seine Tickets sind auf Steven und Stefan verteilt (`SCRUM-46`). Jira ist die Single Source of Truth; diese Datei kann
 veraltet sein. Die Liste jeder Person ist in Arbeitsreihenfolge: Bearbeite das oberste offene Ticket, dessen Blocker erledigt sind.
 
 - **✓ = erledigt** (Done in Jira).
@@ -22,10 +22,10 @@ Sprint 1 = Mi 07.10. – Fr 09.10. (Walking Skeleton live), am 08.10. fertig. Sp
 | ✓ | SCRUM-19 | CI: Tests und Images bei jedem Pull Request | SCRUM-6 Infrastruktur & Pipeline | 1 | | 16 |
 | ✓ | SCRUM-20 | AWS Host mit HTTPS | SCRUM-6 Infrastruktur & Pipeline | 1 | | 16 |
 | ✓ | SCRUM-23 | Automatisches Deploy + Smoke-Test | SCRUM-6 Infrastruktur & Pipeline | 1 | | 19, 20 |
-| ▶ | SCRUM-47 | Deploy-Rolle: nur die Befehle, die das Deploy braucht (vor v1) | SCRUM-6 Infrastruktur & Pipeline | 2 | Should | 23 |
-| ▶ | SCRUM-26 | MFA mit einer Authenticator-App | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22 |
+| ● | SCRUM-26 | MFA mit einer Authenticator-App | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22 |
 | ▶ | SCRUM-27 | Captcha (Turnstile) und Login-Rate-Limit | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22 |
 | ▶ | SCRUM-28 | Datenschutzseite, Impressum und "Mein Konto löschen" | SCRUM-14 Datenschutz & Konto | 2 | Must | 22 |
+| ▶ | SCRUM-47 | Deploy-Rolle: nur die Befehle, die das Deploy braucht (vor v1) | SCRUM-6 Infrastruktur & Pipeline | 2 | Must | 23 |
 | | SCRUM-33 | Passwort-Reset mit Recovery-Code oder MFA-Code | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22, 26 |
 | ▶ | SCRUM-30 | Einen Platz vorschlagen, mit der Duplikat-Warnung | SCRUM-9 Platzvorschläge & Bestätigungen | 2 | Should | 22, 21 |
 | | SCRUM-36 | Einen Platzvorschlag am Platz bestätigen | SCRUM-9 Platzvorschläge & Bestätigungen | 2 | Should | 30 |
