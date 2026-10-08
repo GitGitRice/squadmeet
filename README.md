@@ -7,7 +7,8 @@ Final project of the Syntax course, Modul 4 (Fullstack, Backend & DevOps). Team 
 Presentation with live demo: **Wed 21.10.2026**.
 
 > **State:** live at https://squadmeet.duckdns.org (`SCRUM-20`, AWS host). A merge into `main`
-> deploys automatically (`SCRUM-23`); the first automatic run comes with the next release into `main`.
+> deploys automatically (`SCRUM-23`, first run green on 2026-10-08). Sprint 1 (walking skeleton)
+> is done; Sprint 2 (features, until the feature freeze on Fri 16.10.) starts now.
 
 ## Team
 

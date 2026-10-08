@@ -1,6 +1,6 @@
 # Ticket-Übersicht — wer womit anfängt
 
-Snapshot von Jira (Projekt `SCRUM`) am 08.10.2026, nach dem Merge von `SCRUM-24` (PR #16). David ist raus, seine Tickets sind auf Steven und Stefan verteilt (`SCRUM-46`). Jira ist die Single Source of Truth; diese Datei kann
+Snapshot von Jira (Projekt `SCRUM`) am 08.10.2026, nach dem Ende von Sprint 1 (alle Sprint-1-Tickets Done). David ist raus, seine Tickets sind auf Steven und Stefan verteilt (`SCRUM-46`). Jira ist die Single Source of Truth; diese Datei kann
 veraltet sein. Die Liste jeder Person ist in Arbeitsreihenfolge: Bearbeite das oberste offene Ticket, dessen Blocker erledigt sind.
 
 - **✓ = erledigt** (Done in Jira).
@@ -9,7 +9,7 @@ veraltet sein. Die Liste jeder Person ist in Arbeitsreihenfolge: Bearbeite das o
 - **Blockiert von** = Jira "is blocked by" Verknüpfung. Starte ein Ticket, wenn diese erledigt (Done) sind.
 - **Prio** (nur Sprint 2): Must / Should / Could. Must zuerst.
 
-Sprint 1 = Mi 07.10. – Fr 09.10. (Walking Skeleton live). Sprint 2 = Mo 12.10. – Fr 16.10.
+Sprint 1 = Mi 07.10. – Fr 09.10. (Walking Skeleton live), am 08.10. fertig. Sprint 2 = Mo 12.10. – Fr 16.10.
 (Feature Freeze).
 
 ## Steven
@@ -21,8 +21,8 @@ Sprint 1 = Mi 07.10. – Fr 09.10. (Walking Skeleton live). Sprint 2 = Mo 12.10.
 | ✓ | SCRUM-46 | David ist raus: seine Tickets auf Steven und Stefan aufteilen | — | 1 | | — |
 | ✓ | SCRUM-19 | CI: Tests und Images bei jedem Pull Request | SCRUM-6 Infrastruktur & Pipeline | 1 | | 16 |
 | ✓ | SCRUM-20 | AWS Host mit HTTPS | SCRUM-6 Infrastruktur & Pipeline | 1 | | 16 |
-| ● | SCRUM-23 | Automatisches Deploy + Smoke-Test | SCRUM-6 Infrastruktur & Pipeline | 1 | | 19, 20 |
-| | SCRUM-47 | Deploy-Rolle: nur die Befehle, die das Deploy braucht (vor v1) | SCRUM-6 Infrastruktur & Pipeline | 2 | Should | 23 |
+| ✓ | SCRUM-23 | Automatisches Deploy + Smoke-Test | SCRUM-6 Infrastruktur & Pipeline | 1 | | 19, 20 |
+| ▶ | SCRUM-47 | Deploy-Rolle: nur die Befehle, die das Deploy braucht (vor v1) | SCRUM-6 Infrastruktur & Pipeline | 2 | Should | 23 |
 | ▶ | SCRUM-26 | MFA mit einer Authenticator-App | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22 |
 | ▶ | SCRUM-27 | Captcha (Turnstile) und Login-Rate-Limit | SCRUM-2 Anmeldung und Registrierung | 2 | Must | 22 |
 | ▶ | SCRUM-28 | Datenschutzseite, Impressum und "Mein Konto löschen" | SCRUM-14 Datenschutz & Konto | 2 | Must | 22 |
@@ -42,7 +42,7 @@ Sprint 1 = Mi 07.10. – Fr 09.10. (Walking Skeleton live). Sprint 2 = Mo 12.10.
 | ✓ | SCRUM-17 | Meetup-Screens als klickbarer Prototyp | SCRUM-8 Treffen (Haupt-Workflow) | 1 | | — |
 | ✓ | SCRUM-18 | Die Liste der Gründe pro Aktivitätstyp | SCRUM-10 Bewertungen & Fotos | 1 | | — |
 | ✓ | SCRUM-21 | Echte Plätze für Leipzig auf der Karte | SCRUM-7 Plätze & Karte | 1 | | 16 |
-| ● | SCRUM-25 | Die anderen 4 Städte importieren | SCRUM-7 Plätze & Karte | 1 | | 21 |
+| ✓ | SCRUM-25 | Die anderen 4 Städte importieren | SCRUM-7 Plätze & Karte | 1 | | 21 |
 | ✓ | SCRUM-24 | Filter und Platz-Details | SCRUM-7 Plätze & Karte | 1 | | 21 |
 | ▶ | SCRUM-29 | Ein Jetzt-Meetup erstellen und auf der Karte sehen | SCRUM-8 Treffen (Haupt-Workflow) | 2 | Must | 22, 24, 17 |
 | ▶ | SCRUM-31 | Einen Platz mit Sternen und Gründen bewerten | SCRUM-10 Bewertungen & Fotos | 2 | Must | 22, 24, 18 |

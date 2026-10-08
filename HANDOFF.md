@@ -87,8 +87,10 @@ Rules. Keep them short so everybody follows them.
 ### Sprints
 
 - **Sprint 1** ("SCRUM Sprint 1", sprint ID 1) — Wed 07.10. – Fri 09.10.: walking skeleton, `SCRUM-16` – `SCRUM-25`.
-- **Sprint 2** — Mon 12.10. – Fri 16.10. (feature freeze): `SCRUM-26` – `SCRUM-45`. Tickets not yet
-  moved into the sprint (sprint ID unknown; drag one ticket in, then an agent can move the rest).
+  **Done on 2026-10-08:** all tickets Done, the app deploys automatically from `main`. Sprint completed in Jira.
+- **Sprint 2** ("SCRUM Sprint 2", sprint ID 34) — created 2026-10-08 (Sprint 1 finished early), ends
+  Fri 16.10. (feature freeze). 21 tickets: `SCRUM-26` – `SCRUM-45` and `SCRUM-47`. An agent moves a
+  ticket in with `customfield_10020: 34`.
 - Sprints must be created in the Jira UI (the agent's Jira tools cannot create sprints). An agent
   reads a sprint ID from the `customfield_10020` (Sprint) field of an issue in that sprint.
 
@@ -110,6 +112,9 @@ Should since 2026-10-08 (`SCRUM-46`): `SCRUM-38` Series (Stefan); `SCRUM-30` sug
 Should: `SCRUM-40` in-app Notifications, `SCRUM-41` Favorites (Steven); `SCRUM-42` Photos,
 `SCRUM-32` Contacts + Block (Stefan). Could: `SCRUM-43` Contact notifications (Stefan), `SCRUM-44`
 web push, `SCRUM-45` Home area (Steven). Each ticket's "Blocked by" is a Jira link.
+In Jira (since 2026-10-08), each ticket has the label `must`, `should` or `could` and the priority
+High, Medium or Low to match. Change both when a ticket changes category. `SCRUM-47` (deploy role
+permissions) is a Must.
 
 "Blocked by" on `SCRUM-6` means only the walking skeleton, not the whole Epic. Stories come
 next; each owner writes them (for example with `/mattpocock-skills:to-tickets`).
