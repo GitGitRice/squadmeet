@@ -99,6 +99,8 @@ jobs:
     needs: [images]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    # deploy.sh waits at most 35 min for the host + 3 min for the smoke test.
+    timeout-minutes: 45
     # One deploy at a time; a second merge waits for the first.
     concurrency:
       group: deploy-production
