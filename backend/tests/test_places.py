@@ -34,3 +34,20 @@ def test_the_database_rejects_an_unknown_activity_type(session):
     session.add(Place(name="Schach", activity_type="chess", location="SRID=4326;POINT(0 0)"))
     with pytest.raises(IntegrityError):
         session.flush()
+
+
+def test_one_place_by_id(client, session):
+    place = Place(name="Korb", activity_type="basketball", location="SRID=4326;POINT(-30.5 0.5)")
+    session.add(place)
+    session.commit()
+
+    response = client.get(f"/api/places/{place.id}")
+
+    assert response.status_code == 200
+    assert response.json()["name"] == "Korb"
+    assert response.json()["activity_type"] == "basketball"
+    assert response.json()["lat"] == pytest.approx(0.5)
+
+
+def test_an_unknown_place_is_404(client):
+    assert client.get("/api/places/999999999").status_code == 404

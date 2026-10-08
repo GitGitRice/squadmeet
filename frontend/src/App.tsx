@@ -1,11 +1,7 @@
 import { useEffect, useState } from 'react'
-import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet'
-import L from 'leaflet'
+import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
-import { fetchPlaces, type MapArea, type Place } from './api/places'
+import { fetchPlace, fetchPlaces, type MapArea, type Place } from './api/places'
 import {
   clearToken,
   fetchMe,
@@ -17,18 +13,12 @@ import {
 } from './api/auth'
 import AuthDialog from './auth/AuthDialog'
 import { AVATARS } from './auth/avatars'
-
-// Leaflet's default icon puts its own image path in front of the URLs that Vite gives,
-// so the images do not load. An explicit icon uses the Vite URLs as they are.
-const placeIcon = L.icon({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-})
+import ActivityFilter from './places/ActivityFilter'
+import { ACTIVITY_TYPES, type ActivityType } from './places/activities'
+import { filterPlaces } from './places/filter'
+import { placeIcon } from './places/markers'
+import PlaceDetail from './places/PlaceDetail'
+import { placeIdFromPath, placePath, usePath } from './places/route'
 
 const LEIPZIG: [number, number] = [51.3397, 12.3731]
 
@@ -45,11 +35,39 @@ function MapAreaWatcher({ onMove }: { onMove: (area: MapArea) => void }) {
   return null
 }
 
+// Moves the map to a Place that was opened by its URL (a shared link or a reload).
+function CenterOn({ place }: { place: Place }) {
+  const map = useMap()
+  useEffect(() => {
+    if (!map.getBounds().contains([place.lat, place.lon])) map.setView([place.lat, place.lon], 16)
+  }, [map, place])
+  return null
+}
+
 export default function App() {
   const [places, setPlaces] = useState<Place[]>([])
   const [error, setError] = useState<string | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [showAuth, setShowAuth] = useState(false)
+  const [chosen, setChosen] = useState<Set<ActivityType>>(() => new Set(ACTIVITY_TYPES))
+  const [path, navigate] = usePath()
+  const selectedId = placeIdFromPath(path)
+  // The answer for the Place in the detail URL. It keeps its id, so an old answer never shows.
+  const [detail, setDetail] = useState<{ id: number; place?: Place; error?: string } | null>(null)
+  const current = detail && detail.id === selectedId ? detail : null
+  const selected = current?.place ?? null
+
+  // The API, not the loaded map Places: a shared link can point outside the visible area.
+  useEffect(() => {
+    if (selectedId === null) return
+    let stillWanted = true
+    fetchPlace(selectedId)
+      .then((place) => stillWanted && setDetail({ id: selectedId, place }))
+      .catch((err: Error) => stillWanted && setDetail({ id: selectedId, error: err.message }))
+    return () => {
+      stillWanted = false
+    }
+  }, [selectedId])
 
   function loadPlaces(area: MapArea) {
     fetchPlaces(area)
@@ -105,16 +123,25 @@ export default function App() {
         )}
       </div>
       {showAuth && <AuthDialog onLoggedIn={handleLoggedIn} onClose={() => setShowAuth(false)} />}
+      <ActivityFilter chosen={chosen} onChange={setChosen} />
+      {selectedId !== null && (
+        <PlaceDetail place={selected} error={current?.error ?? null} onClose={() => navigate('/')} />
+      )}
       <MapContainer center={LEIPZIG} zoom={13} style={{ height: '100%' }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapAreaWatcher onMove={loadPlaces} />
-        {places.map((place) => (
-          <Marker key={place.id} position={[place.lat, place.lon]} icon={placeIcon}>
-            <Popup>{place.name}</Popup>
-          </Marker>
+        {selected && <CenterOn place={selected} />}
+        {filterPlaces(places, chosen).map((place) => (
+          <Marker
+            key={place.id}
+            position={[place.lat, place.lon]}
+            icon={placeIcon(place.activity_type, place.id === selectedId)}
+            title={place.name}
+            eventHandlers={{ click: () => navigate(placePath(place.id)) }}
+          />
         ))}
       </MapContainer>
     </>
