@@ -1,26 +1,18 @@
-"""Puts one example Place into an empty database.
+"""Puts the OpenStreetMap Places into an empty database (SCRUM-21).
 
-Only for the walking skeleton. The OpenStreetMap import (SCRUM-21) replaces it.
+`docker compose up` runs this before the API starts. The Places come from the snapshot files
+in data/osm/; see app/osm_import.py.
 """
 
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.db import engine
-from app.models import Place
-
-EXAMPLE_PLACE = Place(
-    name="Tischtennisplatte Clara-Zetkin-Park (Beispiel)",
-    activity_type="table_tennis",
-    location="SRID=4326;POINT(12.3561 51.3317)",
-)
+from app.osm_import import load
 
 
 def main():
     with Session(engine) as session:
-        if session.exec(select(Place)).first() is None:
-            session.add(EXAMPLE_PLACE)
-            session.commit()
-            print("Seed: added the example Place")
+        print(f"Seed: loaded {load(session)} OSM Places")
 
 
 if __name__ == "__main__":

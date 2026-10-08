@@ -1,6 +1,7 @@
 import pytest
 
-from app.reasons import ACTIVITY_REASONS, ACTIVITY_TYPES, GENERAL_REASONS
+from app.activities import ACTIVITY_TYPES
+from app.reasons import ACTIVITY_REASONS, GENERAL_REASONS
 
 ALL_REASONS = GENERAL_REASONS + tuple(r for reasons in ACTIVITY_REASONS.values() for r in reasons)
 
@@ -29,3 +30,9 @@ def test_each_activity_type_has_positive_and_negative_reasons(activity_type):
 
 def test_only_negative_reasons_change_the_condition():
     assert not any(r.positive and r.affects_condition for r in ALL_REASONS)
+
+
+def test_reasons_are_keyed_by_activity_type_members():
+    from app.activities import ActivityType
+
+    assert all(isinstance(key, ActivityType) for key in ACTIVITY_REASONS)

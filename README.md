@@ -62,10 +62,27 @@ docker compose up --build
 | API docs | http://localhost:8000/docs |
 | Database | `localhost:5432`, user, password and DB `squadmeet` (change with `.env`, see `.env.example`) |
 
-On start, the backend runs the Alembic migrations and adds one example Place to an empty
-database. Code changes in `backend/` and `frontend/` reload without a rebuild. After a change to
+On start, the backend runs the Alembic migrations and loads the Places from
+`backend/data/osm/*.json` (OpenStreetMap snapshot) into an empty database. Code changes in `backend/` and `frontend/` reload without a rebuild. After a change to
 `requirements*.txt` or `package.json`, run `docker compose up --build` again.
 `docker compose down -v` also deletes the database.
+
+### Places from OpenStreetMap
+
+The Places come from a snapshot file per city in `backend/data/osm/`, so a start never needs the
+(often busy) public Overpass servers. To refresh a city or add one, fetch it and commit the file:
+
+```sh
+docker compose exec backend python -m app.osm_import fetch Leipzig
+```
+
+`app.seed` loads the snapshots **only into an empty database**. After you add or refresh a
+city file, reset the local database with `docker compose down -v` (it deletes all local data);
+the backend log warns when snapshot Places are missing. Re-importing without a reset is
+`SCRUM-25`.
+
+Private, paid and indoor places are skipped ([backend/app/osm_import.py](backend/app/osm_import.py)).
+Map data © OpenStreetMap contributors (ODbL); the map shows the attribution.
 
 ### Tests
 
@@ -91,7 +108,7 @@ docker compose exec backend alembic upgrade head
 
 | Folder | What |
 |--------|------|
-| `backend/` | FastAPI + SQLModel API, Alembic migrations, pytest tests |
+| `backend/` | FastAPI + SQLModel API, Alembic migrations, pytest tests, OSM snapshots in `data/osm/` |
 | `frontend/` | React + TypeScript + Vite, Leaflet map, Vitest tests |
 | `db/` | PostgreSQL image with PostGIS (also runs on arm64) |
 | `deploy/` | Production stack on AWS EC2 (Caddy + HTTPS) and the setup wizard. See [deploy/README.md](deploy/README.md) |
