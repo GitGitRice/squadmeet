@@ -15,4 +15,14 @@ describe('filterPlaces', () => {
   it('shows nothing when nothing is chosen', () => {
     expect(filterPlaces(places, new Set())).toEqual([])
   })
+
+  it('keeps the open Place even when its type is switched off', () => {
+    const chosen = new Set<ActivityType>(['table_tennis'])
+    expect(filterPlaces(places, chosen, 3).map((p) => p.id)).toEqual([1, 3])
+  })
+
+  it('never hides a type that the frontend does not know', () => {
+    const unknown = place(4, 'chess')
+    expect(filterPlaces([...places, unknown], new Set()).map((p) => p.id)).toEqual([4])
+  })
 })

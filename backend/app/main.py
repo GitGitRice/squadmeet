@@ -65,9 +65,15 @@ def list_places(
     return [PlaceRead.model_validate(row, from_attributes=True) for row in rows]
 
 
+# place.id is a PostgreSQL integer; a bigger number in the URL would make the query fail.
+MAX_DB_INT = 2_147_483_647
+
+
 @api.get("/places/{place_id}", response_model=PlaceRead)
 def get_place(place_id: int, session: Session = Depends(get_session)):
     """One Place, for the Place detail page (SCRUM-24): its URL can be shared and reloaded."""
+    if not 1 <= place_id <= MAX_DB_INT:
+        raise HTTPException(status_code=404, detail="Place not found")
     row = session.exec(select_place_reads().where(Place.id == place_id)).first()
     if row is None:
         raise HTTPException(status_code=404, detail="Place not found")

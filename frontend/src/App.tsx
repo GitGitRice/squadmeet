@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { fetchPlace, fetchPlaces, type MapArea, type Place } from './api/places'
@@ -38,11 +38,21 @@ function MapAreaWatcher({ onMove }: { onMove: (area: MapArea) => void }) {
   return null
 }
 
-// Moves the map to a Place that was opened by its URL (a shared link or a reload).
+// Moves the map so the open Place is visible and not under the detail panel: on a phone the
+// panel covers the lower 60 % of the map, on a laptop a 360 px card on the left (index.css).
 function CenterOn({ place }: { place: Place }) {
   const map = useMap()
   useEffect(() => {
-    if (!map.getBounds().contains([place.lat, place.lon])) map.setView([place.lat, place.lon], 16)
+    const size = map.getSize()
+    const phone = size.x < 768
+    const point = map.latLngToContainerPoint([place.lat, place.lon])
+    const left = phone ? 0 : 384
+    const bottom = phone ? size.y * 0.4 : size.y
+    if (point.x >= left && point.x <= size.x && point.y >= 0 && point.y <= bottom) return
+    const inView = map.getBounds().contains([place.lat, place.lon])
+    map.setView([place.lat, place.lon], inView ? map.getZoom() : 16, { animate: false })
+    // Shift the map so the Place sits in the free part: upper fifth (phone) or right of the card.
+    map.panBy(phone ? [0, size.y * 0.3] : [-left / 2, 0], { animate: false })
   }, [map, place])
   return null
 }
@@ -61,6 +71,8 @@ export default function App() {
   const selectedId = placeIdFromPath(path)
   // The answer for the Place in the detail URL. It keeps its id, so an old answer never shows.
   const [detail, setDetail] = useState<{ id: number; place?: Place; error?: string } | null>(null)
+  // Counts the tries for the open Place, so "Nochmal versuchen" or a new tap loads it again.
+  const [detailTry, setDetailTry] = useState(0)
   const current = detail && detail.id === selectedId ? detail : null
   const selected = current?.place ?? null
 
@@ -74,7 +86,19 @@ export default function App() {
     return () => {
       stillWanted = false
     }
-  }, [selectedId])
+  }, [selectedId, detailTry])
+
+  // A tap on the open Place loads it again (helps after a network error); otherwise it opens it.
+  function openPlace(id: number) {
+    if (id === selectedId) setDetailTry((n) => n + 1)
+    else navigate(placePath(id))
+  }
+
+  // Point 8 of Steven's review: only when the Places, the filter or the open Place change.
+  const spots = useMemo(
+    () => groupBySpot(filterPlaces(places, chosen, selectedId)),
+    [places, chosen, selectedId],
+  )
 
   function loadPlaces(area: MapArea) {
     placesRequest.current?.abort()
@@ -139,7 +163,12 @@ export default function App() {
       {showAuth && <AuthDialog onLoggedIn={handleLoggedIn} onClose={() => setShowAuth(false)} />}
       <ActivityFilter chosen={chosen} onChange={setChosen} />
       {selectedId !== null && (
-        <PlaceDetail place={selected} error={current?.error ?? null} onClose={() => navigate('/')} />
+        <PlaceDetail
+          place={selected}
+          error={current?.error ?? null}
+          onRetry={() => setDetailTry((n) => n + 1)}
+          onClose={() => navigate('/')}
+        />
       )}
       <MapContainer center={LEIPZIG} zoom={13} minZoom={MIN_ZOOM} style={{ height: '100%' }}>
         <TileLayer
@@ -148,7 +177,7 @@ export default function App() {
         />
         <MapAreaWatcher onMove={loadPlaces} />
         {selected && <CenterOn place={selected} />}
-        {groupBySpot(filterPlaces(places, chosen)).map((spot) => {
+        {spots.map((spot) => {
           const isSelected = spot.places.some((place) => place.id === selectedId)
           if (spot.places.length === 1) {
             const [place] = spot.places
@@ -158,7 +187,7 @@ export default function App() {
                 position={[spot.lat, spot.lon]}
                 icon={placeIcon(place.activity_type, isSelected)}
                 title={place.name}
-                eventHandlers={{ click: () => navigate(placePath(place.id)) }}
+                eventHandlers={{ click: () => openPlace(place.id) }}
               />
             )
           }
@@ -175,10 +204,11 @@ export default function App() {
                           href={placePath(place.id)}
                           onClick={(event) => {
                             event.preventDefault()
-                            navigate(placePath(place.id))
+                            openPlace(place.id)
                           }}
                         >
                           {activity.emoji} {activity.label}
+                          <span className="spot-choice-name">{place.name}</span>
                         </a>
                       </li>
                     )

@@ -25,11 +25,18 @@ export function placeIcon(activityType: string, selected = false): L.DivIcon {
 
 // Several Activity types on one spot: one marker with the number of types (SCRUM-21 review).
 export function spotIcon(spot: Spot, selected = false): L.DivIcon {
-  const size = selected ? 42 : 34
-  return L.divIcon({
-    className: '',
-    html: `<div class="spot-pin${selected ? ' selected' : ''}">${typeCount(spot)}</div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-  })
+  const count = typeCount(spot)
+  const key = `spot:${count}:${selected}`
+  let icon = cache.get(key)
+  if (!icon) {
+    const size = selected ? 42 : 34
+    icon = L.divIcon({
+      className: '',
+      html: `<div class="spot-pin${selected ? ' selected' : ''}">${count}</div>`,
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2],
+    })
+    cache.set(key, icon)
+  }
+  return icon
 }

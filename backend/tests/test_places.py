@@ -77,3 +77,8 @@ def test_one_place_by_id(client, session):
 
 def test_an_unknown_place_is_404(client):
     assert client.get("/api/places/999999999").status_code == 404
+
+
+@pytest.mark.parametrize("place_id", ["0", "-1", "99999999999"])
+def test_an_id_outside_the_database_range_is_404(client, place_id):
+    assert client.get(f"/api/places/{place_id}").status_code == 404

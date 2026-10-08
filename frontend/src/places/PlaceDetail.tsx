@@ -4,12 +4,13 @@ import { activityOf } from './activities'
 type Props = {
   place: Place | null
   error: string | null
+  onRetry: () => void
   onClose: () => void
 }
 
 // The Place detail page: a panel over the bottom of the map (layout from SCRUM-17), so the
 // map still shows where the Place is.
-export default function PlaceDetail({ place, error, onClose }: Props) {
+export default function PlaceDetail({ place, error, onRetry, onClose }: Props) {
   const activity = place && activityOf(place.activity_type)
   const coordinates = place && `${place.lat.toFixed(5)}, ${place.lon.toFixed(5)}`
 
@@ -39,7 +40,14 @@ export default function PlaceDetail({ place, error, onClose }: Props) {
           </a>
         </p>
       )}
-      {error && <p className="form-error">{error}</p>}
+      {error && (
+        <>
+          <p className="form-error">{error}</p>
+          <button type="button" className="place-detail-retry" onClick={onRetry}>
+            Nochmal versuchen
+          </button>
+        </>
+      )}
 
       <a
         className="place-detail-back"
