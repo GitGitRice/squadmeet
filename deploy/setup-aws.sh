@@ -376,7 +376,7 @@ pause
 # ── 6 ─────────────────────────────────────────────────────────────────────
 stage "EC2 server and fixed IP"
 say "This starts, if it does not exist yet:"
-step "EC2 't3.micro' with Amazon Linux 2023, 20 GB disk, Docker and a 2 GB swap file."
+step "EC2 't2.micro' (Free Tier in this account) with Amazon Linux 2023, 20 GB disk, Docker and a 2 GB swap file."
 step "An Elastic IP (fixed address, about 3.60 USD a month from the credit)."
 note "CPU credits are 'standard', so a busy CPU slows down instead of costing extra."
 confirm "Start the server now?" || die "Stopped. No server was started."
@@ -390,7 +390,7 @@ if [[ "$INSTANCE_ID" == "None" ]]; then
     --query Parameter.Value --output text)
   # A new instance profile takes a few seconds before EC2 can use it.
   for _ in 1 2 3 4 5 6; do
-    INSTANCE_ID=$(aws ec2 run-instances --image-id "$AMI_ID" --instance-type t3.micro \
+    INSTANCE_ID=$(aws ec2 run-instances --image-id "$AMI_ID" --instance-type t2.micro \
       --security-group-ids "$SG_ID" --iam-instance-profile Name="$NAME-ec2" \
       --credit-specification CpuCredits=standard \
       --metadata-options HttpTokens=required,HttpEndpoint=enabled \

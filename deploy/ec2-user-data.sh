@@ -1,6 +1,6 @@
 #!/bin/bash
 # EC2 user data (Amazon Linux 2023): runs once at the first boot.
-# Installs Docker with the Compose plugin and adds a 2 GB swap file (t3.micro has 1 GB RAM).
+# Installs Docker with the Compose plugin and adds a 2 GB swap file (t2.micro has 1 GB RAM).
 set -euxo pipefail
 
 # A fixed Compose version with its checksum, so every new host (also the NAS) gets the same one.
