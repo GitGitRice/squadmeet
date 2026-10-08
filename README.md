@@ -35,6 +35,7 @@ Presentation with live demo: **Wed 21.10.2026**.
 | [DIARY.md](DIARY.md) | What each person did each day |
 | [CONTEXT.md](CONTEXT.md) | Glossary: the domain terms we use |
 | [docs/adr/](docs/adr/) | Architecture decisions |
+| [deploy/README.md](deploy/README.md) | How the app runs on AWS, the setup wizard, the move to the NAS |
 | [BRIEF.md](BRIEF.md) | The original course brief |
 
 Tasks are in Jira (project `SCRUM`, https://socmediaapp.atlassian.net).
@@ -105,3 +106,4 @@ docker compose exec backend alembic upgrade head
 | `backend/` | FastAPI + SQLModel API, Alembic migrations, pytest tests, OSM snapshots in `data/osm/` |
 | `frontend/` | React + TypeScript + Vite, Leaflet map, Vitest tests |
 | `db/` | PostgreSQL image with PostGIS (also runs on arm64) |
+| `deploy/` | Production stack on AWS EC2 (Caddy + HTTPS) and the setup wizard. See [deploy/README.md](deploy/README.md) |
