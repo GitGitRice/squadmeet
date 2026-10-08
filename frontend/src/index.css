@@ -125,6 +125,21 @@ body {
   color: #8a1c13;
 }
 
+.mfa-qr {
+  align-self: center;
+  width: 200px;
+  height: 200px;
+  image-rendering: pixelated;
+}
+
+.mfa-secret {
+  word-break: break-all;
+}
+
+.dialog label small {
+  color: #555;
+}
+
 .codes {
   display: grid;
   gap: 4px;

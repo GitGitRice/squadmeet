@@ -93,6 +93,19 @@ refreshed and kept. A city name must match exactly one German municipality.
 Private, paid and indoor places are skipped ([backend/app/osm_import.py](backend/app/osm_import.py)).
 Map data © OpenStreetMap contributors (ODbL); the map shows the attribution.
 
+### Admins
+
+There is no UI to make somebody an Admin. Run the command locally, or on the server in a shell
+in `/opt/squadmeet` ([deploy/README.md](deploy/README.md) → *Troubleshooting*):
+
+```sh
+docker compose exec backend python -m app.admin grant <Nickname>
+docker compose exec backend python -m app.admin revoke <Nickname>
+```
+
+The Admin functions work only after the Admin turns on two-factor login (MFA) in the app
+("Zwei-Faktor" next to the Nickname).
+
 ### Tests
 
 ```sh

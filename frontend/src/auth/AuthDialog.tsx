@@ -1,5 +1,11 @@
 import { useState, type FormEvent } from 'react'
-import { login, register, type LoginResult, type RegisterResult } from '../api/auth'
+import {
+  login,
+  MfaRequiredError,
+  register,
+  type LoginResult,
+  type RegisterResult,
+} from '../api/auth'
 import { AVATARS } from './avatars'
 
 type Props = {
@@ -18,6 +24,9 @@ export default function AuthDialog({ onLoggedIn, onClose }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [registered, setRegistered] = useState<RegisterResult | null>(null)
+  // True after the server answered that this user has MFA on (SCRUM-26).
+  const [needsCode, setNeedsCode] = useState(false)
+  const [code, setCode] = useState('')
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -25,11 +34,12 @@ export default function AuthDialog({ onLoggedIn, onClose }: Props) {
     setBusy(true)
     try {
       if (mode === 'login') {
-        onLoggedIn(await login(nickname, password))
+        onLoggedIn(await login(nickname, password, needsCode ? code : undefined))
       } else {
         setRegistered(await register({ nickname, password, avatar, is_adult: isAdult }))
       }
     } catch (err) {
+      if (err instanceof MfaRequiredError) setNeedsCode(true)
       setError((err as Error).message)
     } finally {
       setBusy(false)
@@ -76,6 +86,22 @@ export default function AuthDialog({ onLoggedIn, onClose }: Props) {
           />
         </label>
 
+        {mode === 'login' && needsCode && (
+          <label>
+            Code aus der Authenticator-App
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              required
+              autoFocus
+              autoComplete="one-time-code"
+              inputMode="text"
+              placeholder="123456"
+            />
+            <small>Kein Zugriff auf die App? Gib einen Wiederherstellungscode ein.</small>
+          </label>
+        )}
+
         {mode === 'register' && (
           <>
             <fieldset className="avatars">
@@ -117,6 +143,7 @@ export default function AuthDialog({ onLoggedIn, onClose }: Props) {
           onClick={() => {
             setMode(mode === 'login' ? 'register' : 'login')
             setError(null)
+            setNeedsCode(false)
           }}
         >
           {mode === 'login' ? 'Noch kein Konto? Registrieren' : 'Schon ein Konto? Anmelden'}
