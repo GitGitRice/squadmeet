@@ -17,7 +17,7 @@ Die Details stehen in Jira. Nenne also den Ticket-Key und kopiere nicht den Tick
 
 - **Team:** David hat das Projekt verlassen. Seine Tickets sind aufgeteilt (`SCRUM-46`).
 - **Stefan:** `SCRUM-18` Begründungen pro Aktivitätstyp und `SCRUM-17` klickbarer Meetup-Prototyp (Karte + Panel) gemergt; Stevens Review beantwortet (Gastgeber darf verlassen, Zustand = was die Stadt beheben muss). Umfang zu zweit entschieden (`SCRUM-46`).
-- **Steven:** _bitte ausfüllen_
+- **Steven:** `SCRUM-20` App läuft live auf AWS mit HTTPS (https://squadmeet.duckdns.org). `SCRUM-19` CI fertig. `SCRUM-21` und `SCRUM-24` (Stefans Plätze und Filter) reviewt und gemergt. `SCRUM-23` automatisches Deploy bei Merge in `main` gebaut (PR #20, wartet auf Review); strengere Deploy-Rechte vor v1 als `SCRUM-47` geplant.
 
 ## Mi 07.10.2026 — Tag 1: Thema und Planung
 

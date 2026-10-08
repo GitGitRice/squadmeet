@@ -3,10 +3,11 @@
 A map of free public activity places, such as table tennis tables and basketball courts. Adults
 announce a Meetup at a Place, and other people join it.
 
-Final project of the Syntax course, Modul 4 (Fullstack, Backend & DevOps). Team of 3.
+Final project of the Syntax course, Modul 4 (Fullstack, Backend & DevOps). Team of 2 (since 2026-10-08).
 Presentation with live demo: **Wed 21.10.2026**.
 
-> **State:** local skeleton runs (`SCRUM-16`). The walking skeleton is due live on Fri 09.10.
+> **State:** live at https://squadmeet.duckdns.org (`SCRUM-20`, AWS host). A merge into `main`
+> deploys automatically (`SCRUM-23`); the first automatic run comes with the next release into `main`.
 
 ## Team
 
@@ -14,7 +15,9 @@ Presentation with live demo: **Wed 21.10.2026**.
 |--------|------|
 | Steven Tanu | DevOps (Docker, CI/CD, AWS, HTTPS), login, notifications |
 | Stefan Kallinich | Product owner, frontend PWA (map, Meetup screens, ratings) |
-| David Ludwig-Erbs | Backend API, database, OSM import, Place confirmations |
+
+David Ludwig-Erbs left the project on 2026-10-08. His tickets are split between Steven and
+Stefan (`SCRUM-46`); who does what is in [TICKETS.md](TICKETS.md).
 
 ## Stack
 
@@ -43,6 +46,9 @@ Tasks are in Jira (project `SCRUM`, https://socmediaapp.atlassian.net).
 ## How we work
 
 - **Branches (Gitflow):** `feature/SCRUM-<n>-<short-name>` → `dev` → `main`.
+- **Release:** a PR from `dev` into `main`. Merge it with **Create a merge commit**, not with
+  squash. A squash commit is not in `dev`, so the next release PR shows the old commits again.
+  A merge into `main` deploys to AWS.
 - **Commits** start with the Jira key: `SCRUM-22 add login endpoint`.
 - **Done** means merged and the pipeline is green.
 - **Every day:** add your line to [DIARY.md](DIARY.md).

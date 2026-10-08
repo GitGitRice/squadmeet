@@ -186,6 +186,7 @@ finish() {
 
 
 # SCRUM-20: puts the walking skeleton on one AWS EC2 host with HTTPS (ADR-0002).
+# SCRUM-23: stage 10 lets GitHub Actions deploy a merge into main.
 # Run it from anywhere: ./deploy/setup-aws.sh. Safe to run again; it finds what it already
 # made (by the name "squadmeet") and remembers values in .env.aws (not in git).
 # Needs: aws (CLI v2), gh, jq, curl, openssl, dig. Run it after the frontend image with
@@ -197,7 +198,7 @@ NAME="squadmeet"
 
 die() { printf '\n  %s✗ %s%s\n\n' "$RED" "$1" "$RESET"; exit 1; }
 
-TOTAL_STAGES=9
+TOTAL_STAGES=10
 
 banner "SquadMeet on AWS (SCRUM-20)"
 
@@ -453,31 +454,12 @@ done
       --query 'InstanceInformationList[0].PingStatus' --output text)" == Online ]] \
   || die "The server does not report to SSM after 10 minutes. Look at EC2 → Instance → Actions → Monitor → Get system log."
 
-say "Sending compose.yml and host-deploy.sh, then: pull images and start …"
-params=$(jq -n \
-  --arg compose "$(base64 < deploy/compose.yml | tr -d '\n')" \
-  --arg script "$(base64 < deploy/host-deploy.sh | tr -d '\n')" \
-  --arg domain "$DOMAIN" '{
-  commands: [
-    "cloud-init status --wait > /dev/null || true",
-    "mkdir -p /opt/squadmeet",
-    "echo \($compose) | base64 -d > /opt/squadmeet/compose.yml",
-    "echo \($script) | base64 -d > /opt/squadmeet/host-deploy.sh",
-    "bash /opt/squadmeet/host-deploy.sh \($domain) dev"],
-  executionTimeout: ["1800"]}')
-COMMAND_ID=$(aws ssm send-command --instance-ids "$INSTANCE_ID" \
-  --document-name AWS-RunShellScript --comment "SCRUM-20 first deploy" \
-  --parameters "$params" --query Command.CommandId --output text)
-status=Pending
-while [[ "$status" =~ ^(Pending|InProgress|Delayed)$ ]]; do
-  sleep 10
-  status=$(aws ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" \
-    --query Status --output text 2>/dev/null || echo Pending)
-  note "… $status"
-done
-aws ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" \
-  --query '[StandardOutputContent,StandardErrorContent]' --output text | tail -n 25
-[[ "$status" == Success ]] || die "The deploy on the server ended with '$status' (output above)."
+# Same path as the automatic deploy (SCRUM-23). The tag "main" exists after the first
+# merge into main; before that, run the wizard with DEPLOY_TAG=dev.
+DEPLOY_TAG="${DEPLOY_TAG:-main}"
+say "Sending compose.yml and host-deploy.sh, then: pull the '$DEPLOY_TAG' images and start …"
+AWS_REGION="$AWS_REGION" EC2_INSTANCE_ID="$INSTANCE_ID" APP_DOMAIN="$DOMAIN" \
+  deploy/deploy.sh "$DEPLOY_TAG" || die "The deploy on the server failed (output above)."
 say "${GREEN}✓${RESET} The stack runs on the server."
 pause
 
@@ -498,7 +480,16 @@ open_url "https://$DOMAIN"
 step "You should see the map with Places in Leipzig."
 confirm "Do you see the map with the Place?" || warn "Not as expected. See deploy/README.md → Troubleshooting."
 
-say "The automatic deploy (SCRUM-23) needs these values as GitHub variables (not secret):"
+pause
+
+# ── 10 ────────────────────────────────────────────────────────────────────
+stage "Automatic deploy from GitHub (SCRUM-23)"
+say "A merge into main deploys through AWS SSM. GitHub logs in to AWS with OIDC, so no AWS"
+say "keys are stored in GitHub. Only runs on main of this repo may use the deploy role."
+step "Creates the OIDC provider for GitHub and the IAM role '$NAME-github-deploy'."
+confirm "Create them now?" || die "Stopped. Nothing was created in this stage."
+deploy/setup-github-deploy.sh "$INSTANCE_ID" || die "The deploy role setup failed (output above)."
+say "The deploy job reads these GitHub variables (not secret):"
 set_var AWS_REGION "$AWS_REGION"
 set_var EC2_INSTANCE_ID "$INSTANCE_ID"
 set_var APP_DOMAIN "$DOMAIN"
