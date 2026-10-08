@@ -15,9 +15,9 @@ Die Details stehen in Jira. Nenne also den Ticket-Key und kopiere nicht den Tick
 
 ## Do 08.10.2026 — Tag 2
 
-- **Stefan:** `SCRUM-18` Liste der Begründungen pro Aktivitätstyp geschrieben. `SCRUM-17` klickbarer Meetup-Prototyp mit 3 Layouts (Karte, Liste, Assistent).
+- **Team:** David hat das Projekt verlassen. Seine Tickets sind aufgeteilt (`SCRUM-46`).
+- **Stefan:** `SCRUM-18` Begründungen pro Aktivitätstyp und `SCRUM-17` klickbarer Meetup-Prototyp (Karte + Panel) gemergt; Stevens Review beantwortet (Gastgeber darf verlassen, Zustand = was die Stadt beheben muss). Umfang zu zweit entschieden (`SCRUM-46`).
 - **Steven:** _bitte ausfüllen_
-- **David:** _bitte ausfüllen_
 
 ## Mi 07.10.2026 — Tag 1: Thema und Planung
 

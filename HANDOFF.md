@@ -7,7 +7,7 @@ debugging case.
 Each person's own progress (*Now*, *In flight*, *Next*, *Log*) is in **`HANDOFF.local.md`**.
 That file is not in git (`.gitignore`), because each person's progress differs.
 
-**Last update:** 2026-10-08 · Steven · Split into this shared file and `HANDOFF.local.md`
+**Last update:** 2026-10-08 · Stefan · Scope decisions from `SCRUM-46`; Condition rule from `SCRUM-18`
 
 ---
 
@@ -103,8 +103,9 @@ No blockers: `SCRUM-17` Meetup prototype, `SCRUM-18` list of Reasons (Stefan).
 Must: `SCRUM-26` MFA, `SCRUM-27` captcha + rate limit, `SCRUM-33` password reset, `SCRUM-28` privacy +
 delete account (Steven); main workflow `SCRUM-29` Now-meetup (Stefan, start Mon morning) → `SCRUM-34`
 Join/Leave (Stefan) → `SCRUM-37` Host Cancel/handover/Closed (Stefan) and `SCRUM-35` later Meetup
-(Stefan) → `SCRUM-38` Series (Stefan); `SCRUM-30` suggest Place → `SCRUM-36` confirm (Steven);
-`SCRUM-31` Ratings (Stefan); `SCRUM-39` Admin lock/delete (Steven).
+(Stefan); `SCRUM-31` Ratings (Stefan); `SCRUM-39` Admin lock/unlock/delete (Steven).
+Should since 2026-10-08 (`SCRUM-46`): `SCRUM-38` Series (Stefan); `SCRUM-30` suggest Place →
+`SCRUM-36` confirm (Steven).
 Should: `SCRUM-40` in-app Notifications, `SCRUM-41` Favorites (Steven); `SCRUM-42` Photos,
 `SCRUM-32` Contacts + Block (Stefan). Could: `SCRUM-43` Contact notifications (Stefan), `SCRUM-44`
 web push, `SCRUM-45` Home area (Steven). Each ticket's "Blocked by" is a Jira link.
@@ -181,12 +182,13 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-07 | Images in GHCR: `ghcr.io/gitgitrice/squadmeet-{backend,frontend,db}`, tags = commit SHA + `dev`; pushed only after both test jobs are green | Deploy (`SCRUM-23`) picks an exact commit; no image from a red build | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
 | 2026-10-07 | Ruleset "protect main and dev" requires the 5 CI checks (backend tests, frontend tests, 3 Docker images) | A red pipeline blocks the merge ("Done" means the pipeline is green) | GitHub → Settings → Rules |
 | 2026-10-08 | Reasons live as code in [backend/app/reasons.py](backend/app/reasons.py): a stable key (stored in the DB) + a German label; general Reasons + Reasons per Activity type | One list for API validation and UI; a label can change without a migration | `SCRUM-18` |
-| 2026-10-08 | Condition: only negative Reasons that the city or the operator must fix change it (`condition_issue` in code); "Oft überfüllt", "Schwer zu finden", "Zeitweise nicht zugänglich" do not. No Reason for bad lighting. "Oft abgeschlossen" renamed so it does not clash with Locked place | Stefan (product owner) after Steven's review; a Condition should say what needs a repair | [CONTEXT.md](CONTEXT.md), `SCRUM-18` |
-| 2026-10-08 | Meetup screens: map + bottom sheet (Place → "Ich bin jetzt hier" → Meetup detail), not a list or an assistant. Red pin with people count = someone is there now. The prototype covers only the `SCRUM-17` flow plus Host Leave (Stefan, after Steven's review): the Host can Leave when others have joined, the earliest Join becomes Host. Later Meetups, Series, ending early and Closed are left to their own tickets | The map is the core of the app; one tap from Place to Meetup. Team still has to agree | `SCRUM-17`, commits `627dc81`, `825a44a` |
+| 2026-10-08 | Condition: only negative Reasons that the city or the operator must fix change it (`condition_issue` in code); "Oft überfüllt", "Schwer zu finden", "Zeitweise nicht zugänglich" do not. No Reason for bad lighting. "Oft abgeschlossen" renamed so it does not clash with Locked place | Stefan (product owner) after Steven's review; a Condition should say what needs a repair | [CONTEXT.md](CONTEXT.md), `SCRUM-18`, [PR #11](https://github.com/GitGitRice/squadmeet/pull/11) |
+| 2026-10-08 | Meetup screens: map + bottom sheet (Place → "Ich bin jetzt hier" → Meetup detail), not a list or an assistant. Red pin with people count = someone is there now. The prototype covers only the `SCRUM-17` flow, plus Host Leave (Stefan after Steven's review, [PR #10](https://github.com/GitGitRice/squadmeet/pull/10)): the Host can Leave when others have joined, the earliest Join becomes Host. Later Meetups, Series, ending early and Closed are left to their own tickets | The map is the core of the app; one tap from Place to Meetup. Team still has to agree | `SCRUM-17`, commits `627dc81`, `825a44a` |
 | 2026-10-08 | The Meetup prototype is a separate dev-only page (`frontend/prototype.html`), not part of the app | Not in the production build, so test data and fake screens never ship | `SCRUM-17` |
 | 2026-10-08 | PR title and description may be English; `DIARY.md` stays German | Team decision after David left; replaces the 2026-10-07 "PR in German" rule | this file → *Conventions* |
 | 2026-10-08 | HANDOFF split: shared parts stay in `HANDOFF.md` (in git); each person's *Now*/*In flight*/*Next*/*Log* go to `HANDOFF.local.md` (`.gitignore`) | Each person's progress differs; removing `HANDOFF.md` from git would delete the other person's copy on `git pull` | this file → *How to use these files* |
 | 2026-10-08 | David left. Split his tickets by area: Stefan = Meetup workflow + Places data (21, 25, 34, 37, 38); Steven = Place suggestions + Admin (30, 36, 39) | 21 unblocks Stefan's own 24/29/31; one person owns the whole demo workflow; Admin needs MFA (Steven) | `SCRUM-46` |
+| 2026-10-08 | Scope for 2 people: `SCRUM-30`, `-36` (Place suggestions) and `-38` (Series) are Should; all Should/Could tickets only after the Musts; `SCRUM-25` = the `SCRUM-21` import script with a city parameter; PRs reviewed the same day. `SCRUM-39` stays complete (lock, unlock **and** delete) | About 9 Musts each in 5 days was too much; the brief asks for one complete workflow (Meetup) | `SCRUM-46` (Stefan's answer to Steven's proposals 1–6) |
 | 2026-10-07 | Jira is the only issue tracker; dependencies as Jira "Blocks" links | One source of truth; shows who is blocked | [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md) |
 
 ## Debugging case (presentation item)
