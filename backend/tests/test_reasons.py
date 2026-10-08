@@ -1,6 +1,7 @@
 import pytest
 
-from app.reasons import ACTIVITY_REASONS, ACTIVITY_TYPES, GENERAL_REASONS
+from app.activities import ACTIVITY_TYPES
+from app.reasons import ACTIVITY_REASONS, GENERAL_REASONS
 
 ALL_REASONS = GENERAL_REASONS + tuple(r for reasons in ACTIVITY_REASONS.values() for r in reasons)
 

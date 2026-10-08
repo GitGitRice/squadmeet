@@ -2,16 +2,24 @@ from datetime import datetime
 from typing import Any
 
 from geoalchemy2 import Geometry
-from sqlalchemy import Column, DateTime, ForeignKey, Index, text
+from sqlalchemy import Column, DateTime, ForeignKey, Index, UniqueConstraint, text
 from sqlmodel import Field, SQLModel
 
 
 class Place(SQLModel, table=True):
     """A public, free location for one Activity type (see CONTEXT.md)."""
 
+    # One OSM pitch with "sport=soccer;basketball" gives two Places, one per Activity type.
+    __table_args__ = (
+        UniqueConstraint("osm_id", "activity_type", name="uq_place_osm_id_activity_type"),
+    )
+
     id: int | None = Field(default=None, primary_key=True)
     name: str
+    # One of app.activities.ActivityType; the database checks it (migration 0003).
     activity_type: str
+    # "node/123" or "way/456" for a Place from OpenStreetMap, empty for a suggested Place.
+    osm_id: str | None = None
     # WGS 84 (lon/lat), the coordinate system of OpenStreetMap and Leaflet.
     location: Any = Field(sa_column=Column(Geometry("POINT", srid=4326), nullable=False))
 

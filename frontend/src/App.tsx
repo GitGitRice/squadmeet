@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
+import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
-import { fetchPlaces, type Place } from './api/places'
+import { fetchPlaces, type MapArea, type Place } from './api/places'
 import {
   clearToken,
   fetchMe,
@@ -32,17 +32,33 @@ const placeIcon = L.icon({
 
 const LEIPZIG: [number, number] = [51.3397, 12.3731]
 
+// Calls onMove with the visible map area at the start and after each pan or zoom.
+function MapAreaWatcher({ onMove }: { onMove: (area: MapArea) => void }) {
+  const map = useMap()
+  const report = () => {
+    const bounds = map.getBounds()
+    onMove({ west: bounds.getWest(), south: bounds.getSouth(), east: bounds.getEast(), north: bounds.getNorth() })
+  }
+  useMapEvents({ moveend: report })
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- only once, for the first area
+  useEffect(report, [])
+  return null
+}
+
 export default function App() {
   const [places, setPlaces] = useState<Place[]>([])
   const [error, setError] = useState<string | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [showAuth, setShowAuth] = useState(false)
 
-  useEffect(() => {
-    fetchPlaces()
-      .then(setPlaces)
+  function loadPlaces(area: MapArea) {
+    fetchPlaces(area)
+      .then((found) => {
+        setPlaces(found)
+        setError(null)
+      })
       .catch((err: Error) => setError(err.message))
-  }, [])
+  }
 
   // Restore the login from an earlier visit; drop the token when the server no longer knows it.
   useEffect(() => {
@@ -94,6 +110,7 @@ export default function App() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <MapAreaWatcher onMove={loadPlaces} />
         {places.map((place) => (
           <Marker key={place.id} position={[place.lat, place.lon]} icon={placeIcon}>
             <Popup>{place.name}</Popup>
