@@ -1,32 +1,39 @@
-# Abschlussprojekt — Handoff
+# Abschlussprojekt — Handoff (shared)
 
-A living handoff for the team (3 people) and their coding agents. Read it at the start of a
-session. Update it at the end of a session. It answers one question: **what is in flight
-right now, why, and what comes next?**
+The shared handoff for the team (2 people) and their coding agents. It is in git. It holds
+what both people need: rules, project, team, Jira, open questions, decisions and the
+debugging case.
 
-**Last update:** 2026-10-08 · Stefan · `SCRUM-17` (Meetup prototype) and `SCRUM-18` (Reasons) committed on local feature branches, not pushed yet
+Each person's own progress (*Now*, *In flight*, *Next*, *Log*) is in **`HANDOFF.local.md`**.
+That file is not in git (`.gitignore`), because each person's progress differs.
+
+**Last update:** 2026-10-08 · Steven · Split into this shared file and `HANDOFF.local.md`
 
 ---
 
-## How to use this file
+## How to use these files
 
 Rules. Keep them short so everybody follows them.
 
-1. **Read first.** A new session (human or agent) reads this file, then the Jira board.
-2. **Update last.** Before you stop work, update *Now*, *In flight* and *Next*, then add one
-   line to the *Log*. Change the "Last update" line at the top.
-3. **Jira is the source of truth for tasks.** Do not copy issue text into this file. Write
+1. **Read first.** A new session (human or agent) reads this file, then `HANDOFF.local.md`,
+   then the Jira board. If `HANDOFF.local.md` does not exist, create it with the four
+   sections *Now*, *In flight*, *Next* and *Log*.
+2. **Update last.** Before you stop work, update *Now*, *In flight* and *Next* in
+   `HANDOFF.local.md`, then add one line to its *Log*. Change its "Last update" line.
+3. **Shared things go here, at once.** A decision, a debugging case, an open question, or a
+   change to the team, Jira or the conventions goes into this file when it happens. Commit
+   it on your branch, so the other person gets it with the next merge.
+4. **Jira is the source of truth for tasks.** Do not copy issue text into these files. Write
    the issue key and a few words: `SCRUM-12 (login form)`. Jira holds the detail.
-4. **Reference, do not copy.** Specs, decisions, commits and PRs go here as a path, a key or
+5. **Reference, do not copy.** Specs, decisions, commits and PRs go here as a path, a key or
    a URL. The detail stays in one place, so it does not drift.
-5. **Write facts only when they are checked.** "Deploy works" means somebody saw it work.
+6. **Write facts only when they are checked.** "Deploy works" means somebody saw it work.
    If you only think so, write "probably" or "not checked". The next person trusts this file.
-6. **No secrets.** No API keys, passwords, tokens, `.env` contents or personal data.
-7. **Explain every code the first time.** A Jira key, a commit hash or a decision number
+7. **No secrets.** No API keys, passwords, tokens, `.env` contents or personal data.
+8. **Explain every code the first time.** A Jira key, a commit hash or a decision number
    gets a few words of meaning next to it.
-8. **Delete what is done.** Finished work leaves *In flight*. The *Log* keeps the history.
-   This file stays short.
-
+9. **Delete what is done.** Finished work leaves *In flight*. The *Log* keeps the history.
+   Both files stay short.
 ---
 
 ## Project in three lines
@@ -47,7 +54,7 @@ Rules. Keep them short so everybody follows them.
 |--------|-------------|-----------|
 | Steven | DevOps (Docker, CI/CD, AWS, HTTPS) + login + push notifications | Steven Tanu |
 | Stefan | Product owner (his idea) + frontend PWA (map, meetup screens, ratings) | Stefan Kallinich |
-| David  | Backend API, database, OSM import, place confirmations; native Android app after the project | David Ludwig-Erbs |
+| ~~David~~ | Left the project on 2026-10-08. His tickets are split in `SCRUM-46` | David Ludwig-Erbs |
 
 ---
 
@@ -66,13 +73,13 @@ Rules. Keep them short so everybody follows them.
 |-----|------|-------|-----------|
 | `SCRUM-6` | Infrastruktur & Pipeline | **Steven** | — |
 | `SCRUM-2` | Anmeldung und Registrierung | **Steven** | `SCRUM-6` |
-| `SCRUM-7` | Plätze & Karte | **David** + Stefan | `SCRUM-6` |
-| `SCRUM-8` | Treffen (main demo workflow) | **Stefan** + David | `SCRUM-2`, `SCRUM-7` |
-| `SCRUM-9` | Platzvorschläge & Bestätigungen | **David** + Stefan | `SCRUM-2`, `SCRUM-7` |
-| `SCRUM-10` | Bewertungen & Fotos | **Stefan** + David | `SCRUM-2`, `SCRUM-7` |
-| `SCRUM-11` | Kontakte & Blockieren | **Stefan** + David | `SCRUM-2` |
-| `SCRUM-12` | Benachrichtigungen | **Steven** + David | `SCRUM-8` |
-| `SCRUM-13` | Admin & Moderation | **David** | `SCRUM-7`, `SCRUM-10` |
+| `SCRUM-7` | Plätze & Karte | **Stefan** | `SCRUM-6` |
+| `SCRUM-8` | Treffen (main demo workflow) | **Stefan** | `SCRUM-2`, `SCRUM-7` |
+| `SCRUM-9` | Platzvorschläge & Bestätigungen | **Steven** | `SCRUM-2`, `SCRUM-7` |
+| `SCRUM-10` | Bewertungen & Fotos | **Stefan** | `SCRUM-2`, `SCRUM-7` |
+| `SCRUM-11` | Kontakte & Blockieren | **Stefan** | `SCRUM-2` |
+| `SCRUM-12` | Benachrichtigungen | **Steven** | `SCRUM-8` |
+| `SCRUM-13` | Admin & Moderation | **Steven** | `SCRUM-7`, `SCRUM-10` |
 | `SCRUM-14` | Datenschutz & Konto | **Steven** | `SCRUM-2` |
 | `SCRUM-15` | Präsentation & Doku | **Stefan** (product owner) + all | — |
 
@@ -87,17 +94,17 @@ Rules. Keep them short so everybody follows them.
 ### Walking skeleton tickets (Sprint 1)
 
 `SCRUM-16` skeleton locally (Steven, blocks 19–22) → `SCRUM-19` CI + `SCRUM-20` AWS host with HTTPS
-(Steven) → `SCRUM-23` automatic deploy (Steven). `SCRUM-21` Leipzig Places (David) → `SCRUM-24`
-filter + detail (Stefan), `SCRUM-25` other cities (David). `SCRUM-22` register/login (Steven).
+(Steven) → `SCRUM-23` automatic deploy (Steven). `SCRUM-21` Leipzig Places (Stefan) → `SCRUM-24`
+filter + detail (Stefan), `SCRUM-25` other cities (Stefan). `SCRUM-22` register/login (Steven).
 No blockers: `SCRUM-17` Meetup prototype, `SCRUM-18` list of Reasons (Stefan).
 
 ### Sprint 2 tickets
 
 Must: `SCRUM-26` MFA, `SCRUM-27` captcha + rate limit, `SCRUM-33` password reset, `SCRUM-28` privacy +
 delete account (Steven); main workflow `SCRUM-29` Now-meetup (Stefan, start Mon morning) → `SCRUM-34`
-Join/Leave (David) → `SCRUM-37` Host Cancel/handover/Closed (David) and `SCRUM-35` later Meetup
-(Stefan) → `SCRUM-38` Series (David); `SCRUM-30` suggest Place → `SCRUM-36` confirm (David);
-`SCRUM-31` Ratings (Stefan); `SCRUM-39` Admin lock/delete (David).
+Join/Leave (Stefan) → `SCRUM-37` Host Cancel/handover/Closed (Stefan) and `SCRUM-35` later Meetup
+(Stefan) → `SCRUM-38` Series (Stefan); `SCRUM-30` suggest Place → `SCRUM-36` confirm (Steven);
+`SCRUM-31` Ratings (Stefan); `SCRUM-39` Admin lock/delete (Steven).
 Should: `SCRUM-40` in-app Notifications, `SCRUM-41` Favorites (Steven); `SCRUM-42` Photos,
 `SCRUM-32` Contacts + Block (Stefan). Could: `SCRUM-43` Contact notifications (Stefan), `SCRUM-44`
 web push, `SCRUM-45` Home area (Steven). Each ticket's "Blocked by" is a Jira link.
@@ -120,9 +127,8 @@ next; each owner writes them (for example with `/mattpocock-skills:to-tickets`).
 - **Commit message:** start with the key: `SCRUM-9 add build job`.
 - **Done means:** merged, and the pipeline is green. Not "works on my laptop".
 - **Status flow:** To Do → In Progress → In Review → Done.
-- **Language for the team:** pull request title and description, and [DIARY.md](DIARY.md), are in
-  German, so everybody in the team understands them. Code, commit messages and the other docs stay
-  in English.
+- **Language:** [DIARY.md](DIARY.md) is in German. Everything else (code, commits, pull requests,
+  docs) is in English.
 
 ### Agent access
 
@@ -132,46 +138,6 @@ account: start `claude` in this folder, approve the server, then run `/mcp` → 
 authenticate. There are no shared credentials.
 
 ---
-
-## Now
-
-**Topic chosen (2026-10-07):** Stefan's idea, a map of free public activity places (table tennis,
-basketball, …) where adults announce Meetups and others join them. Glossary: [CONTEXT.md](CONTEXT.md).
-Decisions: [docs/adr/](docs/adr/). Grilling session (design interview) finished and confirmed
-by Steven; only the app name is open. The local skeleton (`SCRUM-16`) runs: `docker compose up`
-shows one example Place on the map (how to run: [README.md](README.md) → *Run locally*). The docs are on GitHub
-(https://github.com/GitGitRice/squadmeet, private, branches `main` and `dev`). Jira has Epics `SCRUM-2`,
-`SCRUM-6`–`SCRUM-15` and Stories/Tasks `SCRUM-16`–`SCRUM-45`; start order per person in
-[TICKETS.md](TICKETS.md). Agent skills are set up to use Jira
-([docs/agents/issue-tracker.md](docs/agents/issue-tracker.md)).
-
-## In flight
-
-| Who | What | Jira | State |
-|-----|------|------|-------|
-| Stefan | Reasons per Activity type in [backend/app/reasons.py](backend/app/reasons.py), with pytest; each negative Reason says whether it changes the Condition (`broken` = yes, `bad` = no) | `SCRUM-18` (Reasons) | Committed on local branch `feature/SCRUM-18-reasons` (from `dev`). Tests green locally (without DB). **Not pushed, no PR, Jira not updated** (Atlassian MCP was not logged in). The team should read the list once before `SCRUM-31` (Ratings) uses it |
-| Stefan | Clickable Meetup prototype, layout "map + bottom sheet" (Stefan's pick on 2026-10-08), test data in memory, `cd frontend && npm run prototype` (also opens on a phone in the same Wi-Fi) | `SCRUM-17` (Meetup prototype) | Committed on local branch `feature/SCRUM-17-meetup-prototype` (from `dev`). Lint, build and a click-through in jsdom passed; Stefan opened it in the browser. Not pushed, Jira not updated. Open: Steven and David look at it and agree (acceptance criterion); note the decision on `SCRUM-17`. `SCRUM-29` (Now-meetup, Stefan), `SCRUM-34`/`SCRUM-37` (Join/Leave, Host; David) and `SCRUM-35` (later Meetup, Stefan) build these screens for real |
-| Steven | GitHub Actions: pytest (with a PostgreSQL+PostGIS service) + Vitest + Docker image build on every PR; push images to GHCR on merge into `dev` | `SCRUM-19` (CI) | In Review: [PR #6](https://github.com/GitGitRice/squadmeet/pull/6) into `dev`, all 5 checks green on GitHub. Needs one approval (Stefan or David). **Not checked yet:** the GHCR push, because it runs only after the merge into `dev`. After the merge, look at the run on `dev` and at the packages under github.com/GitGitRice → Packages |
-
-## Next
-
-0. Stefan: show the prototype to Steven and David (`npm run prototype`), and write the agreed
-   screens on `SCRUM-17`. Push both branches and open the PRs into `dev`, then set
-   `SCRUM-17` and `SCRUM-18` in Jira.
-   Stefan or David: review and approve [PR #6](https://github.com/GitGitRice/squadmeet/pull/6) (`SCRUM-19`, CI). Steven: merge it,
-   check the GHCR push, set `SCRUM-19` to Done. Then `SCRUM-20` (AWS host). David can start `SCRUM-21`
-   (Leipzig Places). `SCRUM-26` (MFA), `SCRUM-27` (captcha), `SCRUM-28` (privacy) and `SCRUM-32`
-   (contacts, Stefan) are no longer blocked.
-1. Create the two Jira sprints (see *Jira → Sprints*), then approve the second ticket batch.
-2. Confirm the role split and the Epic assignees as a team (tables above).
-3. Write the Stories for each Epic, with "Blocks" links. Walking skeleton first (by Fri 09.10.):
-   Steven repo + Compose + CI/CD + EC2 + HTTPS; David data model + OSM import for one city;
-   Stefan clickable screens with test data + the list of Reasons.
-4. Steven: invite Stefan and David as collaborators on the GitHub repo (needs their GitHub
-   usernames). Stefan and David: fill in your Day 1 line in [DIARY.md](DIARY.md).
-5. Choose the stack. Every tool needs a reason you can say out loud (brief: "Understand
-   what you build").
-6. Deploy a "hello world" in the first days. Deploy problems take longer than planned.
 
 ## Open questions
 
@@ -210,13 +176,17 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-07 | Login token = random session token, stored only as SHA-256 hash in `login_session`, sent as `Authorization: Bearer`; 30 days valid | Logout and Admin lock can end a session at once (a JWT cannot); Bearer also works for the later Android app | [backend/app/auth.py](backend/app/auth.py) |
 | 2026-10-07 | Passwords: Argon2 (`pwdlib`). Recovery codes (10 × 16 characters) and tokens: SHA-256 | People choose weak passwords, so the hash must be slow; random codes are too long to guess | [backend/app/auth.py](backend/app/auth.py) |
 | 2026-10-07 | Nickname: 3–20 of `A–Z a–z 0–9 _ -`, unique without case; the map stays public without login | No look-alike Nicknames ("Steven"/"steven"); people can look before they register | [backend/app/auth.py](backend/app/auth.py) |
-| 2026-10-07 | PR title/description and `DIARY.md` in German; code, commits and other docs in English | Stefan and David read German more easily | this file → *Conventions* |
+| 2026-10-07 | PR title/description and `DIARY.md` in German; code, commits and other docs in English | Stefan and David read German more easily. **Replaced 2026-10-08** for PRs (see below) | this file → *Conventions* |
 | 2026-10-07 | CI starts the database with `docker compose up --wait db` (our own PostGIS image), not a `postgis/postgis` service container; CI also builds and pushes the `db` image | CI tests against the same database image as local and EC2; the EC2 deploy can pull all three images | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
 | 2026-10-07 | Images in GHCR: `ghcr.io/gitgitrice/squadmeet-{backend,frontend,db}`, tags = commit SHA + `dev`; pushed only after both test jobs are green | Deploy (`SCRUM-23`) picks an exact commit; no image from a red build | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
 | 2026-10-07 | Ruleset "protect main and dev" requires the 5 CI checks (backend tests, frontend tests, 3 Docker images) | A red pipeline blocks the merge ("Done" means the pipeline is green) | GitHub → Settings → Rules |
 | 2026-10-08 | Reasons live as code in [backend/app/reasons.py](backend/app/reasons.py): a stable key (stored in the DB) + a German label; general Reasons + Reasons per Activity type | One list for API validation and UI; a label can change without a migration | `SCRUM-18` |
-| 2026-10-08 | Meetup screens: map + bottom sheet (Place → "Ich bin jetzt hier" → Meetup detail), not a list or an assistant. Red pin with people count = someone is there now. The prototype covers only the `SCRUM-17` flow; later Meetups, Series, ending early and Host handover are left to their own tickets | The map is the core of the app; one tap from Place to Meetup. Team still has to agree | `SCRUM-17`, commit `627dc81` |
+| 2026-10-08 | Condition: only negative Reasons that the city or the operator must fix change it (`condition_issue` in code); "Oft überfüllt", "Schwer zu finden", "Zeitweise nicht zugänglich" do not. No Reason for bad lighting. "Oft abgeschlossen" renamed so it does not clash with Locked place | Stefan (product owner) after Steven's review; a Condition should say what needs a repair | [CONTEXT.md](CONTEXT.md), `SCRUM-18` |
+| 2026-10-08 | Meetup screens: map + bottom sheet (Place → "Ich bin jetzt hier" → Meetup detail), not a list or an assistant. Red pin with people count = someone is there now. The prototype covers only the `SCRUM-17` flow plus Host Leave (Stefan, after Steven's review): the Host can Leave when others have joined, the earliest Join becomes Host. Later Meetups, Series, ending early and Closed are left to their own tickets | The map is the core of the app; one tap from Place to Meetup. Team still has to agree | `SCRUM-17`, commits `627dc81`, `825a44a` |
 | 2026-10-08 | The Meetup prototype is a separate dev-only page (`frontend/prototype.html`), not part of the app | Not in the production build, so test data and fake screens never ship | `SCRUM-17` |
+| 2026-10-08 | PR title and description may be English; `DIARY.md` stays German | Team decision after David left; replaces the 2026-10-07 "PR in German" rule | this file → *Conventions* |
+| 2026-10-08 | HANDOFF split: shared parts stay in `HANDOFF.md` (in git); each person's *Now*/*In flight*/*Next*/*Log* go to `HANDOFF.local.md` (`.gitignore`) | Each person's progress differs; removing `HANDOFF.md` from git would delete the other person's copy on `git pull` | this file → *How to use these files* |
+| 2026-10-08 | David left. Split his tickets by area: Stefan = Meetup workflow + Places data (21, 25, 34, 37, 38); Steven = Place suggestions + Admin (30, 36, 39) | 21 unblocks Stefan's own 24/29/31; one person owns the whole demo workflow; Admin needs MFA (Steven) | `SCRUM-46` |
 | 2026-10-08 | EC2 host: t3.micro (x86, because the CI images are amd64 only) + 2 GB swap file + Elastic IP, Amazon Linux 2023, region `eu-central-1`; free subdomain from DuckDNS | Free Tier; the IP stays the same after a stop and start; DuckDNS is free and works with Let's Encrypt | `SCRUM-20`, [deploy/](deploy/) |
 | 2026-10-08 | Caddy is in the production frontend image (built files + reverse proxy to the backend); only ports 80 and 443 are open; no SSH, access through AWS SSM | One image less; no open SSH port (same path as the automatic deploy, `SCRUM-23`) | `SCRUM-20`, [frontend/Dockerfile](frontend/Dockerfile) |
 | 2026-10-08 | The AWS setup is a script ([deploy/setup-aws.sh](deploy/setup-aws.sh)) that uses the AWS CLI, not console clicks | Repeatable, and written down for the later move to the NAS (ADR-0002) | `SCRUM-20` |
@@ -256,9 +226,17 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
 
 ---
 
-## Log
+## Shared log (until 2026-10-08)
+
+The team log before the split. New lines go to each person's `HANDOFF.local.md`.
 
 Newest first. One line per session: date · who · what changed.
+
+- 2026-10-08 · Steven · [PR #9](https://github.com/GitGitRice/squadmeet/pull/9) into `dev`: HANDOFF split into this shared file (in git) and `HANDOFF.local.md` (each person's progress, not in git), PR text may be English, `TICKETS.md` with David's tickets split. Needs Stefan's approval.
+
+- 2026-10-08 · Steven · David left the project. Created `SCRUM-46` (In Progress, German) with the ticket split and scope suggestions for Stefan to confirm. Jira assignees not changed yet. Later: Stefan agreed; reassigned the 11 tickets and Epic owners in Jira, updated `TICKETS.md`. Dropped the "PR in German" rule (`CLAUDE.md`, *Conventions*).
+
+- 2026-10-08 · Stefan · PR #7 and #8 merged by Steven, with review comments on `SCRUM-17`/`SCRUM-18`. Decision: in the prototype the Host can Leave and hands over to the earliest Join. Fix branch `feature/SCRUM-17-host-leave` (Host Leave, cancelled-text bug, glossary names). `SCRUM-18` decisions answered (Condition = what the city must fix; "Oft abgeschlossen" → "Zeitweise nicht zugänglich"; no lighting Reason) on branch `feature/SCRUM-18-review-decisions`.
 
 - 2026-10-08 · Stefan · `SCRUM-18`: Reasons per Activity type ([backend/app/reasons.py](backend/app/reasons.py) + tests). `SCRUM-17`: clickable Meetup prototype with 3 layouts (`frontend/src/prototype/`). Both on local feature branches, not pushed. Later the same day: Stefan picked layout A (map + bottom sheet), design reworked; Jira connected; SCRUM-18 now marks which negative Reasons change the Condition (acceptance criterion). Old empty branches `scrum-17`/`scrum-18` deleted. Then trimmed both to their tickets' acceptance criteria only (no work of other tickets).
 

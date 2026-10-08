@@ -4,21 +4,21 @@ import { useEffect, useReducer, useState } from 'react'
 import { MapContainer, Marker, TileLayer } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { ACTIVITIES, INITIAL_STATE, PLACES, partyTotal, people, placeById, reducer, type Meetup } from './data'
+import { ACTIVITIES, INITIAL_STATE, PLACES, partyTotal, people, placeById, reducer, type ActivityType, type Meetup } from './data'
 import { MeetupCard, MeetupDetail, NowForm, PrototypeBar } from './parts'
 
 type Sheet =
   | { placeId: number; view: 'place' | 'now' }
   | { placeId: number; view: 'meetup'; meetupId: number }
 
-function pinIcon(activity: string, meetups: Meetup[]) {
-  const people = meetups.reduce((sum, m) => sum + partyTotal(m), 0)
+function pinIcon(activity: ActivityType, meetups: Meetup[]) {
+  const total = meetups.reduce((sum, m) => sum + partyTotal(m), 0)
   const live = meetups.length > 0
   const size = live ? 48 : 36
   return L.divIcon({
     className: '',
     // The badge says at a glance how many people are there now.
-    html: `<div class="pt-pin ${live ? 'now' : 'empty'}">${ACTIVITIES[activity].emoji}${live ? `<span>${people} 👤</span>` : ''}</div>`,
+    html: `<div class="pt-pin ${live ? 'now' : 'empty'}">${ACTIVITIES[activity].emoji}${live ? `<span>${total} 👤</span>` : ''}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   })
@@ -27,15 +27,15 @@ function pinIcon(activity: string, meetups: Meetup[]) {
 export default function MeetupPrototype() {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
   const [sheet, setSheet] = useState<Sheet | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
+  const [message, showMessage] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!toast) return
-    const timer = setTimeout(() => setToast(null), 3500)
+    if (!message) return
+    const timer = setTimeout(() => showMessage(null), 3500)
     return () => clearTimeout(timer)
-  }, [toast])
+  }, [message])
 
-  const active = (placeId: number) => state.meetups.filter((m) => m.placeId === placeId && !m.cancelled)
+  const activeMeetupsAt = (placeId: number) => state.meetups.filter((m) => m.placeId === placeId && !m.cancelled)
 
   const place = sheet && placeById(sheet.placeId)
   // The sheet lists all Meetups of the Place, also cancelled ones, so a user sees what happened.
@@ -54,7 +54,7 @@ export default function MeetupPrototype() {
           <Marker
             key={p.id}
             position={[p.lat, p.lon]}
-            icon={pinIcon(p.activity, active(p.id))}
+            icon={pinIcon(p.activity, activeMeetupsAt(p.id))}
             eventHandlers={{ click: () => setSheet({ placeId: p.id, view: 'place' }) }}
           />
         ))}
@@ -112,18 +112,18 @@ export default function MeetupPrototype() {
               onSubmit={(hours, partySize) => {
                 setSheet({ placeId: place.id, view: 'meetup', meetupId: state.nextId })
                 dispatch({ type: 'create', placeId: place.id, hours, partySize })
-                setToast('Du bist jetzt auf der Karte. Andere können mitkommen.')
+                showMessage('Du bist jetzt auf der Karte. Andere können mitkommen.')
               }}
             />
           )}
 
-          {meetup && <MeetupDetail key={meetup.id} meetup={meetup} state={state} dispatch={dispatch} notify={setToast} />}
+          {meetup && <MeetupDetail key={meetup.id} meetup={meetup} state={state} dispatch={dispatch} showMessage={showMessage} />}
         </section>
       )}
 
-      {toast && (
-        <div className="pt-toast" role="status">
-          {toast}
+      {message && (
+        <div className="pt-message" role="status">
+          {message}
         </div>
       )}
     </div>
