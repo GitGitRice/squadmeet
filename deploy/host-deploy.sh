@@ -3,11 +3,11 @@
 # pulls the images and (re)starts the stack in /opt/squadmeet.
 # The secrets come from SSM Parameter Store (/squadmeet/*); the host's IAM role may read them.
 #
-# Usage: host-deploy.sh <domain> [image-tag]
+# Usage: host-deploy.sh <domain> <image-tag>   (a commit SHA, or "main" / "dev")
 set -euo pipefail
 
 DOMAIN="$1"
-IMAGE_TAG="${2:-dev}"
+IMAGE_TAG="${2:?Usage: host-deploy.sh <domain> <image-tag>}"
 cd /opt/squadmeet
 
 # The AWS CLI on the host needs the region; the instance metadata (IMDSv2) knows it.

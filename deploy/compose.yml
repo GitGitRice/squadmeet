@@ -3,7 +3,7 @@
 # Only Caddy ("web") has open ports; the database and the API are reachable only inside.
 services:
   db:
-    image: ghcr.io/gitgitrice/squadmeet-db:${IMAGE_TAG:-dev}
+    image: ghcr.io/gitgitrice/squadmeet-db:${IMAGE_TAG:?}
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:?}
@@ -18,7 +18,7 @@ services:
       retries: 30
 
   backend:
-    image: ghcr.io/gitgitrice/squadmeet-backend:${IMAGE_TAG:-dev}
+    image: ghcr.io/gitgitrice/squadmeet-backend:${IMAGE_TAG:?}
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
@@ -28,7 +28,7 @@ services:
         condition: service_healthy
 
   web:
-    image: ghcr.io/gitgitrice/squadmeet-frontend:${IMAGE_TAG:-dev}
+    image: ghcr.io/gitgitrice/squadmeet-frontend:${IMAGE_TAG:?}
     restart: unless-stopped
     environment:
       DOMAIN: ${DOMAIN:?}

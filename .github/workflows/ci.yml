@@ -1,5 +1,6 @@
 # CI (SCRUM-19): tests and Docker images on every pull request into dev and main.
-# A merge into dev also pushes the images to GHCR, tagged with the commit SHA.
+# A merge into dev or main also pushes the images to GHCR, tagged with the commit SHA and
+# the branch name. A merge into main then deploys that SHA to AWS (SCRUM-23).
 # Actions are pinned to a commit SHA (the comment names the release), so a moved tag
 # cannot change what runs here.
 name: CI
@@ -8,11 +9,12 @@ on:
   pull_request:
     branches: [dev, main]
   push:
-    branches: [dev]
+    branches: [dev, main]
 
+# A new push cancels the old run, but never on main: a deploy must not stop halfway.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
@@ -71,7 +73,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - name: Log in to GHCR (only on push to dev)
+      - name: Log in to GHCR (only on push to dev or main)
         if: github.event_name == 'push'
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
@@ -83,8 +85,36 @@ jobs:
           context: ./${{ matrix.image }}
           push: ${{ github.event_name == 'push' }}
           # GHCR needs a lowercase owner name.
+          # On a pull request nothing is pushed; "pr" only keeps the tag valid.
           tags: |
             ghcr.io/gitgitrice/squadmeet-${{ matrix.image }}:${{ github.sha }}
-            ghcr.io/gitgitrice/squadmeet-${{ matrix.image }}:dev
+            ghcr.io/gitgitrice/squadmeet-${{ matrix.image }}:${{ github.event_name == 'push' && github.ref_name || 'pr' }}
+          # The backend shows the SHA in /api/health; the deploy smoke test checks it.
+          build-args: GIT_SHA=${{ github.sha }}
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+
+  deploy:
+    name: Deploy to AWS + smoke test
+    needs: [images]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # One deploy at a time; a second merge waits for the first.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write # GitHub OIDC token for AWS; no AWS keys are stored in GitHub
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      EC2_INSTANCE_ID: ${{ vars.EC2_INSTANCE_ID }}
+      APP_DOMAIN: ${{ vars.APP_DOMAIN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The role trusts only runs on main of this repo (deploy/setup-github-deploy.sh).
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - run: deploy/deploy.sh "${{ github.sha }}"
