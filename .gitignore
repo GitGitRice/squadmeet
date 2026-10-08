@@ -19,3 +19,6 @@ __pycache__/
 # Node
 node_modules/
 dist/
+
+# Personal handoff (each person's own progress; the shared part is HANDOFF.md)
+HANDOFF.local.md
