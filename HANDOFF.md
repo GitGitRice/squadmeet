@@ -145,8 +145,6 @@ authenticate. There are no shared credentials.
 
 - Final app name. Working name: **SquadMeet** (2026-10-07; quick web search found no app with this name, but similar "Squadsheet" and "squadSet" exist; no brand or domain check yet). "Meetup" rejected: Meetup.com brand, and it is our glossary term.
 - Demo data and demo devices (decided later, `SCRUM-15`).
-- For Steven (`SCRUM-20`/`SCRUM-23`): the production image does not load the OSM Places yet. The
-  EC2 start needs `python -m app.seed` once after `alembic upgrade head`, or the map stays empty. Stefan did not change the Dockerfile (Steven's area).
 
 ## Decisions
 
