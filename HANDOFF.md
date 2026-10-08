@@ -224,6 +224,17 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
   and `naturalWidth` (0) of the marker in the browser. Fix: an explicit `L.icon({...})` on each
   Marker ([frontend/src/App.tsx](frontend/src/App.tsx)). Lesson: when an image does not show,
   look at the real URL the browser requests before you copy a fix.
+- **First automatic deploy cannot log in to AWS** (`SCRUM-23`, 2026-10-08). Symptom: after the
+  merge of PR #21 (dev → main), the job "Deploy to AWS + smoke test" fails 12 times with
+  `Could not assume role with OIDC: Not authorized to perform sts:AssumeRoleWithWebIdentity`.
+  Wrong guess: an expired local AWS login. A new `aws login` changed nothing, because CI does
+  not use local credentials. Real cause: the repo uses GitHub's immutable OIDC subject, so the
+  token's `sub` is `repo:GitGitRice@160424208/squadmeet@1408673415:ref:refs/heads/main`. The
+  role's trust policy expected `repo:GitGitRice/squadmeet:ref:refs/heads/main`. Found with
+  `gh api repos/GitGitRice/squadmeet/actions/oidc/customization/sub`. Fix: new `sub` in the
+  role's trust policy. [deploy/setup-github-deploy.sh](deploy/setup-github-deploy.sh) now asks
+  GitHub for the prefix. Lesson: for an OIDC "not authorized" error, compare the token's real
+  claims with the trust policy before you look at credentials.
 
 ---
 
