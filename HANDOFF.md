@@ -7,7 +7,7 @@ debugging case.
 Each person's own progress (*Now*, *In flight*, *Next*, *Log*) is in **`HANDOFF.local.md`**.
 That file is not in git (`.gitignore`), because each person's progress differs.
 
-**Last update:** 2026-10-09 · Steven · `SCRUM-30` merged with `dev`, suggestion migration is now 0009
+**Last update:** 2026-10-09 · Steven · debugging case "two migrations with the same number" (`SCRUM-30`)
 
 ---
 
@@ -273,6 +273,19 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
   sets `starts_at` ([backend/app/meetups.py](backend/app/meetups.py)). Lesson: `now()` in
   PostgreSQL is frozen per transaction (`clock_timestamp()` is not); compare times from one
   clock.
+- **Two migrations with the same number** (`SCRUM-30`, 2026-10-09). Symptom: PR #34 (Place
+  suggestions) and PR #33 (Ratings, `SCRUM-31`) were written at the same time. Each added a
+  migration with revision `0007` after `0006`. Git showed no conflict, because the two files have
+  different names (`…_0007_place_suggestion.py`, `…_0007_create_rating.py`). Found while merging
+  `dev` into PR #35 (`SCRUM-33`), before PR #34 was merged. A local database that had run the
+  branch's `0007` then ran `dev`'s `0008` without an error: the database stores only the ID `0007`, and `dev`'s `0008` follows `0007`. The
+  result: Alembic says `0008`, the `place_confirmation` table exists, the `rating` table does not.
+  Real cause: Alembic revisions are a chain of plain IDs, and each branch picked the "next" number
+  on its own. Fix: merge `dev` into the branch and renumber the suggestion migration to `0009`
+  (down_revision `0008`); checked with `alembic heads` (one head) and an upgrade/downgrade
+  round-trip on an empty database. The broken local database must be reset
+  (`docker compose down -v`). Lesson: a merge without Git conflicts can still break the
+  migration chain. Before a merge, run `alembic heads`; more than one head means a collision.
 
 ---
 
