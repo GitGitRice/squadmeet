@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import {
+  CaptchaRequiredError,
   login,
   MfaRequiredError,
   register,
@@ -7,6 +8,7 @@ import {
   type RegisterResult,
 } from '../api/auth'
 import { AVATARS } from './avatars'
+import Turnstile from './Turnstile'
 
 type Props = {
   onLoggedIn: (result: LoginResult) => void
@@ -27,19 +29,34 @@ export default function AuthDialog({ onLoggedIn, onClose }: Props) {
   // True after the server answered that this user has MFA on (SCRUM-26).
   const [needsCode, setNeedsCode] = useState(false)
   const [code, setCode] = useState('')
+  // Captcha (SCRUM-27): always at registration; at login after the server asked for it.
+  const [loginNeedsCaptcha, setLoginNeedsCaptcha] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  // A token works once, so each try gets a new widget (a new key mounts a new one).
+  const [captchaRound, setCaptchaRound] = useState(0)
+  const showCaptcha = mode === 'register' || loginNeedsCaptcha
+
+  function newCaptcha() {
+    setCaptchaToken(null)
+    setCaptchaRound((round) => round + 1)
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault()
     setError(null)
     setBusy(true)
+    const token = captchaToken ?? undefined
     try {
       if (mode === 'login') {
-        onLoggedIn(await login(nickname, password, needsCode ? code : undefined))
+        onLoggedIn(await login(nickname, password, needsCode ? code : undefined, token))
       } else {
-        setRegistered(await register({ nickname, password, avatar, is_adult: isAdult }))
+        const input = { nickname, password, avatar, is_adult: isAdult }
+        setRegistered(await register({ ...input, turnstile_token: token ?? null }))
       }
     } catch (err) {
       if (err instanceof MfaRequiredError) setNeedsCode(true)
+      if (err instanceof CaptchaRequiredError) setLoginNeedsCaptcha(true)
+      if (token) newCaptcha()
       setError((err as Error).message)
     } finally {
       setBusy(false)
@@ -132,9 +149,11 @@ export default function AuthDialog({ onLoggedIn, onClose }: Props) {
           </>
         )}
 
+        {showCaptcha && <Turnstile key={`${mode}-${captchaRound}`} onToken={setCaptchaToken} />}
+
         {error && <p className="form-error">{error}</p>}
 
-        <button type="submit" disabled={busy}>
+        <button type="submit" disabled={busy || (showCaptcha && !captchaToken)}>
           {mode === 'login' ? 'Anmelden' : 'Registrieren'}
         </button>
         <button
@@ -144,6 +163,7 @@ export default function AuthDialog({ onLoggedIn, onClose }: Props) {
             setMode(mode === 'login' ? 'register' : 'login')
             setError(null)
             setNeedsCode(false)
+            setCaptchaToken(null)
           }}
         >
           {mode === 'login' ? 'Noch kein Konto? Registrieren' : 'Schon ein Konto? Anmelden'}

@@ -21,6 +21,8 @@ export type RegisterInput = {
   password: string
   avatar: string
   is_adult: boolean
+  // From the Turnstile widget (SCRUM-27).
+  turnstile_token: string | null
 }
 
 export type MfaSetup = {
@@ -38,7 +40,15 @@ export class MfaRequiredError extends Error {
   }
 }
 
+/** Too many failed logins for this Nickname: login needs the captcha as well (SCRUM-27). */
+export class CaptchaRequiredError extends Error {
+  constructor() {
+    super('Zu viele Fehlversuche. Bitte bestätige zuerst, dass du kein Bot bist.')
+  }
+}
+
 const MFA_REQUIRED = 'mfa_required'
+const CAPTCHA_REQUIRED = 'captcha_required'
 
 const TOKEN_KEY = 'squadmeet.token'
 
@@ -77,7 +87,9 @@ async function postJson<T>(url: string, body: unknown, token?: string): Promise<
   })
   if (!response.ok) {
     const message = await errorMessage(response)
-    throw message === MFA_REQUIRED ? new MfaRequiredError() : new Error(message)
+    if (message === MFA_REQUIRED) throw new MfaRequiredError()
+    if (message === CAPTCHA_REQUIRED) throw new CaptchaRequiredError()
+    throw new Error(message)
   }
   return response.json()
 }
@@ -86,9 +98,31 @@ export function register(input: RegisterInput): Promise<RegisterResult> {
   return postJson('/api/auth/register', input)
 }
 
-/** `code` is needed only when MFA is on; without it, a user with MFA gets MfaRequiredError. */
-export function login(nickname: string, password: string, code?: string): Promise<LoginResult> {
-  return postJson('/api/auth/login', { nickname, password, ...(code && { code }) })
+/**
+ * `code` is needed only when MFA is on; without it, a user with MFA gets MfaRequiredError.
+ * `turnstileToken` is needed only after failed logins; without it, CaptchaRequiredError.
+ */
+export function login(
+  nickname: string,
+  password: string,
+  code?: string,
+  turnstileToken?: string,
+): Promise<LoginResult> {
+  return postJson('/api/auth/login', {
+    nickname,
+    password,
+    ...(code && { code }),
+    ...(turnstileToken && { turnstile_token: turnstileToken }),
+  })
+}
+
+/** The public Turnstile key from the server; null when the server has none. */
+export async function fetchCaptchaSiteKey(): Promise<string | null> {
+  const response = await fetch('/api/auth/captcha')
+  if (!response.ok) {
+    throw new Error(`GET /api/auth/captcha failed: ${response.status}`)
+  }
+  return (await response.json()).site_key
 }
 
 /** A new secret for the authenticator app. MFA is on only after mfaEnable. */

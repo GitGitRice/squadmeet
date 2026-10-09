@@ -319,6 +319,25 @@ else
     --value "$(openssl rand -hex 24)" >/dev/null
   say "${GREEN}✓${RESET} stored a new random /$NAME/postgres-password"
 fi
+# The captcha (SCRUM-27). The site key is public, the secret key is not.
+replace_turnstile=y
+if aws ssm get-parameter --name "/$NAME/turnstile-secret-key" >/dev/null 2>&1; then
+  say "${GREEN}✓${RESET} Turnstile keys are stored already."
+  confirm "Replace them?" || replace_turnstile=n
+fi
+if [[ "$replace_turnstile" == y ]]; then
+  open_url "https://dash.cloudflare.com/?to=/:account/turnstile"
+  step "Cloudflare → Turnstile → 'Add widget'. Name: $NAME. Hostname: $DOMAIN."
+  step "Widget mode: Managed. Pre-clearance: No. Then copy the two keys."
+  ask TURNSTILE_SITE_KEY "Paste the site key (starts with 0x):"
+  ask_secret TURNSTILE_SECRET_KEY "Paste the secret key:"
+  [[ -n "$TURNSTILE_SITE_KEY" && -n "$TURNSTILE_SECRET_KEY" ]] || die "No Turnstile keys given."
+  aws ssm put-parameter --name "/$NAME/turnstile-site-key" --type String \
+    --value "$TURNSTILE_SITE_KEY" --overwrite >/dev/null
+  aws ssm put-parameter --name "/$NAME/turnstile-secret-key" --type SecureString \
+    --value "$TURNSTILE_SECRET_KEY" --overwrite >/dev/null
+  say "${GREEN}✓${RESET} stored /$NAME/turnstile-site-key and /$NAME/turnstile-secret-key"
+fi
 pause
 
 # ── 5 ─────────────────────────────────────────────────────────────────────

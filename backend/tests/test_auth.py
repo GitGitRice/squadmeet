@@ -2,12 +2,19 @@ from sqlmodel import select
 
 from app.auth import RECOVERY_CODE_COUNT
 from app.models import RecoveryCode, User
+from tests.conftest import CAPTCHA_OK
 
 PASSWORD = "richtig-langes-passwort"
 
 
 def register(client, **changes):
-    body = {"nickname": "Pingpong_Paula", "password": PASSWORD, "avatar": "fox", "is_adult": True}
+    body = {
+        "nickname": "Pingpong_Paula",
+        "password": PASSWORD,
+        "avatar": "fox",
+        "is_adult": True,
+        "turnstile_token": CAPTCHA_OK,
+    }
     return client.post("/api/auth/register", json=body | changes)
 
 
@@ -49,6 +56,7 @@ def test_missing_adult_checkbox_is_rejected(client):
     assert register(client, is_adult=False).status_code == 422
 
     body = {"nickname": "Pingpong_Paula", "password": PASSWORD, "avatar": "fox"}
+    body["turnstile_token"] = CAPTCHA_OK
     assert client.post("/api/auth/register", json=body).status_code == 422
 
 

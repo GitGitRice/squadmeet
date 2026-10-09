@@ -10,6 +10,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Integer,
     UniqueConstraint,
     false,
     text,
@@ -77,6 +78,11 @@ class User(SQLModel, table=True):
     )
     # The 30-second time step of the last accepted code, so a code works only once.
     mfa_last_step: int | None = Field(default=None, sa_column=Column(BigInteger))
+    # Wrong passwords and wrong MFA codes since the last login. From 3 on, login also needs the
+    # captcha (SCRUM-27). A login resets it to 0.
+    failed_logins: int = Field(
+        default=0, sa_column=Column(Integer, nullable=False, server_default=text("0"))
+    )
 
 
 class RecoveryCode(SQLModel, table=True):
