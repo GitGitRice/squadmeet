@@ -1,5 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fetchMe, login, MfaRequiredError, mfaDisable, mfaEnable, register } from './auth'
+import {
+  CaptchaRequiredError,
+  fetchCaptchaSiteKey,
+  fetchMe,
+  login,
+  MfaRequiredError,
+  mfaDisable,
+  mfaEnable,
+  register,
+} from './auth'
 
 const user = { id: 1, nickname: 'Pingpong_Paula', avatar: 'fox', mfa_enabled: false, is_admin: false }
 
@@ -41,11 +50,39 @@ describe('login', () => {
   })
 })
 
+describe('captcha (SCRUM-27)', () => {
+  it('throws CaptchaRequiredError after too many failed logins', async () => {
+    const answer = Response.json({ detail: 'captcha_required' }, { status: 401 })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(answer))
+
+    await expect(login('Pingpong_Paula', 'geheim123')).rejects.toBeInstanceOf(CaptchaRequiredError)
+  })
+
+  it('sends the Turnstile token at login only when there is one', async () => {
+    const fetchMock = vi.fn(async (_url: string, _init: RequestInit) => Response.json({ token: 't', user }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await login('Pingpong_Paula', 'geheim123')
+    await login('Pingpong_Paula', 'geheim123', undefined, 'cf-token')
+
+    const bodies = fetchMock.mock.calls.map(([, init]) => JSON.parse(init.body as string))
+    expect(bodies[0]).not.toHaveProperty('turnstile_token')
+    expect(bodies[1]).not.toHaveProperty('code')
+    expect(bodies[1].turnstile_token).toBe('cf-token')
+  })
+
+  it('reads the site key from the server', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ site_key: 'key' })))
+
+    await expect(fetchCaptchaSiteKey()).resolves.toBe('key')
+  })
+})
+
 describe('register', () => {
   it('asks the user to check the input when the API rejects it', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ detail: [] }, { status: 422 })))
 
-    const input = { nickname: 'x', password: 'y', avatar: 'fox', is_adult: true }
+    const input = { nickname: 'x', password: 'y', avatar: 'fox', is_adult: true, turnstile_token: 't' }
     await expect(register(input)).rejects.toThrow('Bitte prüfe deine Eingaben.')
   })
 })
