@@ -6,10 +6,19 @@ export type Reason = { key: string; label: string; positive: boolean }
 
 export type ReasonCount = Reason & { count: number }
 
+// A problem named in Ratings; `count` is the number of Ratings that name it.
+export type Issue = ReasonCount & {
+  // Not confirmed for two months: users are asked "Ist das noch so?".
+  needs_check: boolean
+  // The votes of the open check so far; 3 on one side decide.
+  still_there_votes: number
+  fixed_votes: number
+}
+
 export type Condition = {
-  // unknown = no recent Rating; good = recent Ratings name no problem; issues = they do.
+  // unknown = no Rating or vote in two months and no issue; good = no issue; issues = some.
   state: 'unknown' | 'good' | 'issues'
-  issues: ReasonCount[]
+  issues: Issue[]
 }
 
 export type RatingSummary = {
@@ -48,4 +57,19 @@ export async function saveRating(token: string, placeId: number, input: RatingIn
     body: JSON.stringify(input),
   })
   return answer(response, 'PUT rating')
+}
+
+/** "Ist das noch so?" for an issue whose check is open. Returns the new summary. */
+export async function voteOnIssue(
+  token: string,
+  placeId: number,
+  reasonKey: string,
+  stillThere: boolean,
+): Promise<RatingSummary> {
+  const response = await fetch(`/api/places/${placeId}/condition/${reasonKey}/check`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ still_there: stillThere }),
+  })
+  return answer(response, 'POST condition check')
 }

@@ -6,6 +6,8 @@ import {
   fetchRatingSummary,
   fetchReasons,
   saveRating,
+  voteOnIssue,
+  type Issue,
   type Rating,
   type RatingSummary,
   type Reason,
@@ -42,7 +44,49 @@ function ReasonChips({ reasons }: { reasons: ReasonCount[] }) {
   )
 }
 
-function ConditionLine({ summary }: { summary: RatingSummary }) {
+// Votes on one side that confirm an issue or end it (VOTES_NEEDED in backend/app/ratings.py).
+const VOTES_NEEDED = 3
+
+type CheckProps = {
+  issue: Issue
+  voted: boolean
+  busy: boolean
+  onVote: (stillThere: boolean) => void
+}
+
+// "Ist das noch so?" for an issue that nobody confirmed for two months.
+function IssueCheck({ issue, voted, busy, onVote }: CheckProps) {
+  return (
+    <div className="issue-check">
+      <span className="hint">
+        Seit über 2 Monaten nicht bestätigt. Noch so: {issue.still_there_votes}/{VOTES_NEEDED} ·
+        Behoben: {issue.fixed_votes}/{VOTES_NEEDED}
+      </span>
+      {voted ? (
+        <span className="hint">Danke für deine Antwort!</span>
+      ) : (
+        <span className="issue-check-buttons">
+          Ist das noch so?
+          <button type="button" disabled={busy} onClick={() => onVote(true)}>
+            Ja, noch so
+          </button>
+          <button type="button" disabled={busy} onClick={() => onVote(false)}>
+            Nein, behoben
+          </button>
+        </span>
+      )}
+    </div>
+  )
+}
+
+type ConditionProps = {
+  summary: RatingSummary
+  voted: Set<string>
+  busy: boolean
+  onVote: (issue: Issue, stillThere: boolean) => void
+}
+
+function ConditionLine({ summary, voted, busy, onVote }: ConditionProps) {
   const { state, issues } = summary.condition
   if (state === 'unknown') {
     return <p className="hint">Zustand: noch keine aktuellen Bewertungen.</p>
@@ -57,6 +101,14 @@ function ConditionLine({ summary }: { summary: RatingSummary }) {
         {issues.map((issue) => (
           <li key={issue.key}>
             {issue.label} ({issue.count}×)
+            {issue.needs_check && (
+              <IssueCheck
+                issue={issue}
+                voted={voted.has(issue.key)}
+                busy={busy}
+                onVote={(stillThere) => onVote(issue, stillThere)}
+              />
+            )}
           </li>
         ))}
       </ul>
@@ -75,6 +127,8 @@ export default function PlaceRatings({ placeId, user, onLoginNeeded }: Props) {
   const [stars, setStars] = useState(0)
   const [chosen, setChosen] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState(false)
+  // The issues this user answered "Ist das noch so?" for while the panel is open.
+  const [voted, setVoted] = useState<Set<string>>(new Set())
 
   const reload = useCallback(() => {
     fetchRatingSummary(placeId)
@@ -137,6 +191,24 @@ export default function PlaceRatings({ placeId, user, onLoginNeeded }: Props) {
     }
   }
 
+  async function vote(issue: Issue, stillThere: boolean) {
+    const token = loadToken()
+    if (!user || !token) {
+      onLoginNeeded()
+      return
+    }
+    setBusy(true)
+    setError(null)
+    try {
+      setSummary(await voteOnIssue(token, placeId, issue.key, stillThere))
+      setVoted(new Set(voted).add(issue.key))
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const missing = stars === 0 ? 'Wähle 1 bis 5 Sterne.' : chosen.size === 0 ? 'Wähle mindestens eine Begründung.' : null
 
   function reasonGroup(title: string, positive: boolean) {
@@ -174,7 +246,7 @@ export default function PlaceRatings({ placeId, user, onLoginNeeded }: Props) {
           </p>
         ))}
       {summary && summary.top_reasons.length > 0 && <ReasonChips reasons={summary.top_reasons} />}
-      {summary && <ConditionLine summary={summary} />}
+      {summary && <ConditionLine summary={summary} voted={voted} busy={busy} onVote={vote} />}
 
       {rating ? (
         <form

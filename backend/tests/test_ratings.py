@@ -3,8 +3,8 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from sqlmodel import select
 
-from app.models import Place, Rating
-from app.ratings import RECENT_DAYS
+from app.models import ConditionVote, Place, Rating
+from app.ratings import RECENT_DAYS, VOTES_NEEDED, issue_state
 from tests.test_auth import auth_header, register
 
 
@@ -178,26 +178,162 @@ def test_condition_lists_the_problems_of_recent_ratings(client, place, paula, ka
     ]
 
 
-def test_condition_ignores_old_ratings(client, session, place, paula, karl):
-    old_rating(session, place, karl[1], ["net_missing"], days=RECENT_DAYS + 1)
-    rate(client, paula[0], place.id, reasons=["table_good"])
-
-    result = summary(client, place.id)
-
-    # The old Rating still counts for the stars, not for the Condition.
-    assert result["count"] == 2
-    assert result["condition"] == {"state": "good", "issues": []}
-
-
-def test_only_old_ratings_give_an_unknown_condition(client, session, place, paula):
-    old_rating(session, place, paula[1], ["net_missing"], days=RECENT_DAYS + 1)
-
-    assert summary(client, place.id)["condition"]["state"] == "unknown"
-
-
-def test_changing_an_old_rating_makes_it_recent_again(client, session, place, paula):
+def test_only_old_ratings_without_an_issue_give_an_unknown_condition(client, session, place, paula):
     old_rating(session, place, paula[1], ["table_good"], days=RECENT_DAYS + 1)
 
+    assert summary(client, place.id)["condition"] == {"state": "unknown", "issues": []}
+
+
+def test_an_issue_counts_without_a_check_for_two_months(client, place, paula):
     rate(client, paula[0], place.id, reasons=["net_missing"])
 
-    assert summary(client, place.id)["condition"]["state"] == "issues"
+    [issue] = summary(client, place.id)["condition"]["issues"]
+
+    assert issue["key"] == "net_missing"
+    assert issue["needs_check"] is False
+
+
+def test_after_two_months_an_issue_stays_and_users_are_asked(client, session, place, paula):
+    old_rating(session, place, paula[1], ["net_missing"], days=RECENT_DAYS + 1)
+
+    condition = summary(client, place.id)["condition"]
+
+    assert condition["state"] == "issues"
+    [issue] = condition["issues"]
+    assert issue["needs_check"] is True
+    assert (issue["still_there_votes"], issue["fixed_votes"]) == (0, 0)
+
+
+def voters(client, n):
+    """Tokens of n new users."""
+    names = ["Vera_Voll", "Willi_Wurf", "Xenia_Netz", "Yusuf_Ball"][:n]
+    return [register(client, nickname=name).json()["token"] for name in names]
+
+
+def vote(client, token, place_id, still_there, key="net_missing"):
+    return client.post(
+        f"/api/places/{place_id}/condition/{key}/check",
+        json={"still_there": still_there},
+        headers=auth_header(token),
+    )
+
+
+def the_issue(client, place_id):
+    issues = summary(client, place_id)["condition"]["issues"]
+    return issues[0] if issues else None
+
+
+def test_three_users_confirm_an_issue_for_two_more_months(client, session, place, paula):
+    old_rating(session, place, paula[1], ["net_missing"], days=RECENT_DAYS + 1)
+    tokens = voters(client, VOTES_NEEDED)
+
+    for token in tokens[:-1]:
+        assert vote(client, token, place.id, still_there=True).status_code == 200
+    assert the_issue(client, place.id)["still_there_votes"] == VOTES_NEEDED - 1
+    vote(client, tokens[-1], place.id, still_there=True)
+
+    issue = the_issue(client, place.id)
+    assert issue["needs_check"] is False
+    assert (issue["still_there_votes"], issue["fixed_votes"]) == (0, 0)
+    # Confirmed: no check is open, so nobody can vote until two months later.
+    assert vote(client, tokens[0], place.id, still_there=False).status_code == 409
+
+
+def test_three_users_say_fixed_and_the_issue_ends(client, session, place, paula):
+    old_rating(session, place, paula[1], ["net_missing"], days=RECENT_DAYS + 1)
+
+    for token in voters(client, VOTES_NEEDED):
+        vote(client, token, place.id, still_there=False)
+
+    assert the_issue(client, place.id) is None
+    assert summary(client, place.id)["condition"]["state"] == "good"
+
+
+def test_a_later_vote_replaces_the_own_vote(client, session, place, paula):
+    old_rating(session, place, paula[1], ["net_missing"], days=RECENT_DAYS + 1)
+    [token] = voters(client, 1)
+
+    for _ in range(VOTES_NEEDED):
+        vote(client, token, place.id, still_there=False)
+    vote(client, token, place.id, still_there=True)
+
+    issue = the_issue(client, place.id)
+    assert (issue["still_there_votes"], issue["fixed_votes"]) == (1, 0)
+    assert issue["needs_check"] is True
+
+
+def test_a_new_rating_brings_a_fixed_issue_back(client, session, place, paula, karl):
+    old_rating(session, place, paula[1], ["net_missing"], days=RECENT_DAYS + 1)
+    for token in voters(client, VOTES_NEEDED):
+        vote(client, token, place.id, still_there=False)
+
+    rate(client, karl[0], place.id, stars=2, reasons=["net_missing"])
+
+    issue = the_issue(client, place.id)
+    assert issue["count"] == 2
+    assert issue["needs_check"] is False
+
+
+def test_voting_needs_a_login_and_an_open_check(client, place, paula):
+    rate(client, paula[0], place.id, reasons=["net_missing"])
+
+    no_login = client.post(
+        f"/api/places/{place.id}/condition/net_missing/check", json={"still_there": True}
+    )
+    assert no_login.status_code == 401
+    assert vote(client, paula[0], place.id, still_there=True).status_code == 409
+    assert vote(client, paula[0], place.id, True, key="litter").status_code == 404
+
+
+# The rules over a longer time, without the API: Ratings and votes at chosen days.
+
+NOW = datetime(2026, 10, 9, tzinfo=UTC)
+
+
+def day(n):
+    return NOW - timedelta(days=n)
+
+
+def votes(*answers):
+    """(days ago, user id, still there) → ConditionVote rows."""
+    return [
+        ConditionVote(
+            id=i, place_id=1, reason_key="net_missing", user_id=u, still_there=s, created_at=day(d)
+        )
+        for i, (d, u, s) in enumerate(answers)
+    ]
+
+
+def test_a_confirmed_issue_is_asked_about_again_two_months_later():
+    reported = [day(200)]
+    # Confirmed by 3 votes 130 days ago; that was more than RECENT_DAYS ago.
+    confirmed = votes((132, 1, True), (131, 2, True), (130, 3, True))
+
+    state = issue_state(reported, confirmed, NOW)
+
+    assert state.needs_check is True
+    assert (state.still_there_votes, state.fixed_votes) == (0, 0)
+
+
+def test_votes_of_an_earlier_check_do_not_count_in_the_next_one():
+    reported = [day(200)]
+    answers = votes((132, 1, True), (131, 2, True), (130, 3, True), (5, 1, False), (4, 2, False))
+
+    state = issue_state(reported, answers, NOW)
+
+    # Users 1 and 2 said "fixed" in the new check; the 3 old "still there" votes are spent.
+    assert (state.still_there_votes, state.fixed_votes) == (0, 2)
+
+
+def test_mixed_votes_need_three_on_one_side():
+    reported = [day(100)]
+    answers = votes((10, 1, True), (9, 2, False), (8, 3, True), (7, 4, False))
+
+    state = issue_state(reported, answers, NOW)
+
+    assert state.needs_check is True
+    assert (state.still_there_votes, state.fixed_votes) == (2, 2)
+
+
+def test_no_rating_names_the_issue():
+    assert issue_state([], [], NOW) is None

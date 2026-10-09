@@ -650,3 +650,31 @@ body {
 .reason-group button.on {
   border-color: currentcolor;
 }
+
+/* "Ist das noch so?" for an issue nobody confirmed for two months. */
+
+.issue-check {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 0 8px;
+  font-weight: 400;
+}
+
+.issue-check-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-weight: 600;
+}
+
+.issue-check-buttons button {
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 0.95rem;
+  background: white;
+  border: 2px solid #d5d8de;
+  border-radius: 8px;
+  cursor: pointer;
+}

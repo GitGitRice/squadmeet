@@ -164,3 +164,26 @@ class Rating(SQLModel, table=True):
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     # Set again when the user changes the Rating; the Condition counts only recent ones.
     updated_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
+class ConditionVote(SQLModel, table=True):
+    """A user's answer to "Ist das noch so?" for an issue of a Place (SCRUM-31, app/ratings.py).
+
+    Only stored, never changed: the open check and its result are worked out from the votes.
+    """
+
+    __tablename__ = "condition_vote"
+    __table_args__ = (Index("ix_condition_vote_place_reason", "place_id", "reason_key"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(
+        sa_column=Column(ForeignKey("place.id", ondelete="CASCADE"), nullable=False)
+    )
+    # A condition_issue key from app/reasons.py.
+    reason_key: str
+    user_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    # True = the issue is still there; False = it is fixed.
+    still_there: bool
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))

@@ -22,7 +22,26 @@ const rated: RatingSummary = {
   top_reasons: [{ key: 'table_good', label: 'Platte in gutem Zustand', positive: true, count: 2 }],
   condition: {
     state: 'issues',
-    issues: [{ key: 'net_missing', label: 'Netz fehlt oder ist kaputt', positive: false, count: 1 }],
+    issues: [
+      {
+        key: 'net_missing',
+        label: 'Netz fehlt oder ist kaputt',
+        positive: false,
+        count: 1,
+        needs_check: false,
+        still_there_votes: 0,
+        fixed_votes: 0,
+      },
+    ],
+  },
+}
+
+// The same issue, two months later: users are asked about it.
+const unconfirmed: RatingSummary = {
+  ...rated,
+  condition: {
+    state: 'issues',
+    issues: [{ ...rated.condition.issues[0], needs_check: true, still_there_votes: 1, fixed_votes: 0 }],
   },
 }
 
@@ -45,6 +64,10 @@ function api(summary: RatingSummary, mine: unknown = null) {
       return Response.json({ place_id: 3, ...JSON.parse(String(init.body)), updated_at: 'now' })
     }
     if (url.endsWith('/ratings/mine')) return Response.json(mine)
+    if (url.endsWith('/check')) {
+      const issue = { ...unconfirmed.condition.issues[0], still_there_votes: 2 }
+      return Response.json({ ...unconfirmed, condition: { state: 'issues', issues: [issue] } })
+    }
     return Response.json(summary)
   })
   vi.stubGlobal('fetch', fetchMock)
@@ -130,5 +153,40 @@ describe('PlaceRatings', () => {
     expect(container.querySelector('[aria-label="2 Sterne"]')!.getAttribute('aria-pressed')).toBe('true')
     expect(button(container, 'Netz fehlt')!.getAttribute('aria-pressed')).toBe('true')
     expect(button(container, 'Platte in gutem')!.getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('asks "Ist das noch so?" only for an issue not confirmed for two months', async () => {
+    api(rated)
+    expect(button(await render(paula), 'Ja, noch so')).toBeUndefined()
+
+    document.body.innerHTML = ''
+    api(unconfirmed)
+    const container = await render(paula)
+    expect(container.textContent).toContain('Seit über 2 Monaten nicht bestätigt')
+    expect(container.textContent).toContain('Noch so: 1/3')
+  })
+
+  it('sends the answer and shows the new count', async () => {
+    saveToken('tok')
+    const fetchMock = api(unconfirmed)
+    const container = await render(paula)
+
+    await click(button(container, 'Ja, noch so'))
+
+    const [url, init] = fetchMock.mock.calls.find(([u]) => u.endsWith('/check'))!
+    expect(url).toBe('/api/places/3/condition/net_missing/check')
+    expect(JSON.parse(String(init!.body))).toEqual({ still_there: true })
+    expect(container.textContent).toContain('Noch so: 2/3')
+    expect(container.textContent).toContain('Danke für deine Antwort')
+  })
+
+  it('asks a guest to log in before answering', async () => {
+    api(unconfirmed)
+    const onLoginNeeded = vi.fn()
+    const container = await render(null, onLoginNeeded)
+
+    await click(button(container, 'Nein, behoben'))
+
+    expect(onLoginNeeded).toHaveBeenCalledOnce()
   })
 })
