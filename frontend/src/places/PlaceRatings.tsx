@@ -54,22 +54,33 @@ type CheckProps = {
   onVote: (stillThere: boolean) => void
 }
 
-// "Ist das noch so?" for an issue that nobody confirmed for two months.
+// "Behoben" for every issue, at any time; "Ist das noch so?" once nobody confirmed it for two
+// months.
 function IssueCheck({ issue, voted, busy, onVote }: CheckProps) {
   return (
     <div className="issue-check">
-      <span className="hint">
-        Seit über 2 Monaten nicht bestätigt. Noch so: {issue.still_there_votes}/{VOTES_NEEDED} ·
-        Behoben: {issue.fixed_votes}/{VOTES_NEEDED}
-      </span>
+      {issue.needs_check ? (
+        <span className="hint">
+          Seit über 2 Monaten nicht bestätigt. Noch so: {issue.still_there_votes}/{VOTES_NEEDED} ·
+          Behoben: {issue.fixed_votes}/{VOTES_NEEDED}
+        </span>
+      ) : (
+        issue.fixed_votes > 0 && (
+          <span className="hint">
+            Behoben: {issue.fixed_votes}/{VOTES_NEEDED}
+          </span>
+        )
+      )}
       {voted ? (
         <span className="hint">Danke für deine Antwort!</span>
       ) : (
         <span className="issue-check-buttons">
-          Ist das noch so?
-          <button type="button" disabled={busy} onClick={() => onVote(true)}>
-            Ja, noch so
-          </button>
+          {issue.needs_check ? 'Ist das noch so?' : 'Schon repariert?'}
+          {issue.needs_check && (
+            <button type="button" disabled={busy} onClick={() => onVote(true)}>
+              Ja, noch so
+            </button>
+          )}
           <button type="button" disabled={busy} onClick={() => onVote(false)}>
             Nein, behoben
           </button>
@@ -101,14 +112,12 @@ function ConditionLine({ summary, voted, busy, onVote }: ConditionProps) {
         {issues.map((issue) => (
           <li key={issue.key}>
             {issue.label} ({issue.count}×)
-            {issue.needs_check && (
-              <IssueCheck
-                issue={issue}
-                voted={voted.has(issue.key)}
-                busy={busy}
-                onVote={(stillThere) => onVote(issue, stillThere)}
-              />
-            )}
+            <IssueCheck
+              issue={issue}
+              voted={voted.has(issue.key)}
+              busy={busy}
+              onVote={(stillThere) => onVote(issue, stillThere)}
+            />
           </li>
         ))}
       </ul>

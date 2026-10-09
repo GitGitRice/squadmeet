@@ -9,9 +9,13 @@ The Condition comes only from the Reasons that the city or the operator must fix
 
 - For RECENT_DAYS after the last Rating that names it, the issue simply counts.
 - Then a check opens: the Place detail shows the issue as "not confirmed" and asks logged-in
-  users "Ist das noch so?". Each user has one vote per check; a later vote replaces their own.
-- VOTES_NEEDED votes "still there" confirm it for another RECENT_DAYS, from the last of them.
-- VOTES_NEEDED votes "fixed" end it, until a new or changed Rating names it again.
+  users "Ist das noch so?". VOTES_NEEDED votes "still there" confirm it for another
+  RECENT_DAYS, from the last of them.
+- "Fixed" can be said at any time, so a repair does not wait for the check (Stefan,
+  2026-10-09). VOTES_NEEDED votes "fixed" end the issue, until a new or changed Rating names
+  it again.
+- Votes count in a round: from the last report or confirmation on. Each user has one vote per
+  round; a later vote replaces their own.
 
 Nothing is stored about checks except the votes: the state is worked out from the Ratings and
 the votes each time (`issue_state`), so two votes at the same moment cannot break it.
@@ -58,7 +62,7 @@ class IssueRead(ReasonCount):
 
     # True when it was not confirmed for RECENT_DAYS and users are asked "Ist das noch so?".
     needs_check: bool
-    # The votes of the open check so far (0 when no check is open).
+    # The votes of the current round so far ("fixed" can come before the check opens).
     still_there_votes: int
     fixed_votes: int
 
@@ -132,8 +136,10 @@ def issue_state(
     confirmed = max(reported)
     round_votes: dict[int, bool] = {}
     for vote in sorted(votes, key=lambda v: (v.created_at, v.id or 0)):
-        if vote.created_at <= max(reported) or vote.created_at < confirmed + window:
-            continue  # no check was open then
+        if vote.created_at <= confirmed:
+            continue  # from an earlier round
+        if vote.still_there and vote.created_at < confirmed + window:
+            continue  # "still there" only counts while a check is open
         round_votes[vote.user_id] = vote.still_there
         still_there = sum(round_votes.values())
         if still_there >= VOTES_NEEDED:
@@ -265,7 +271,9 @@ def vote_on_issue(
     user: User = Depends(current_user),
     session: Session = Depends(get_session),
 ):
-    """Answer "Ist das noch so?" for an issue whose check is open. Returns the new summary."""
+    """"Fixed" for an issue at any time, "still there" while its check is open.
+
+    Returns the new summary."""
     place = get_place(session, place_id)
     summary = load_summary(session, place)
     issue = next((i for i in summary.condition.issues if i.key == reason_key), None)
@@ -273,7 +281,7 @@ def vote_on_issue(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Diesen Mangel gibt es hier nicht"
         )
-    if not issue.needs_check:
+    if body.still_there and not issue.needs_check:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Dieser Mangel wurde erst vor Kurzem bestätigt",

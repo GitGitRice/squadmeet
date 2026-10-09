@@ -235,8 +235,8 @@ def test_three_users_confirm_an_issue_for_two_more_months(client, session, place
     issue = the_issue(client, place.id)
     assert issue["needs_check"] is False
     assert (issue["still_there_votes"], issue["fixed_votes"]) == (0, 0)
-    # Confirmed: no check is open, so nobody can vote until two months later.
-    assert vote(client, tokens[0], place.id, still_there=False).status_code == 409
+    # Confirmed: no check is open, so "still there" waits two months; "fixed" is always open.
+    assert vote(client, tokens[0], place.id, still_there=True).status_code == 409
 
 
 def test_three_users_say_fixed_and_the_issue_ends(client, session, place, paula):
@@ -274,15 +274,34 @@ def test_a_new_rating_brings_a_fixed_issue_back(client, session, place, paula, k
     assert issue["needs_check"] is False
 
 
-def test_voting_needs_a_login_and_an_open_check(client, place, paula):
+def test_voting_needs_a_login(client, place, paula):
     rate(client, paula[0], place.id, reasons=["net_missing"])
 
     no_login = client.post(
-        f"/api/places/{place.id}/condition/net_missing/check", json={"still_there": True}
+        f"/api/places/{place.id}/condition/net_missing/check", json={"still_there": False}
     )
+
     assert no_login.status_code == 401
+    assert vote(client, paula[0], place.id, False, key="litter").status_code == 404
+
+
+def test_still_there_needs_an_open_check(client, place, paula):
+    rate(client, paula[0], place.id, reasons=["net_missing"])
+
     assert vote(client, paula[0], place.id, still_there=True).status_code == 409
-    assert vote(client, paula[0], place.id, True, key="litter").status_code == 404
+
+
+def test_fixed_can_be_said_before_the_check(client, place, paula):
+    rate(client, paula[0], place.id, reasons=["net_missing"])
+    tokens = voters(client, VOTES_NEEDED)
+
+    assert vote(client, tokens[0], place.id, still_there=False).status_code == 200
+    issue = the_issue(client, place.id)
+    assert (issue["needs_check"], issue["fixed_votes"]) == (False, 1)
+
+    for token in tokens[1:]:
+        vote(client, token, place.id, still_there=False)
+    assert the_issue(client, place.id) is None
 
 
 # The rules over a longer time, without the API: Ratings and votes at chosen days.
@@ -333,6 +352,25 @@ def test_mixed_votes_need_three_on_one_side():
 
     assert state.needs_check is True
     assert (state.still_there_votes, state.fixed_votes) == (2, 2)
+
+
+def test_a_fixed_vote_before_the_check_still_counts_in_it():
+    reported = [day(100)]
+    answers = votes((90, 1, False), (5, 2, True), (4, 3, False))
+
+    state = issue_state(reported, answers, NOW)
+
+    assert state.needs_check is True
+    assert (state.still_there_votes, state.fixed_votes) == (1, 2)
+
+
+def test_a_confirmation_drops_the_fixed_votes_before_it():
+    reported = [day(200)]
+    answers = votes((190, 4, False), (132, 1, True), (131, 2, True), (130, 3, True))
+
+    state = issue_state(reported, answers, NOW)
+
+    assert (state.still_there_votes, state.fixed_votes) == (0, 0)
 
 
 def test_no_rating_names_the_issue():

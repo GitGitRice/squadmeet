@@ -157,7 +157,11 @@ describe('PlaceRatings', () => {
 
   it('asks "Ist das noch so?" only for an issue not confirmed for two months', async () => {
     api(rated)
-    expect(button(await render(paula), 'Ja, noch so')).toBeUndefined()
+    const fresh = await render(paula)
+    expect(button(fresh, 'Ja, noch so')).toBeUndefined()
+    // "Behoben" is open at any time, so a repair does not wait two months.
+    expect(fresh.textContent).toContain('Schon repariert?')
+    expect(button(fresh, 'Nein, behoben')).toBeDefined()
 
     document.body.innerHTML = ''
     api(unconfirmed)
