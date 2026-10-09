@@ -20,6 +20,7 @@ import { filterPlaces } from './places/filter'
 import { placeIcon, spotIcon } from './places/markers'
 import PlaceDetail from './places/PlaceDetail'
 import PlaceMeetups from './places/PlaceMeetups'
+import PlaceRatings from './places/PlaceRatings'
 import { placeIdFromPath, placePath, usePath } from './places/route'
 import { groupBySpot } from './places/spots'
 
@@ -201,15 +202,20 @@ export default function App() {
           onRetry={() => setDetailTry((n) => n + 1)}
           onClose={() => navigate('/')}
         >
-          {selectedId !== null && (
-            <PlaceMeetups
-              key={selectedId}
-              placeId={selectedId}
-              user={user}
-              onLoginNeeded={() => setShowAuth(true)}
-              onChanged={reloadPlaces}
-            />
-          )}
+          <PlaceMeetups
+            key={selectedId}
+            placeId={selectedId}
+            user={user}
+            onLoginNeeded={() => setShowAuth(true)}
+            onChanged={reloadPlaces}
+          />
+          {/* A new key per user, so a logout does not keep the old user's own Rating. */}
+          <PlaceRatings
+            key={`${selectedId}-${user?.id ?? 'guest'}`}
+            placeId={selectedId}
+            user={user}
+            onLoginNeeded={() => setShowAuth(true)}
+          />
         </PlaceDetail>
       )}
       <MapContainer center={LEIPZIG} zoom={13} minZoom={MIN_ZOOM} style={{ height: '100%' }}>
