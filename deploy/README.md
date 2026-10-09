@@ -14,6 +14,7 @@ browser ──HTTPS──▶ web (Caddy: built React app + /api/* → backend) �
 | [host-deploy.sh](host-deploy.sh) | Runs on the host: writes `.env`, logs in to GHCR, pulls the images, restarts the stack |
 | [deploy.sh](deploy.sh) | Runs on your laptop or in CI: sends `compose.yml` + `host-deploy.sh` through SSM, runs them with one image tag, then the smoke test |
 | [setup-github-deploy.sh](setup-github-deploy.sh) | Creates the GitHub OIDC provider and the IAM role `squadmeet-github-deploy` for the automatic deploy |
+| [setup-turnstile.sh](setup-turnstile.sh) | Wizard: makes the Cloudflare Turnstile widget (captcha, `SCRUM-27`) and stores its keys in SSM |
 | [ec2-user-data.sh](ec2-user-data.sh) | First boot of the EC2 host: Docker, Compose plugin (fixed version, checksum checked), 2 GB swap file |
 | [../frontend/Caddyfile](../frontend/Caddyfile) | Caddy: HTTPS certificate, the static files, the proxy to the API |
 
@@ -34,7 +35,9 @@ before (by the name `squadmeet`) and keeps the values in `.env.aws` (not in git)
    It counts costs before credits.
 3. **DuckDNS:** you make the subdomain and copy the token.
 4. **Secrets** in SSM Parameter Store: `/squadmeet/ghcr-token` (a classic GitHub token with only
-   `read:packages`), `/squadmeet/ghcr-user`, `/squadmeet/postgres-password` (random, made once).
+   `read:packages`), `/squadmeet/ghcr-user`, `/squadmeet/postgres-password` (random, made once),
+   `/squadmeet/turnstile-site-key` and `/squadmeet/turnstile-secret-key` (the captcha, `SCRUM-27`;
+   see [Captcha keys](#captcha-keys-turnstile)).
 5. **Firewall** `squadmeet-web` (only TCP 80, TCP 443 and UDP 443) and the **IAM role**
    `squadmeet-ec2` (SSM may run commands; the host may read `/squadmeet/*`).
 6. **EC2** `t2.micro` (Free Tier eligible; `t3.micro` is not in this account), Amazon Linux 2023, 20 GB, CPU credits "standard", and an **Elastic IP**.
@@ -106,3 +109,23 @@ The NAS needs Docker with Compose and ports 80 and 443 forwarded from the router
 4. Point the DuckDNS subdomain to the home IP (a DuckDNS update job if the IP changes), then
    `docker compose up -d`.
 5. Stop the EC2 instance and release the Elastic IP, so they cost nothing more.
+
+## Captcha keys (Turnstile)
+
+The backend checks a Cloudflare Turnstile token at registration and after 3 failed logins
+(`SCRUM-27`). It needs two keys. `host-deploy.sh` reads them from SSM, and the deploy stops
+when they are missing.
+
+Locally and in CI, Cloudflare's public test keys are used (`docker-compose.yml`), so the widget
+always passes. For the real keys, run the wizard once:
+
+```bash
+deploy/setup-turnstile.sh
+```
+
+It checks the AWS login, opens the Cloudflare dashboard and says what to click (widget `squadmeet`,
+hostname `squadmeet.duckdns.org`, mode Managed). It checks the secret key with Cloudflare, then
+stores both keys in SSM. Run it again to replace the keys, for example at the handover to Stefan
+(`SCRUM-48`). The keys take effect at the next deploy.
+
+The host's IAM role may already read `/squadmeet/*`, so nothing else changes.

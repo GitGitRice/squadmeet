@@ -28,6 +28,8 @@ IMAGE_TAG=$IMAGE_TAG
 POSTGRES_USER=squadmeet
 POSTGRES_DB=squadmeet
 POSTGRES_PASSWORD=$(param /squadmeet/postgres-password)
+TURNSTILE_SITE_KEY=$(param /squadmeet/turnstile-site-key)
+TURNSTILE_SECRET_KEY=$(param /squadmeet/turnstile-secret-key)
 EOF
 
 param /squadmeet/ghcr-token | docker login ghcr.io -u "$(param /squadmeet/ghcr-user)" --password-stdin

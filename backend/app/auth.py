@@ -1,5 +1,5 @@
-"""Register, log in, log out (SCRUM-22), MFA with an authenticator app (SCRUM-26).
-No email address (ADR-0005).
+"""Register, log in, log out (SCRUM-22), MFA with an authenticator app (SCRUM-26),
+captcha and rate limits (SCRUM-27). No email address (ADR-0005).
 
 Passwords are hashed with Argon2: people choose weak passwords, so the hash must be slow.
 Recovery codes and session tokens are long random values, so a fast SHA-256 hash is enough.
@@ -9,12 +9,13 @@ import hashlib
 import hmac
 import re
 import secrets
+import os
 import time
 from datetime import UTC, datetime, timedelta
 
 import pyotp
 import segno
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pwdlib import PasswordHash
 from pydantic import BaseModel, Field, field_validator
@@ -24,6 +25,8 @@ from sqlmodel import Session, select
 
 from app.db import get_session
 from app.models import LoginSession, RecoveryCode, User
+from app.rate_limit import RateLimit
+from app.turnstile import Verifier, client_ip, require_captcha, turnstile_verifier
 
 # The predefined Avatars. The frontend shows a picture for each key.
 AVATARS = (
@@ -39,6 +42,18 @@ MFA_ISSUER = "Squadmeet"
 # A code of the step before or after the current one is accepted too (clock drift, slow typing).
 MFA_VALID_STEPS = 1
 MFA_REQUIRED = "mfa_required"
+# From this many failed logins on, login also needs the captcha. The answer without a valid
+# captcha token is 401 with this detail; the dialog then shows the widget.
+CAPTCHA_AFTER_FAILED_LOGINS = 3
+CAPTCHA_REQUIRED = "captcha_required"
+CAPTCHA_FAILED = "Bitte bestätige, dass du kein Bot bist."
+
+# Login attempts per IP address, right or wrong. Generous enough for a room of people behind
+# one router; a password guesser gets 600 tries per hour instead of thousands per minute.
+login_per_ip = RateLimit(limit=10, window_seconds=60)
+# Attempts to turn MFA off per user. It asks for password and code, so a stolen session
+# token must not become an unlimited guessing machine for both (Stefan's review of SCRUM-26).
+mfa_disable_per_user = RateLimit(limit=5, window_seconds=15 * 60)
 
 password_hash = PasswordHash.recommended()
 bearer = HTTPBearer(auto_error=False)
@@ -74,6 +89,8 @@ class RegisterRequest(BaseModel):
     password: str = Field(min_length=8, max_length=128)
     avatar: str
     is_adult: bool
+    # From the Turnstile widget. Optional here, so a missing token gets the captcha message.
+    turnstile_token: str | None = None
 
     @field_validator("avatar")
     @classmethod
@@ -95,6 +112,8 @@ class LoginRequest(BaseModel):
     password: str
     # Needed when MFA is on: a 6-digit code from the authenticator app or a Recovery code.
     code: str | None = None
+    # Needed after CAPTCHA_AFTER_FAILED_LOGINS failed logins.
+    turnstile_token: str | None = None
 
 
 class LoginResponse(BaseModel):
@@ -180,6 +199,15 @@ def end_other_sessions(session: Session, login: LoginSession) -> None:
     )
 
 
+def count_failed_login(session: Session, user: User) -> None:
+    """One more failed login. Committed at once, because the request then ends with an error.
+    The increment runs in the database, so parallel failures all count."""
+    session.exec(
+        update(User).where(User.id == user.id).values(failed_logins=User.failed_logins + 1)
+    )
+    session.commit()
+
+
 def current_login(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
     session: Session = Depends(get_session),
@@ -220,8 +248,26 @@ def require_admin(user: User = Depends(current_user)) -> User:
     return user
 
 
+class CaptchaConfig(BaseModel):
+    # The public key for the Turnstile widget; null when the server has none set.
+    site_key: str | None
+
+
+@router.get("/captcha", response_model=CaptchaConfig)
+def captcha_config():
+    """The site key comes from the server, so one frontend image works with test and real keys."""
+    return CaptchaConfig(site_key=os.environ.get("TURNSTILE_SITE_KEY"))
+
+
 @router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
-def register(body: RegisterRequest, session: Session = Depends(get_session)):
+def register(
+    body: RegisterRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+    verify_captcha: Verifier = Depends(turnstile_verifier),
+):
+    # First, so a bot gets no answer about Nicknames and costs no password hash.
+    require_captcha(verify_captcha, body.turnstile_token, request, CAPTCHA_FAILED)
     nickname_taken = HTTPException(
         status_code=status.HTTP_409_CONFLICT, detail="Dieser Nickname ist schon vergeben"
     )
@@ -253,24 +299,43 @@ def register(body: RegisterRequest, session: Session = Depends(get_session)):
 
 
 @router.post("/login", response_model=LoginResponse)
-def login(body: LoginRequest, session: Session = Depends(get_session)):
+def login(
+    body: LoginRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+    verify_captcha: Verifier = Depends(turnstile_verifier),
+):
+    login_per_ip.hit(client_ip(request))
     user = session.exec(
         select(User).where(func.lower(User.nickname) == body.nickname.lower())
     ).first()
+    # Before the password check: after 3 failures, no more guesses without the captcha.
+    if user is not None and user.failed_logins >= CAPTCHA_AFTER_FAILED_LOGINS:
+        if not verify_captcha(body.turnstile_token, client_ip(request)):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail=CAPTCHA_REQUIRED
+            )
     # The same answer for an unknown Nickname and a wrong password.
     if user is None or not password_hash.verify(body.password, user.password_hash):
+        if user is not None:
+            count_failed_login(session, user)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Nickname oder Passwort falsch"
         )
     if user.mfa_enabled_at is not None:
         # Only after the right password, so this answer tells nothing to a guesser.
+        # It does not count as a failure: the dialog always asks like this first.
         if not body.code:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=MFA_REQUIRED)
         if not (
             check_totp(session, user, body.code)
             or use_recovery_code(session, user, body.code)
         ):
+            # Wrong codes count too, so a guesser who knows the password needs the captcha
+            # for each of the ~330,000 tries (Stefan's review of SCRUM-26).
+            count_failed_login(session, user)
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Code falsch")
+    user.failed_logins = 0
     token = start_session(session, user)
     session.commit()
     return LoginResponse(token=token, user=to_read(user))
@@ -356,6 +421,7 @@ def mfa_disable(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Zwei-Faktor-Anmeldung ist schon aus"
         )
+    mfa_disable_per_user.hit(user.id)
     if not password_hash.verify(body.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwort falsch")
     if not (

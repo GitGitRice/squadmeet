@@ -678,3 +678,8 @@ body {
   border-radius: 8px;
   cursor: pointer;
 }
+
+/* The Turnstile widget is 65 px high; keep its place so the form does not jump (SCRUM-27). */
+.captcha {
+  min-height: 65px;
+}
