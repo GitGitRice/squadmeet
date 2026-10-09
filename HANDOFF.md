@@ -7,7 +7,7 @@ debugging case.
 Each person's own progress (*Now*, *In flight*, *Next*, *Log*) is in **`HANDOFF.local.md`**.
 That file is not in git (`.gitignore`), because each person's progress differs.
 
-**Last update:** 2026-10-09 · Steven · `SCRUM-26` decision (MFA on/off after review)
+**Last update:** 2026-10-09 · Stefan · `SCRUM-31` decisions (Ratings, Condition)
 
 ---
 
@@ -158,6 +158,8 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 
 | Date | Decision | Why | Where |
 |------|----------|-----|-------|
+| 2026-10-09 | Condition = `unknown` (no Rating changed in the last 60 days), `good` (recent Ratings name no `condition_issue` Reason) or `issues` (the list of those Reasons with counts). A changed Rating counts as recent again. Average stars and the top 3 Reasons count all Ratings | A repaired net should stop showing after a while; a Place with only old Ratings should not claim to be fine. 60 days and top 3 are constants in `ratings.py` (`RECENT_DAYS`, `TOP_REASONS`) | `SCRUM-31`, [backend/app/ratings.py](backend/app/ratings.py) |
+| 2026-10-09 | A Rating is saved with `PUT /api/places/{id}/ratings/mine`, one `INSERT … ON CONFLICT DO UPDATE` on (place, user). The Reasons are a `text[]` column, checked against the Place's Activity type | One Rating per user per Place without a race; a few Ratings per Place are counted in Python, so no extra table | `SCRUM-31` |
 | 2026-10-09 | Turning MFA on logs out all other devices of the user. Turning MFA off needs the password again, plus a code from the app or a Recovery code. A code is used up by a conditional `UPDATE` in the database, not by read-check-write | Stefan's review of PR #29: an old device must not stay logged in without a code; a stolen session token alone must not turn MFA off; two requests with the same code at the same moment must not both pass | `SCRUM-26`, [backend/app/auth.py](backend/app/auth.py) |
 | 2026-10-08 | MFA login uses one endpoint: `POST /api/auth/login` takes an optional `code`. With MFA on and no valid code, the answer is 401 with `detail` = `mfa_required`; the dialog then asks for the code and sends the password again with it. The `code` can be a 6-digit TOTP code or a Recovery code (used up) | No ticket table and no second endpoint. The password stays only in the dialog's memory | `SCRUM-26`, [backend/app/auth.py](backend/app/auth.py) |
 | 2026-10-08 | Admin = column `app_user.is_admin`. Only a command sets it: `docker compose exec backend python -m app.admin grant <Nickname>`. Admin routes need `is_admin` **and** MFA on, else 403 | No Admin UI needed for a 2-person team. A command checks the Nickname, so no typo in hand-written SQL | `SCRUM-26`, `SCRUM-39` (Admin functions) |

@@ -1,0 +1,51 @@
+// Ratings (SCRUM-31): the API of backend/app/ratings.py.
+
+import { answer } from './http'
+
+export type Reason = { key: string; label: string; positive: boolean }
+
+export type ReasonCount = Reason & { count: number }
+
+export type Condition = {
+  // unknown = no recent Rating; good = recent Ratings name no problem; issues = they do.
+  state: 'unknown' | 'good' | 'issues'
+  issues: ReasonCount[]
+}
+
+export type RatingSummary = {
+  count: number
+  // null while nobody rated the Place.
+  average_stars: number | null
+  top_reasons: ReasonCount[]
+  condition: Condition
+}
+
+export type Rating = { place_id: number; stars: number; reasons: string[]; updated_at: string }
+
+export type RatingInput = { stars: number; reasons: string[] }
+
+export async function fetchReasons(placeId: number): Promise<Reason[]> {
+  return answer(await fetch(`/api/places/${placeId}/reasons`), 'GET reasons')
+}
+
+export async function fetchRatingSummary(placeId: number): Promise<RatingSummary> {
+  return answer(await fetch(`/api/places/${placeId}/ratings`), 'GET ratings')
+}
+
+/** The user's own Rating of the Place, or null. */
+export async function fetchMyRating(token: string, placeId: number): Promise<Rating | null> {
+  const response = await fetch(`/api/places/${placeId}/ratings/mine`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return answer(response, 'GET my rating')
+}
+
+/** Rates the Place, or replaces the user's earlier Rating of it. */
+export async function saveRating(token: string, placeId: number, input: RatingInput): Promise<Rating> {
+  const response = await fetch(`/api/places/${placeId}/ratings/mine`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(input),
+  })
+  return answer(response, 'PUT rating')
+}
