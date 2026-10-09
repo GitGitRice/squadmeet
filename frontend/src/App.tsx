@@ -20,6 +20,7 @@ import { filterPlaces } from './places/filter'
 import { placeIcon, spotIcon } from './places/markers'
 import PlaceDetail from './places/PlaceDetail'
 import PlaceMeetups from './places/PlaceMeetups'
+import SuggestPlaceDialog from './places/SuggestPlaceDialog'
 import { placeIdFromPath, placePath, usePath } from './places/route'
 import { groupBySpot } from './places/spots'
 
@@ -73,6 +74,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null)
   const [showAuth, setShowAuth] = useState(false)
   const [showMfa, setShowMfa] = useState(false)
+  const [showSuggest, setShowSuggest] = useState(false)
   const [chosen, setChosen] = useState<Set<ActivityType>>(() => new Set(ACTIVITY_TYPES))
   const [path, navigate] = usePath()
   const selectedId = placeIdFromPath(path)
@@ -153,11 +155,23 @@ export default function App() {
     setShowAuth(false)
   }
 
+  function startSuggesting() {
+    if (user) setShowSuggest(true)
+    else setShowAuth(true)
+  }
+
+  function openFromSuggest(id: number) {
+    setShowSuggest(false)
+    reloadPlaces()
+    openPlace(id)
+  }
+
   async function handleLogout() {
     const token = loadToken()
     clearToken()
     setUser(null)
     setShowMfa(false)
+    setShowSuggest(false)
     if (token) await logout(token).catch(() => {})
   }
 
@@ -193,6 +207,17 @@ export default function App() {
           onClose={() => setShowMfa(false)}
         />
       )}
+      {showSuggest && user && (
+        <SuggestPlaceDialog
+          token={loadToken() ?? ''}
+          onCreated={(place) => openFromSuggest(place.id)}
+          onOpenPlace={openFromSuggest}
+          onClose={() => setShowSuggest(false)}
+        />
+      )}
+      <button type="button" className="suggest-button" onClick={startSuggesting}>
+        ＋ Platz vorschlagen
+      </button>
       <ActivityFilter chosen={chosen} onChange={setChosen} />
       {selectedId !== null && (
         <PlaceDetail
@@ -227,7 +252,7 @@ export default function App() {
               <Marker
                 key={place.id}
                 position={[spot.lat, spot.lon]}
-                icon={placeIcon(place.activity_type, isSelected, place.people_now)}
+                icon={placeIcon(place.activity_type, isSelected, place.people_now, place.is_suggestion)}
                 title={place.name}
                 eventHandlers={{ click: () => openPlace(place.id) }}
               />

@@ -1,15 +1,15 @@
 import os
-from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response
 from sqlalchemy import func
 from sqlmodel import Session, select
 
 from app.auth import router as auth_router
-from app.meetups import is_active
 from app.meetups import router as meetups_router
 from app.db import get_session
-from app.models import Meetup, Place, PlaceRead
+from app.models import Place, PlaceRead
+from app.place_reads import select_place_reads
+from app.suggestions import router as suggestions_router
 
 app = FastAPI(title="SquadMeet API")
 api = APIRouter(prefix="/api")
@@ -20,23 +20,6 @@ def health():
     # APP_VERSION is the commit SHA of the image (backend/Dockerfile). The deploy smoke
     # test waits for it, so an old container that still answers does not pass (SCRUM-23).
     return {"status": "ok", "version": os.environ.get("APP_VERSION", "local")}
-
-
-def select_place_reads():
-    """The columns of a PlaceRead: the PostGIS point as lat and lon, and the people there now."""
-    people_now = (
-        select(func.coalesce(func.sum(Meetup.party_size), 0))
-        .where(Meetup.place_id == Place.id, is_active(datetime.now(UTC)))
-        .scalar_subquery()
-    )
-    return select(
-        Place.id,
-        Place.name,
-        Place.activity_type,
-        func.ST_Y(Place.location).label("lat"),
-        func.ST_X(Place.location).label("lon"),
-        people_now.label("people_now"),
-    )
 
 
 # A whole city is about 700 Places; more than this only happens when the map is zoomed far out.
@@ -95,4 +78,5 @@ def get_place(place_id: int, session: Session = Depends(get_session)):
 
 api.include_router(auth_router)
 api.include_router(meetups_router)
+api.include_router(suggestions_router)
 app.include_router(api)

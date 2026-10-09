@@ -15,7 +15,7 @@ export type Meetup = {
 
 export type NowMeetupInput = { place_id: number; hours: number; party_size: number }
 
-async function answer<T>(response: Response, what: string): Promise<T> {
+export async function answer<T>(response: Response, what: string): Promise<T> {
   if (!response.ok) {
     let detail = `${what} failed: ${response.status}`
     try {

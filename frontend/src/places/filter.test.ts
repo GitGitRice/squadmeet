@@ -10,6 +10,8 @@ const place = (id: number, activity_type: string): Place => ({
   lat: 0,
   lon: 0,
   people_now: 0,
+  is_suggestion: false,
+  confirmations: 0,
 })
 const places = [place(1, 'table_tennis'), place(2, 'basketball'), place(3, 'football')]
 
