@@ -87,7 +87,9 @@ _Avoid_: comment, tag
 **Condition** (Zustand):
 The state of a Place, derived from the negative Reasons in recent Ratings that name a problem the
 city or the operator must fix (broken or missing equipment, litter, broken glass, standing water).
-Negative Reasons such as "Oft überfüllt" do not change it.
+Negative Reasons such as "Oft überfüllt" do not change it. An issue that nobody confirmed for
+two months stays, and users are asked "Ist das noch so?"; three "still there" confirm it for two
+more months. Three "fixed", which users can say at any time, end it.
 _Avoid_: status, quality
 
 **Photo** (Foto):
@@ -101,7 +103,8 @@ The only name other users see, and the login name. Unique.
 _Avoid_: username, display name
 
 **Recovery code** (Wiederherstellungscode):
-A one-time code shown at registration that lets a user reset a forgotten password.
+A one-time code shown at registration that lets a user reset a forgotten password, or log in
+without the authenticator app when MFA is on.
 _Avoid_: backup code, reset link
 
 **Avatar**:

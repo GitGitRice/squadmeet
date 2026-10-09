@@ -125,6 +125,21 @@ body {
   color: #8a1c13;
 }
 
+.mfa-qr {
+  align-self: center;
+  width: 200px;
+  height: 200px;
+  image-rendering: pixelated;
+}
+
+.mfa-secret {
+  word-break: break-all;
+}
+
+.dialog label small {
+  color: #555;
+}
+
 .codes {
   display: grid;
   gap: 4px;
@@ -314,4 +329,357 @@ body {
   background: white;
   color: #1a5fb4;
   cursor: pointer;
+}
+
+/* SCRUM-29: Now-meetups. Red = someone is there now (agreed in the prototype, SCRUM-17). */
+
+.place-pin.live {
+  position: relative;
+  border-color: #c8102e;
+}
+
+.pin-badge {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  color: white;
+  background: #c8102e;
+  border-radius: 9px;
+}
+
+.spot-pin.live {
+  background: #c8102e;
+}
+
+.place-meetups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.place-meetups h3 {
+  margin: 4px 0 0;
+  font-size: 1rem;
+}
+
+.now-button {
+  min-height: 52px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  background: #c8102e;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.now-button:disabled {
+  opacity: 0.6;
+}
+
+.now-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.now-form .segments {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.now-form .segments legend {
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.now-form .segments button {
+  flex: 1;
+  min-height: 44px;
+  font-size: 1rem;
+  font-weight: 700;
+  background: white;
+  border: 2px solid #d5d8de;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.now-form .segments button.on {
+  color: white;
+  background: #16181d;
+  border-color: #16181d;
+}
+
+.stepper {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.stepper span {
+  flex: 1;
+  font-weight: 600;
+}
+
+.stepper button {
+  width: 44px;
+  height: 44px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  background: white;
+  border: 2px solid #d5d8de;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.stepper output {
+  min-width: 28px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.hint {
+  margin: 0;
+  color: #505663;
+}
+
+.link-button {
+  align-self: flex-start;
+  padding: 6px 0;
+  font-size: 1rem;
+  color: #1a5fb4;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.meetup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.meetup-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid #d5d8de;
+  border-left: 6px solid #c8102e;
+  border-radius: 10px;
+}
+
+.meetup-card .live {
+  padding: 1px 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: white;
+  background: #c8102e;
+  border-radius: 5px;
+}
+
+.meetup-people {
+  font-size: 1.1rem;
+}
+
+.meetup-card button {
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 0.95rem;
+  background: white;
+  border: 2px solid #d5d8de;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* SCRUM-31: Ratings. Gold = stars, green = a good Reason, orange = a Reason against. */
+
+.place-ratings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 6px;
+  border-top: 1px solid #e4e6ea;
+}
+
+.place-ratings h3 {
+  margin: 4px 0 0;
+  font-size: 1rem;
+}
+
+.place-ratings p {
+  margin: 0;
+}
+
+.rating-average .stars {
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+  color: #c98a00;
+}
+
+.reason-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reason-chips li {
+  padding: 4px 10px;
+  font-size: 0.9rem;
+  border-radius: 14px;
+}
+
+.reason-chips .good,
+.reason-group button.good.on {
+  color: #145a32;
+  background: #dff3e6;
+}
+
+.reason-chips .bad,
+.reason-group button.bad.on {
+  color: #7a3b00;
+  background: #fdebd8;
+}
+
+.reason-count {
+  font-weight: 700;
+}
+
+.condition.good {
+  color: #145a32;
+  font-weight: 600;
+}
+
+.condition.issues {
+  padding: 8px 12px;
+  color: #7a3b00;
+  background: #fff4e5;
+  border-left: 6px solid #e07b00;
+  border-radius: 8px;
+}
+
+.condition.issues p {
+  font-weight: 700;
+}
+
+.condition.issues ul {
+  margin: 4px 0 0;
+  padding-left: 20px;
+}
+
+.rate-button {
+  min-height: 48px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #16181d;
+  background: white;
+  border: 2px solid #16181d;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.rate-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.rating-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.star-picker,
+.reason-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.star-picker legend,
+.reason-group legend {
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.star-picker button {
+  width: 48px;
+  height: 48px;
+  font-size: 1.8rem;
+  line-height: 1;
+  color: #c4c8d0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.star-picker button.on {
+  color: #c98a00;
+}
+
+.reason-group button {
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 0.95rem;
+  background: white;
+  border: 2px solid #d5d8de;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.reason-group button.on {
+  border-color: currentcolor;
+}
+
+/* "Ist das noch so?" for an issue nobody confirmed for two months. */
+
+.issue-check {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 0 8px;
+  font-weight: 400;
+}
+
+.issue-check-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-weight: 600;
+}
+
+.issue-check-buttons button {
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 0.95rem;
+  background: white;
+  border: 2px solid #d5d8de;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* The Turnstile widget is 65 px high; keep its place so the form does not jump (SCRUM-27). */
+.captcha {
+  min-height: 65px;
 }

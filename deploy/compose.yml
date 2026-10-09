@@ -22,7 +22,13 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-    command: sh -c "alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+      # The captcha (SCRUM-27), from SSM Parameter Store.
+      TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:?}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:?}
+    # --forwarded-allow-ips: the client IP comes from Caddy's X-Forwarded-For (rate limit per
+    # IP, SCRUM-27). Safe here: only Caddy can reach the backend. Caddy replaces the header
+    # that a client sends, so a client cannot fake its address.
+    command: sh -c "alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000 --forwarded-allow-ips '*'"
     depends_on:
       db:
         condition: service_healthy

@@ -7,7 +7,7 @@ debugging case.
 Each person's own progress (*Now*, *In flight*, *Next*, *Log*) is in **`HANDOFF.local.md`**.
 That file is not in git (`.gitignore`), because each person's progress differs.
 
-**Last update:** 2026-10-08 · Steven · `SCRUM-23` decisions (automatic deploy)
+**Last update:** 2026-10-09 · Steven · `SCRUM-47` deploy role decision
 
 ---
 
@@ -87,8 +87,10 @@ Rules. Keep them short so everybody follows them.
 ### Sprints
 
 - **Sprint 1** ("SCRUM Sprint 1", sprint ID 1) — Wed 07.10. – Fri 09.10.: walking skeleton, `SCRUM-16` – `SCRUM-25`.
-- **Sprint 2** — Mon 12.10. – Fri 16.10. (feature freeze): `SCRUM-26` – `SCRUM-45`. Tickets not yet
-  moved into the sprint (sprint ID unknown; drag one ticket in, then an agent can move the rest).
+  **Done on 2026-10-08:** all tickets Done, the app deploys automatically from `main`. Sprint completed in Jira.
+- **Sprint 2** ("SCRUM Sprint 2", sprint ID 34) — created 2026-10-08 (Sprint 1 finished early), ends
+  Fri 16.10. (feature freeze). 21 tickets: `SCRUM-26` – `SCRUM-45` and `SCRUM-47`. An agent moves a
+  ticket in with `customfield_10020: 34`.
 - Sprints must be created in the Jira UI (the agent's Jira tools cannot create sprints). An agent
   reads a sprint ID from the `customfield_10020` (Sprint) field of an issue in that sprint.
 
@@ -110,6 +112,11 @@ Should since 2026-10-08 (`SCRUM-46`): `SCRUM-38` Series (Stefan); `SCRUM-30` sug
 Should: `SCRUM-40` in-app Notifications, `SCRUM-41` Favorites (Steven); `SCRUM-42` Photos,
 `SCRUM-32` Contacts + Block (Stefan). Could: `SCRUM-43` Contact notifications (Stefan), `SCRUM-44`
 web push, `SCRUM-45` Home area (Steven). Each ticket's "Blocked by" is a Jira link.
+In Jira (since 2026-10-08), each ticket has the label `must`, `should` or `could` and the priority
+High, Medium or Low to match. Change both when a ticket changes category. `SCRUM-47` (deploy role
+permissions) is a Must.
+`SCRUM-48` (handover: Stefan hosts and owns the repo, server, domain and Cloudflare) is the **last
+Must**: after the presentation on 21.10., blocked by all other Musts. It is in no sprint yet.
 
 "Blocked by" on `SCRUM-6` means only the walking skeleton, not the whole Epic. Stories come
 next; each owner writes them (for example with `/mattpocock-skills:to-tickets`).
@@ -128,6 +135,9 @@ next; each owner writes them (for example with `/mattpocock-skills:to-tickets`).
   branch to the issue.
 - **Commit message:** start with the key: `SCRUM-9 add build job`.
 - **Done means:** merged, and the pipeline is green. Not "works on my laptop".
+- **Manual tests go to `SCRUM-50`** (manual test of the whole app, Thu 15.10. / Fri 16.10.).
+  A feature ticket needs automated tests and a green pipeline, not a browser or phone check.
+  The PR lists what to test by hand, and the same list goes as a comment on `SCRUM-50`.
 - **Status flow:** To Do → In Progress → In Review → Done.
 - **Language:** [DIARY.md](DIARY.md) is in German. Everything else (code, commits, pull requests,
   docs) is in English.
@@ -153,6 +163,17 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 
 | Date | Decision | Why | Where |
 |------|----------|-----|-------|
+| 2026-10-09 | All manual tests (browser, phone, live site) move to `SCRUM-50`. A feature ticket is done with automated tests and a green pipeline. Each PR lists its manual checks; they go as a comment on `SCRUM-50` | Steven: browser checks cost time in every ticket and break on tool problems (a Chrome extension blocked the `SCRUM-33` check). One test round on the live site before the feature freeze tests the real setup once | this file → *Conventions*, `SCRUM-50` |
+| 2026-10-09 | Password reset (`POST /api/auth/password-reset`): Nickname + Recovery code (or the current MFA code, **only when MFA is on**) + new password + Turnstile on every try, 10 tries per hour per IP. It ends **all** old sessions and answers with a **new** session, so the user is logged in at once. Unknown Nickname and wrong code get the same 400 "Nickname oder Code falsch" | The ticket; ADR-0005 (no email). A new session saves a second MFA code: the one used for the reset works only once, so a login right after it would fail for up to 30 s. A set-up but unconfirmed MFA secret must not count | `SCRUM-33`, [backend/app/auth.py](backend/app/auth.py) |
+| 2026-10-09 | New Recovery codes (`POST /api/auth/recovery-codes`, logged in): need the password again, plus a code when MFA is on; 5 tries per 15 min per user. The old set is deleted, used or not. The button is in the "Zwei-Faktor" dialog for now; after `SCRUM-28` (privacy + delete account) is merged, it moves into its "Konto" dialog | A stolen session token alone must not get codes that reset the password or turn MFA off (same rule as turning MFA off). `SCRUM-28`'s branch is not in `dev` yet | `SCRUM-33`, [frontend/src/auth/RecoveryCodesDialog.tsx](frontend/src/auth/RecoveryCodesDialog.tsx) |
+| 2026-10-09 | An issue (a `condition_issue` Reason in a Rating) counts for 2 months (`RECENT_DAYS` = 60) after the last Rating that names it. Then it stays, marked "seit über 2 Monaten nicht bestätigt", and the Place detail asks logged-in users "Ist das noch so?". 3 different users "Ja, noch so" → it counts 2 more months. "Nein, behoben" can be said at any time, also in the first 2 months; 3 of them end the issue until a Rating names it again. Votes count from the last report or confirmation on; one vote per user per round, a later one replaces it. Condition `unknown` = no issue and no Rating or vote in 2 months. Average stars and the top 3 Reasons count all Ratings | Stefan (product owner): a Mangel should not vanish just because nobody rated for a while, and a repair should not wait 2 months; users who are there know best. Votes are only stored; the check state is worked out from Ratings and votes each time, so no race and no job | `SCRUM-31`, [backend/app/ratings.py](backend/app/ratings.py) (`issue_state`) |
+| 2026-10-09 | A Rating is saved with `PUT /api/places/{id}/ratings/mine`, one `INSERT … ON CONFLICT DO UPDATE` on (place, user). The Reasons are a `text[]` column, checked against the Place's Activity type | One Rating per user per Place without a race; a few Ratings per Place are counted in Python, so no extra table | `SCRUM-31` |
+| 2026-10-09 | Captcha = Cloudflare Turnstile. Registration always needs a valid token. Login needs one from the 3rd failed login of a Nickname on (counter `app_user.failed_logins`; wrong passwords **and** wrong MFA codes count; a login resets it). Without a valid token, login answers 401 `captcha_required`, before the password check | The ticket's rules; Stefan's review of `SCRUM-26` (a guesser who knows the password must not try MFA codes freely). The counter is in the database, so a restart does not reset it. The answer shows that the Nickname exists, but Nicknames are public anyway | `SCRUM-27`, [backend/app/auth.py](backend/app/auth.py) |
+| 2026-10-09 | Rate limits in the backend's memory: login 10 requests per minute per IP address; turning MFA off 5 tries per 15 min per user. Answer 429 with `Retry-After`. The client IP comes from Caddy's `X-Forwarded-For` (uvicorn `--forwarded-allow-ips '*'`) | One backend process on one host (ADR-0002, one EC2 host with Docker Compose), so no Redis is needed. 10/min is enough for a room of people behind one router | `SCRUM-27`, [backend/app/rate_limit.py](backend/app/rate_limit.py) |
+| 2026-10-09 | Turnstile keys: production reads both from SSM (`/squadmeet/turnstile-site-key`, `/squadmeet/turnstile-secret-key`); local and CI use Cloudflare's public test keys. The frontend gets the site key from `GET /api/auth/captcha`, not at build time. The Turnstile script loads only when a form shows the widget. Without an answer from Cloudflare, the check fails | One frontend image for test and real keys; a map visit sends nothing to Cloudflare (privacy); no unchecked path when Cloudflare is down | `SCRUM-27`, [backend/app/turnstile.py](backend/app/turnstile.py), [deploy/README.md](deploy/README.md) |
+| 2026-10-09 | Turning MFA on logs out all other devices of the user. Turning MFA off needs the password again, plus a code from the app or a Recovery code. A code is used up by a conditional `UPDATE` in the database, not by read-check-write | Stefan's review of PR #29: an old device must not stay logged in without a code; a stolen session token alone must not turn MFA off; two requests with the same code at the same moment must not both pass | `SCRUM-26`, [backend/app/auth.py](backend/app/auth.py) |
+| 2026-10-08 | MFA login uses one endpoint: `POST /api/auth/login` takes an optional `code`. With MFA on and no valid code, the answer is 401 with `detail` = `mfa_required`; the dialog then asks for the code and sends the password again with it. The `code` can be a 6-digit TOTP code or a Recovery code (used up) | No ticket table and no second endpoint. The password stays only in the dialog's memory | `SCRUM-26`, [backend/app/auth.py](backend/app/auth.py) |
+| 2026-10-08 | Admin = column `app_user.is_admin`. Only a command sets it: `docker compose exec backend python -m app.admin grant <Nickname>`. Admin routes need `is_admin` **and** MFA on, else 403 | No Admin UI needed for a 2-person team. A command checks the Nickname, so no typo in hand-written SQL | `SCRUM-26`, `SCRUM-39` (Admin functions) |
 | 2026-10-07 | Use Jira with Epics, Stories and Tasks | Team of 3 needs one shared task list | this file → Jira |
 | 2026-10-07 | Atlassian MCP at project scope | Same agent setup for all three, no secrets in the repo | [.mcp.json](.mcp.json) |
 | 2026-10-07 | Topic: Stefan's activity-place map with Meetups; main demo workflow = Meetup, second = Place suggestion with 3 Confirmations | Real use case, two workflows with states | [CONTEXT.md](CONTEXT.md) |
@@ -189,6 +210,8 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-08 | Places come from an OSM snapshot file per city (`backend/data/osm/<city>.json`, made by `python -m app.osm_import fetch <City>`, committed); `python -m app.seed` loads it into an empty database (`docker compose up` runs it) | Public Overpass servers were busy or out of date while we tested (504, old data); deploy and demo must not depend on them | `SCRUM-21`, [backend/app/osm_import.py](backend/app/osm_import.py) |
 | 2026-10-08 | The OSM import is an upsert on (OSM id, Activity type): a second run adds no duplicates, refreshes name and location, keeps the database id; it never deletes a Place. Every start runs it (`app.seed`) | Ratings and Meetups will point to Places; a Place that left OSM must not take them with it (`SCRUM-25` acceptance criteria) | `SCRUM-25`, [backend/app/osm_import.py](backend/app/osm_import.py) |
 | 2026-10-08 | A city name must match exactly one municipality, counted by its official key (`de:regionalschluessel`), not by OSM areas | Stuttgart is mapped twice in OSM (Stadtkreis and Gemeinde) with the same key; two different towns of the same name still fail | `SCRUM-25` |
+| 2026-10-08 | A Meetup is active while `starts_at <= now < ends_at`; no job deletes ended Meetups. "Ich bin jetzt hier" sets `starts_at = now`, `ends_at = now + 1–4 h`; ending early sets `ends_at = now`. The Host's Party size is a column on `meetup` (Joins of others come with `SCRUM-34`) | The map and the Place detail need no background job; the history stays for later | `SCRUM-29`, [backend/app/meetups.py](backend/app/meetups.py) |
+| 2026-10-08 | `GET /api/places` sends `people_now` per Place (sum of active Party sizes); the marker turns red with that number, as in the prototype. The map and the open Place detail ask again every 60 s | One request for the map; an ended Meetup leaves the map within a minute without a reload | `SCRUM-29` |
 | 2026-10-08 | Activity types live in one place, `app.activities.ActivityType`; the database checks `place.activity_type` against the list (migration 0003). One OSM pitch for two sports gives two Places (unique per OSM id + Activity type) | A typo is caught at once; answers point 5 of Steven's `SCRUM-18` review (the Activity types were plain strings in several files, and the DB accepted any string) | [backend/app/activities.py](backend/app/activities.py) |
 | 2026-10-08 | `GET /api/places?bbox=west,south,east,north` is required and returns at most 2000 Places; the map asks again after each pan or zoom | A whole city has ~700 Places; the phone should only load what it shows | `SCRUM-21`, [backend/app/main.py](backend/app/main.py) |
 | 2026-10-08 | Places on the same spot (a pitch for several sports): one marker shows the number of different Activity types; a tap shows the choice of its Places | Stefan after Steven's review of `SCRUM-21` (point 3): otherwise the top marker hides the others | `SCRUM-21`, [frontend/src/places/spots.ts](frontend/src/places/spots.ts) |
@@ -204,10 +227,11 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-08 | EC2 pulls the private GHCR images with a classic GitHub token (only `read:packages`). The token and the DB password are in AWS SSM Parameter Store (`/squadmeet/*`, SecureString), not in GitHub and not in the command history | Packages stay private; the host reads its secrets with its own IAM role | `SCRUM-20`, [deploy/host-deploy.sh](deploy/host-deploy.sh) |
 | 2026-10-08 | AWS runs `main`, not `dev`. The first manual deploy (`SCRUM-20`) uses the `dev` images, because `main` has no images yet. From `SCRUM-23` on, a merge into `main` deploys the exact commit SHA. There is no separate server for `dev` | One server is the graded demo; a merge into `dev` must not break it. A SHA shows what runs and makes a rollback easy. A second server costs credit | `SCRUM-20`, `SCRUM-23` |
 | 2026-10-08 | A push to `main` builds the images again (with the build cache) and tags them `<SHA>` + `main`; it does not re-tag the tested `dev` image | A PR merge into `main` makes a new commit SHA, and a newer push can cancel a `dev` run, so a `dev` image for the exact code may not exist. CI runs the tests on `main` again too. Changes the plan in the `SCRUM-23` comment | `SCRUM-23`, [.github/workflows/ci.yml](.github/workflows/ci.yml) |
-| 2026-10-08 | Automatic deploy: the CI job assumes the IAM role `squadmeet-github-deploy` with GitHub OIDC. Only runs on `main` of this repo may assume it. It may only send `AWS-RunShellScript` to our one instance. The role ARN is a GitHub variable, not a secret | No AWS keys or SSH keys in GitHub (`SCRUM-23` acceptance criterion). A custom SSM document would limit the commands more, but then a change to `compose.yml` needs a manual document update; anybody who can push to `main` can change the workflow anyway. **Steven (2026-10-08): good enough for now; before v1 the role gets stricter rules** (only the commands the deploy needs) | `SCRUM-23`, [deploy/setup-github-deploy.sh](deploy/setup-github-deploy.sh) |
+| 2026-10-08 | Automatic deploy: the CI job assumes the IAM role `squadmeet-github-deploy` with GitHub OIDC. Only runs on `main` of this repo may assume it. It may only send `AWS-RunShellScript` to our one instance. The role ARN is a GitHub variable, not a secret | No AWS keys or SSH keys in GitHub (`SCRUM-23` acceptance criterion). A custom SSM document would limit the commands more, but then a change to `compose.yml` needs a manual document update; anybody who can push to `main` can change the workflow anyway. **Steven (2026-10-08): good enough for now; before v1 the role gets stricter rules** (only the commands the deploy needs) **Replaced on 2026-10-09 by `SCRUM-47`** (row below: SSM document `squadmeet-deploy`) | `SCRUM-23`, [deploy/setup-github-deploy.sh](deploy/setup-github-deploy.sh) |
 | 2026-10-08 | `/api/health` returns `version` = the commit SHA of the backend image. The smoke test waits until the new SHA answers | Otherwise the old container passes the smoke test while the new one has not started. It also shows on the public URL which commit runs | `SCRUM-23`, [deploy/deploy.sh](deploy/deploy.sh) |
 | 2026-10-08 | One deploy path: [deploy/deploy.sh](deploy/deploy.sh) `<tag>`, used by CI, by the setup wizard and by hand. A rollback = deploy an older SHA | The wizard and CI cannot drift apart; a rollback needs no new code | `SCRUM-23`, [deploy/README.md](deploy/README.md) |
 | 2026-10-07 | Jira is the only issue tracker; dependencies as Jira "Blocks" links | One source of truth; shows who is blocked | [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md) |
+| 2026-10-09 | The deploy role may send only the SSM document `squadmeet-deploy`, not `AWS-RunShellScript`. The document has one parameter `tag` (SSM accepts only a full commit SHA, `main` or `dev`); domain and region are fixed in it. On the host it pulls the image `squadmeet-deploy:<tag>` (only `compose.yml` + `host-deploy.sh`, `FROM scratch`), copies the two files out and runs `host-deploy.sh`. CI builds this image as a 4th matrix image | The role can no longer run any command on the host. A change to `compose.yml` or `host-deploy.sh` still ships with the deploy (same commit, same tag), and a rollback takes the old files too. Only a change to the document's own steps needs a manual `setup-deploy-document.sh` run. Limit: a rollback works only to commits from `SCRUM-47` on (older ones have no deploy image) | `SCRUM-47`, [deploy/setup-deploy-document.sh](deploy/setup-deploy-document.sh) |
 
 ## Debugging case (presentation item)
 
@@ -235,6 +259,17 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
   role's trust policy. [deploy/setup-github-deploy.sh](deploy/setup-github-deploy.sh) now asks
   GitHub for the prefix. Lesson: for an OIDC "not authorized" error, compare the token's real
   claims with the trust policy before you look at credentials.
+- **A new Now-meetup is not "active"** (`SCRUM-29`, 2026-10-08). Symptom: pytest creates a
+  Meetup through the API, but the Place detail lists no Meetup and `people_now` stays 0; 3 of
+  the new tests fail, while creating and ending work. Wrong guess: a time zone mix-up between
+  Python (`datetime.now(UTC)`) and the `timestamptz` column. Real cause: the "active" condition
+  used PostgreSQL's `now()`, which is the start time of the **transaction**, not the current
+  time. Each test runs in one transaction (rollback fixture), so a Meetup created inside it
+  starts *after* `now()` and fails `starts_at <= now()`. In production the same gap exists
+  within one request. Fix: the app passes its own clock to `is_active(now)`, the same clock that
+  sets `starts_at` ([backend/app/meetups.py](backend/app/meetups.py)). Lesson: `now()` in
+  PostgreSQL is frozen per transaction (`clock_timestamp()` is not); compare times from one
+  clock.
 
 ---
 

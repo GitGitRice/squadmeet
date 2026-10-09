@@ -2,6 +2,8 @@ export type User = {
   id: number
   nickname: string
   avatar: string
+  mfa_enabled: boolean
+  is_admin: boolean
 }
 
 export type LoginResult = {
@@ -19,7 +21,34 @@ export type RegisterInput = {
   password: string
   avatar: string
   is_adult: boolean
+  // From the Turnstile widget (SCRUM-27).
+  turnstile_token: string | null
 }
+
+export type MfaSetup = {
+  // For manual entry when the QR code cannot be scanned.
+  secret: string
+  otpauth_uri: string
+  // An SVG data URI for <img src>.
+  qr_code: string
+}
+
+/** Login needs a code from the authenticator app (or a Recovery code) as well. */
+export class MfaRequiredError extends Error {
+  constructor() {
+    super('Bitte gib den Code aus deiner Authenticator-App ein.')
+  }
+}
+
+/** Too many failed logins for this Nickname: login needs the captcha as well (SCRUM-27). */
+export class CaptchaRequiredError extends Error {
+  constructor() {
+    super('Zu viele Fehlversuche. Bitte bestätige zuerst, dass du kein Bot bist.')
+  }
+}
+
+const MFA_REQUIRED = 'mfa_required'
+const CAPTCHA_REQUIRED = 'captcha_required'
 
 const TOKEN_KEY = 'squadmeet.token'
 
@@ -47,14 +76,20 @@ async function errorMessage(response: Response): Promise<string> {
   return `Fehler ${response.status}`
 }
 
-async function postJson<T>(url: string, body: unknown): Promise<T> {
+async function postJson<T>(url: string, body: unknown, token?: string): Promise<T> {
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
     body: JSON.stringify(body),
   })
   if (!response.ok) {
-    throw new Error(await errorMessage(response))
+    const message = await errorMessage(response)
+    if (message === MFA_REQUIRED) throw new MfaRequiredError()
+    if (message === CAPTCHA_REQUIRED) throw new CaptchaRequiredError()
+    throw new Error(message)
   }
   return response.json()
 }
@@ -63,8 +98,75 @@ export function register(input: RegisterInput): Promise<RegisterResult> {
   return postJson('/api/auth/register', input)
 }
 
-export function login(nickname: string, password: string): Promise<LoginResult> {
-  return postJson('/api/auth/login', { nickname, password })
+/**
+ * `code` is needed only when MFA is on; without it, a user with MFA gets MfaRequiredError.
+ * `turnstileToken` is needed only after failed logins; without it, CaptchaRequiredError.
+ */
+export function login(
+  nickname: string,
+  password: string,
+  code?: string,
+  turnstileToken?: string,
+): Promise<LoginResult> {
+  return postJson('/api/auth/login', {
+    nickname,
+    password,
+    ...(code && { code }),
+    ...(turnstileToken && { turnstile_token: turnstileToken }),
+  })
+}
+
+export type PasswordResetInput = {
+  nickname: string
+  // A Recovery code, or the current code from the authenticator app when MFA is on.
+  code: string
+  new_password: string
+  turnstile_token: string | null
+}
+
+/** A forgotten password (SCRUM-33). Ends all old sessions; the answer is a new one. */
+export function resetPassword(input: PasswordResetInput): Promise<LoginResult> {
+  return postJson('/api/auth/password-reset', input)
+}
+
+/**
+ * A new set of Recovery codes; the old set stops working. The password is asked again;
+ * `code` is needed only when MFA is on.
+ */
+export async function newRecoveryCodes(
+  token: string,
+  password: string,
+  code?: string,
+): Promise<string[]> {
+  const body = await postJson<{ recovery_codes: string[] }>(
+    '/api/auth/recovery-codes',
+    { password, ...(code && { code }) },
+    token,
+  )
+  return body.recovery_codes
+}
+
+/** The public Turnstile key from the server; null when the server has none. */
+export async function fetchCaptchaSiteKey(): Promise<string | null> {
+  const response = await fetch('/api/auth/captcha')
+  if (!response.ok) {
+    throw new Error(`GET /api/auth/captcha failed: ${response.status}`)
+  }
+  return (await response.json()).site_key
+}
+
+/** A new secret for the authenticator app. MFA is on only after mfaEnable. */
+export function mfaSetup(token: string): Promise<MfaSetup> {
+  return postJson('/api/auth/mfa/setup', {}, token)
+}
+
+export function mfaEnable(token: string, code: string): Promise<User> {
+  return postJson('/api/auth/mfa/enable', { code }, token)
+}
+
+/** `code` from the authenticator app or a Recovery code. The password is asked again. */
+export function mfaDisable(token: string, password: string, code: string): Promise<User> {
+  return postJson('/api/auth/mfa/disable', { password, code }, token)
 }
 
 export async function logout(token: string): Promise<void> {

@@ -21,6 +21,10 @@ services:
     build: ./backend
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-squadmeet}:${POSTGRES_PASSWORD:-squadmeet}@db:5432/${POSTGRES_DB:-squadmeet}
+      # Cloudflare's public test keys for the captcha (SCRUM-27): the widget always passes.
+      # Not secrets. Production reads the real keys from SSM (deploy/host-deploy.sh).
+      TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+      TURNSTILE_SECRET_KEY: 1x0000000000000000000000000000000AA
     command: sh -c "alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     ports:
       - "8000:8000"

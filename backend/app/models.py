@@ -2,7 +2,21 @@ from datetime import datetime
 from typing import Any
 
 from geoalchemy2 import Geometry
-from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, Index, UniqueConstraint, text
+from sqlalchemy import (
+    ARRAY,
+    BigInteger,
+    Boolean,
+    CheckConstraint,
+    Column,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    UniqueConstraint,
+    false,
+    text,
+)
 from sqlmodel import Field, SQLModel
 
 from app.activities import ACTIVITY_TYPES
@@ -37,6 +51,8 @@ class PlaceRead(SQLModel):
     activity_type: str
     lat: float
     lon: float
+    # Party sizes of the active Meetups at the Place; 0 = nobody is there now (SCRUM-29).
+    people_now: int = 0
 
 
 class User(SQLModel, table=True):
@@ -52,10 +68,28 @@ class User(SQLModel, table=True):
     password_hash: str
     avatar: str
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    # Set only by `python -m app.admin grant` (app/admin.py). Admin routes also need MFA on.
+    is_admin: bool = Field(
+        default=False, sa_column=Column(Boolean, nullable=False, server_default=false())
+    )
+    # Base32 TOTP secret (SCRUM-26). Stored in plain text: the server must compute the codes.
+    # Set by MFA setup; MFA is on only once a code confirmed it (mfa_enabled_at).
+    mfa_secret: str | None = None
+    mfa_enabled_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True))
+    )
+    # The 30-second time step of the last accepted code, so a code works only once.
+    mfa_last_step: int | None = Field(default=None, sa_column=Column(BigInteger))
+    # Wrong passwords and wrong MFA codes since the last login. From 3 on, login also needs the
+    # captcha (SCRUM-27). A login resets it to 0.
+    failed_logins: int = Field(
+        default=0, sa_column=Column(Integer, nullable=False, server_default=text("0"))
+    )
 
 
 class RecoveryCode(SQLModel, table=True):
-    """A one-time code for a password reset (see CONTEXT.md). Only the hash is stored."""
+    """A one-time code for a password reset or an MFA login (see CONTEXT.md). Only the hash is
+    stored."""
 
     __tablename__ = "recovery_code"
 
@@ -79,3 +113,83 @@ class LoginSession(SQLModel, table=True):
     token_hash: str = Field(unique=True)
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     expires_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
+class Meetup(SQLModel, table=True):
+    """A user's announcement to be at a Place from starts_at until ends_at (see CONTEXT.md).
+
+    SCRUM-29 builds the Now-meetup: it starts when it is created and ends after 1–4 hours.
+    It is active while starts_at <= now < ends_at; there is no job that deletes it.
+    """
+
+    __tablename__ = "meetup"
+    __table_args__ = (
+        CheckConstraint("party_size BETWEEN 1 AND 10", name="ck_meetup_party_size"),
+        CheckConstraint("ends_at > starts_at", name="ck_meetup_ends_after_start"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(
+        sa_column=Column(ForeignKey("place.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    # The creator is the Host (SCRUM-29). Handing the role over is SCRUM-37.
+    host_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    # The Host's own Party size, the Host included (1–10). Joins of others are SCRUM-34.
+    party_size: int
+    starts_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    # The Host ending the Meetup early sets this to the moment of the end.
+    ends_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
+
+class Rating(SQLModel, table=True):
+    """A user's 1–5 stars for a Place with at least one Reason (SCRUM-31, see CONTEXT.md).
+
+    One per user per Place: a second Rating replaces the first.
+    """
+
+    __tablename__ = "rating"
+    __table_args__ = (
+        UniqueConstraint("place_id", "user_id", name="uq_rating_place_user"),
+        CheckConstraint("stars BETWEEN 1 AND 5", name="ck_rating_stars"),
+        CheckConstraint("cardinality(reasons) >= 1", name="ck_rating_has_reason"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(
+        sa_column=Column(ForeignKey("place.id", ondelete="CASCADE"), nullable=False)
+    )
+    user_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    stars: int
+    # Keys from app/reasons.py for the Place's Activity type. No free text (ADR-0004).
+    reasons: list[str] = Field(sa_column=Column(ARRAY(String), nullable=False))
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    # Set again when the user changes the Rating; the Condition counts only recent ones.
+    updated_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
+class ConditionVote(SQLModel, table=True):
+    """A user's answer to "Ist das noch so?" for an issue of a Place (SCRUM-31, app/ratings.py).
+
+    Only stored, never changed: the open check and its result are worked out from the votes.
+    """
+
+    __tablename__ = "condition_vote"
+    __table_args__ = (Index("ix_condition_vote_place_reason", "place_id", "reason_key"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(
+        sa_column=Column(ForeignKey("place.id", ondelete="CASCADE"), nullable=False)
+    )
+    # A condition_issue key from app/reasons.py.
+    reason_key: str
+    user_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    # True = the issue is still there; False = it is fixed.
+    still_there: bool
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))

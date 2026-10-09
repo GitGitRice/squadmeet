@@ -7,7 +7,8 @@ Final project of the Syntax course, Modul 4 (Fullstack, Backend & DevOps). Team 
 Presentation with live demo: **Wed 21.10.2026**.
 
 > **State:** live at https://squadmeet.duckdns.org (`SCRUM-20`, AWS host). A merge into `main`
-> deploys automatically (`SCRUM-23`); the first automatic run comes with the next release into `main`.
+> deploys automatically (`SCRUM-23`, first run green on 2026-10-08). Sprint 1 (walking skeleton)
+> is done; Sprint 2 (features, until the feature freeze on Fri 16.10.) starts now.
 
 ## Team
 
@@ -91,6 +92,19 @@ refreshed and kept. A city name must match exactly one German municipality.
 
 Private, paid and indoor places are skipped ([backend/app/osm_import.py](backend/app/osm_import.py)).
 Map data © OpenStreetMap contributors (ODbL); the map shows the attribution.
+
+### Admins
+
+There is no UI to make somebody an Admin. Run the command locally, or on the server in a shell
+in `/opt/squadmeet` ([deploy/README.md](deploy/README.md) → *Troubleshooting*):
+
+```sh
+docker compose exec backend python -m app.admin grant <Nickname>
+docker compose exec backend python -m app.admin revoke <Nickname>
+```
+
+The Admin functions work only after the Admin turns on two-factor login (MFA) in the app
+("Zwei-Faktor" next to the Nickname).
 
 ### Tests
 

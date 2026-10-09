@@ -69,7 +69,8 @@ jobs:
       packages: write
     strategy:
       matrix:
-        image: [backend, frontend, db]
+        # deploy: compose.yml + host-deploy.sh for the SSM document squadmeet-deploy (SCRUM-47)
+        image: [backend, frontend, db, deploy]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
@@ -99,6 +100,8 @@ jobs:
     needs: [images]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    # deploy.sh waits at most 35 min for the host + 3 min for the smoke test.
+    timeout-minutes: 45
     # One deploy at a time; a second merge waits for the first.
     concurrency:
       group: deploy-production

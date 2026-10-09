@@ -16,7 +16,7 @@ function render(props: Parameters<typeof PlaceDetail>[0]) {
   return container
 }
 
-const place = { id: 7, name: 'Korbanlage', activity_type: 'basketball', lat: 51.3, lon: 12.3 }
+const place = { id: 7, name: 'Korbanlage', activity_type: 'basketball', lat: 51.3, lon: 12.3, people_now: 0 }
 
 describe('PlaceDetail', () => {
   it('shows name, Activity type and location', () => {

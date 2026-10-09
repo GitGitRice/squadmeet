@@ -8,6 +8,7 @@ const place = (id: number, activity_type: string, lat = 51.3, lon = 12.3): Place
   activity_type,
   lat,
   lon,
+  people_now: 0,
 })
 
 describe('groupBySpot', () => {

@@ -12,18 +12,24 @@ import {
   type User,
 } from './api/auth'
 import AuthDialog from './auth/AuthDialog'
+import MfaDialog from './auth/MfaDialog'
+import RecoveryCodesDialog from './auth/RecoveryCodesDialog'
 import { AVATARS } from './auth/avatars'
 import ActivityFilter from './places/ActivityFilter'
 import { ACTIVITY_TYPES, activityOf, type ActivityType } from './places/activities'
 import { filterPlaces } from './places/filter'
 import { placeIcon, spotIcon } from './places/markers'
 import PlaceDetail from './places/PlaceDetail'
+import PlaceMeetups from './places/PlaceMeetups'
+import PlaceRatings from './places/PlaceRatings'
 import { placeIdFromPath, placePath, usePath } from './places/route'
 import { groupBySpot } from './places/spots'
 
 const LEIPZIG: [number, number] = [51.3397, 12.3731]
 // Zoomed out further, an area could hold more Places than the API sends (MAX_PLACES).
 const MIN_ZOOM = 11
+// Meetups end by themselves (SCRUM-29); the map asks again so an ended one leaves the map.
+const PLACES_REFRESH_MS = 60_000
 
 // Calls onMove with the visible map area at the start and after each pan or zoom.
 function MapAreaWatcher({ onMove }: { onMove: (area: MapArea) => void }) {
@@ -64,8 +70,12 @@ export default function App() {
   // The request for the last map area; a newer pan or zoom cancels it, so an old answer
   // cannot replace a newer one.
   const placesRequest = useRef<AbortController | null>(null)
+  // The last visible map area, to load it again after a Meetup changed or a minute passed.
+  const lastArea = useRef<MapArea | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [showAuth, setShowAuth] = useState(false)
+  const [showMfa, setShowMfa] = useState(false)
+  const [showRecoveryCodes, setShowRecoveryCodes] = useState(false)
   const [chosen, setChosen] = useState<Set<ActivityType>>(() => new Set(ACTIVITY_TYPES))
   const [path, navigate] = usePath()
   const selectedId = placeIdFromPath(path)
@@ -101,6 +111,7 @@ export default function App() {
   )
 
   function loadPlaces(area: MapArea) {
+    lastArea.current = area
     placesRequest.current?.abort()
     const request = new AbortController()
     placesRequest.current = request
@@ -114,6 +125,18 @@ export default function App() {
         if (!request.signal.aborted) setError(err.message)
       })
   }
+
+  function reloadPlaces() {
+    if (lastArea.current) loadPlaces(lastArea.current)
+  }
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (lastArea.current) loadPlaces(lastArea.current)
+    }, PLACES_REFRESH_MS)
+    return () => clearInterval(timer)
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- one timer; it reads the ref
+  }, [])
 
   // Restore the login from an earlier visit; drop the token when the server no longer knows it.
   useEffect(() => {
@@ -137,6 +160,8 @@ export default function App() {
     const token = loadToken()
     clearToken()
     setUser(null)
+    setShowMfa(false)
+    setShowRecoveryCodes(false)
     if (token) await logout(token).catch(() => {})
   }
 
@@ -150,6 +175,9 @@ export default function App() {
             <span>
               {AVATARS[user.avatar]?.emoji} {user.nickname}
             </span>
+            <button type="button" onClick={() => setShowMfa(true)}>
+              Zwei-Faktor
+            </button>
             <button type="button" onClick={handleLogout}>
               Abmelden
             </button>
@@ -161,6 +189,25 @@ export default function App() {
         )}
       </div>
       {showAuth && <AuthDialog onLoggedIn={handleLoggedIn} onClose={() => setShowAuth(false)} />}
+      {showMfa && user && (
+        <MfaDialog
+          token={loadToken() ?? ''}
+          user={user}
+          onChanged={setUser}
+          onNewRecoveryCodes={() => {
+            setShowMfa(false)
+            setShowRecoveryCodes(true)
+          }}
+          onClose={() => setShowMfa(false)}
+        />
+      )}
+      {showRecoveryCodes && user && (
+        <RecoveryCodesDialog
+          token={loadToken() ?? ''}
+          user={user}
+          onClose={() => setShowRecoveryCodes(false)}
+        />
+      )}
       <ActivityFilter chosen={chosen} onChange={setChosen} />
       {selectedId !== null && (
         <PlaceDetail
@@ -168,7 +215,22 @@ export default function App() {
           error={current?.error ?? null}
           onRetry={() => setDetailTry((n) => n + 1)}
           onClose={() => navigate('/')}
-        />
+        >
+          <PlaceMeetups
+            key={selectedId}
+            placeId={selectedId}
+            user={user}
+            onLoginNeeded={() => setShowAuth(true)}
+            onChanged={reloadPlaces}
+          />
+          {/* A new key per user, so a logout does not keep the old user's own Rating. */}
+          <PlaceRatings
+            key={`${selectedId}-${user?.id ?? 'guest'}`}
+            placeId={selectedId}
+            user={user}
+            onLoginNeeded={() => setShowAuth(true)}
+          />
+        </PlaceDetail>
       )}
       <MapContainer center={LEIPZIG} zoom={13} minZoom={MIN_ZOOM} style={{ height: '100%' }}>
         <TileLayer
@@ -185,7 +247,7 @@ export default function App() {
               <Marker
                 key={place.id}
                 position={[spot.lat, spot.lon]}
-                icon={placeIcon(place.activity_type, isSelected)}
+                icon={placeIcon(place.activity_type, isSelected, place.people_now)}
                 title={place.name}
                 eventHandlers={{ click: () => openPlace(place.id) }}
               />
