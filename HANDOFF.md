@@ -196,6 +196,8 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-08 | Places come from an OSM snapshot file per city (`backend/data/osm/<city>.json`, made by `python -m app.osm_import fetch <City>`, committed); `python -m app.seed` loads it into an empty database (`docker compose up` runs it) | Public Overpass servers were busy or out of date while we tested (504, old data); deploy and demo must not depend on them | `SCRUM-21`, [backend/app/osm_import.py](backend/app/osm_import.py) |
 | 2026-10-08 | The OSM import is an upsert on (OSM id, Activity type): a second run adds no duplicates, refreshes name and location, keeps the database id; it never deletes a Place. Every start runs it (`app.seed`) | Ratings and Meetups will point to Places; a Place that left OSM must not take them with it (`SCRUM-25` acceptance criteria) | `SCRUM-25`, [backend/app/osm_import.py](backend/app/osm_import.py) |
 | 2026-10-08 | A city name must match exactly one municipality, counted by its official key (`de:regionalschluessel`), not by OSM areas | Stuttgart is mapped twice in OSM (Stadtkreis and Gemeinde) with the same key; two different towns of the same name still fail | `SCRUM-25` |
+| 2026-10-08 | A Meetup is active while `starts_at <= now < ends_at`; no job deletes ended Meetups. "Ich bin jetzt hier" sets `starts_at = now`, `ends_at = now + 1–4 h`; ending early sets `ends_at = now`. The Host's Party size is a column on `meetup` (Joins of others come with `SCRUM-34`) | The map and the Place detail need no background job; the history stays for later | `SCRUM-29`, [backend/app/meetups.py](backend/app/meetups.py) |
+| 2026-10-08 | `GET /api/places` sends `people_now` per Place (sum of active Party sizes); the marker turns red with that number, as in the prototype. The map and the open Place detail ask again every 60 s | One request for the map; an ended Meetup leaves the map within a minute without a reload | `SCRUM-29` |
 | 2026-10-08 | Activity types live in one place, `app.activities.ActivityType`; the database checks `place.activity_type` against the list (migration 0003). One OSM pitch for two sports gives two Places (unique per OSM id + Activity type) | A typo is caught at once; answers point 5 of Steven's `SCRUM-18` review (the Activity types were plain strings in several files, and the DB accepted any string) | [backend/app/activities.py](backend/app/activities.py) |
 | 2026-10-08 | `GET /api/places?bbox=west,south,east,north` is required and returns at most 2000 Places; the map asks again after each pan or zoom | A whole city has ~700 Places; the phone should only load what it shows | `SCRUM-21`, [backend/app/main.py](backend/app/main.py) |
 | 2026-10-08 | Places on the same spot (a pitch for several sports): one marker shows the number of different Activity types; a tap shows the choice of its Places | Stefan after Steven's review of `SCRUM-21` (point 3): otherwise the top marker hides the others | `SCRUM-21`, [frontend/src/places/spots.ts](frontend/src/places/spots.ts) |
@@ -242,6 +244,17 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
   role's trust policy. [deploy/setup-github-deploy.sh](deploy/setup-github-deploy.sh) now asks
   GitHub for the prefix. Lesson: for an OIDC "not authorized" error, compare the token's real
   claims with the trust policy before you look at credentials.
+- **A new Now-meetup is not "active"** (`SCRUM-29`, 2026-10-08). Symptom: pytest creates a
+  Meetup through the API, but the Place detail lists no Meetup and `people_now` stays 0; 3 of
+  the new tests fail, while creating and ending work. Wrong guess: a time zone mix-up between
+  Python (`datetime.now(UTC)`) and the `timestamptz` column. Real cause: the "active" condition
+  used PostgreSQL's `now()`, which is the start time of the **transaction**, not the current
+  time. Each test runs in one transaction (rollback fixture), so a Meetup created inside it
+  starts *after* `now()` and fails `starts_at <= now()`. In production the same gap exists
+  within one request. Fix: the app passes its own clock to `is_active(now)`, the same clock that
+  sets `starts_at` ([backend/app/meetups.py](backend/app/meetups.py)). Lesson: `now()` in
+  PostgreSQL is frozen per transaction (`clock_timestamp()` is not); compare times from one
+  clock.
 
 ---
 

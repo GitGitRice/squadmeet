@@ -19,12 +19,15 @@ import { ACTIVITY_TYPES, activityOf, type ActivityType } from './places/activiti
 import { filterPlaces } from './places/filter'
 import { placeIcon, spotIcon } from './places/markers'
 import PlaceDetail from './places/PlaceDetail'
+import PlaceMeetups from './places/PlaceMeetups'
 import { placeIdFromPath, placePath, usePath } from './places/route'
 import { groupBySpot } from './places/spots'
 
 const LEIPZIG: [number, number] = [51.3397, 12.3731]
 // Zoomed out further, an area could hold more Places than the API sends (MAX_PLACES).
 const MIN_ZOOM = 11
+// Meetups end by themselves (SCRUM-29); the map asks again so an ended one leaves the map.
+const PLACES_REFRESH_MS = 60_000
 
 // Calls onMove with the visible map area at the start and after each pan or zoom.
 function MapAreaWatcher({ onMove }: { onMove: (area: MapArea) => void }) {
@@ -65,6 +68,8 @@ export default function App() {
   // The request for the last map area; a newer pan or zoom cancels it, so an old answer
   // cannot replace a newer one.
   const placesRequest = useRef<AbortController | null>(null)
+  // The last visible map area, to load it again after a Meetup changed or a minute passed.
+  const lastArea = useRef<MapArea | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [showAuth, setShowAuth] = useState(false)
   const [showMfa, setShowMfa] = useState(false)
@@ -103,6 +108,7 @@ export default function App() {
   )
 
   function loadPlaces(area: MapArea) {
+    lastArea.current = area
     placesRequest.current?.abort()
     const request = new AbortController()
     placesRequest.current = request
@@ -116,6 +122,18 @@ export default function App() {
         if (!request.signal.aborted) setError(err.message)
       })
   }
+
+  function reloadPlaces() {
+    if (lastArea.current) loadPlaces(lastArea.current)
+  }
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (lastArea.current) loadPlaces(lastArea.current)
+    }, PLACES_REFRESH_MS)
+    return () => clearInterval(timer)
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- one timer; it reads the ref
+  }, [])
 
   // Restore the login from an earlier visit; drop the token when the server no longer knows it.
   useEffect(() => {
@@ -182,7 +200,17 @@ export default function App() {
           error={current?.error ?? null}
           onRetry={() => setDetailTry((n) => n + 1)}
           onClose={() => navigate('/')}
-        />
+        >
+          {selectedId !== null && (
+            <PlaceMeetups
+              key={selectedId}
+              placeId={selectedId}
+              user={user}
+              onLoginNeeded={() => setShowAuth(true)}
+              onChanged={reloadPlaces}
+            />
+          )}
+        </PlaceDetail>
       )}
       <MapContainer center={LEIPZIG} zoom={13} minZoom={MIN_ZOOM} style={{ height: '100%' }}>
         <TileLayer
@@ -199,7 +227,7 @@ export default function App() {
               <Marker
                 key={place.id}
                 position={[spot.lat, spot.lon]}
-                icon={placeIcon(place.activity_type, isSelected)}
+                icon={placeIcon(place.activity_type, isSelected, place.people_now)}
                 title={place.name}
                 eventHandlers={{ click: () => openPlace(place.id) }}
               />

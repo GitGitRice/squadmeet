@@ -3,7 +3,14 @@ import type { Place } from '../api/places'
 import type { ActivityType } from './activities'
 import { filterPlaces } from './filter'
 
-const place = (id: number, activity_type: string): Place => ({ id, name: '', activity_type, lat: 0, lon: 0 })
+const place = (id: number, activity_type: string): Place => ({
+  id,
+  name: '',
+  activity_type,
+  lat: 0,
+  lon: 0,
+  people_now: 0,
+})
 const places = [place(1, 'table_tennis'), place(2, 'basketball'), place(3, 'football')]
 
 describe('filterPlaces', () => {

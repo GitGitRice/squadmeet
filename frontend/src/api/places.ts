@@ -4,6 +4,8 @@ export type Place = {
   activity_type: string
   lat: number
   lon: number
+  // Party sizes of the Meetups at the Place right now; 0 = nobody is there (SCRUM-29).
+  people_now: number
 }
 
 // The visible map area in degrees, in the order the API expects.

@@ -6,15 +6,19 @@ import { typeCount, type Spot } from './spots'
 // image file, so the Leaflet image-path problem from SCRUM-16 cannot come back.
 const cache = new Map<string, L.DivIcon>()
 
-export function placeIcon(activityType: string, selected = false): L.DivIcon {
-  const key = `${activityType}:${selected}`
+// peopleNow > 0: someone is there now (SCRUM-29). The ring turns red and a badge shows how many,
+// as agreed in the prototype (SCRUM-17).
+export function placeIcon(activityType: string, selected = false, peopleNow = 0): L.DivIcon {
+  const key = `${activityType}:${selected}:${peopleNow}`
   let icon = cache.get(key)
   if (!icon) {
     const { emoji, color } = activityOf(activityType)
     const size = selected ? 46 : 34
     icon = L.divIcon({
       className: '',
-      html: `<div class="place-pin${selected ? ' selected' : ''}" style="border-color:${color}">${emoji}</div>`,
+      html: peopleNow > 0
+        ? `<div class="place-pin live${selected ? ' selected' : ''}">${emoji}<span class="pin-badge">${peopleNow}</span></div>`
+        : `<div class="place-pin${selected ? ' selected' : ''}" style="border-color:${color}">${emoji}</div>`,
       iconSize: [size, size],
       iconAnchor: [size / 2, size / 2],
     })
@@ -26,13 +30,14 @@ export function placeIcon(activityType: string, selected = false): L.DivIcon {
 // Several Activity types on one spot: one marker with the number of types (SCRUM-21 review).
 export function spotIcon(spot: Spot, selected = false): L.DivIcon {
   const count = typeCount(spot)
-  const key = `spot:${count}:${selected}`
+  const live = spot.places.some((place) => place.people_now > 0)
+  const key = `spot:${count}:${selected}:${live}`
   let icon = cache.get(key)
   if (!icon) {
     const size = selected ? 42 : 34
     icon = L.divIcon({
       className: '',
-      html: `<div class="spot-pin${selected ? ' selected' : ''}">${count}</div>`,
+      html: `<div class="spot-pin${live ? ' live' : ''}${selected ? ' selected' : ''}">${count}</div>`,
       iconSize: [size, size],
       iconAnchor: [size / 2, size / 2],
     })
