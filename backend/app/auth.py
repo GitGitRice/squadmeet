@@ -1,5 +1,6 @@
 """Register, log in, log out (SCRUM-22), MFA with an authenticator app (SCRUM-26),
-captcha and rate limits (SCRUM-27). No email address (ADR-0005).
+captcha and rate limits (SCRUM-27), password reset and new Recovery codes (SCRUM-33).
+No email address (ADR-0005).
 
 Passwords are hashed with Argon2: people choose weak passwords, so the hash must be slow.
 Recovery codes and session tokens are long random values, so a fast SHA-256 hash is enough.
@@ -54,6 +55,10 @@ login_per_ip = RateLimit(limit=10, window_seconds=60)
 # Attempts to turn MFA off per user. It asks for password and code, so a stolen session
 # token must not become an unlimited guessing machine for both (Stefan's review of SCRUM-26).
 mfa_disable_per_user = RateLimit(limit=5, window_seconds=15 * 60)
+# Password resets per IP address (SCRUM-33). Each try also needs the captcha.
+reset_per_ip = RateLimit(limit=10, window_seconds=60 * 60)
+# New sets of Recovery codes per user: it asks for the password, like turning MFA off.
+recovery_codes_per_user = RateLimit(limit=5, window_seconds=15 * 60)
 
 password_hash = PasswordHash.recommended()
 bearer = HTTPBearer(auto_error=False)
@@ -68,6 +73,13 @@ def new_recovery_code() -> str:
     # 16 characters from 31 = about 79 bits of randomness, shown as XXXX-XXXX-XXXX-XXXX.
     chars = "".join(secrets.choice(RECOVERY_CODE_ALPHABET) for _ in range(16))
     return "-".join(chars[i : i + 4] for i in range(0, 16, 4))
+
+
+def add_recovery_codes(session: Session, user: User) -> list[str]:
+    """A new set of Recovery codes for the user. Returns the plain codes; only hashes are stored."""
+    codes = [new_recovery_code() for _ in range(RECOVERY_CODE_COUNT)]
+    session.add_all(RecoveryCode(user_id=user.id, code_hash=sha256(code)) for code in codes)
+    return codes
 
 
 def normalize_recovery_code(value: str) -> str:
@@ -291,8 +303,7 @@ def register(
         session.rollback()
         raise nickname_taken
 
-    codes = [new_recovery_code() for _ in range(RECOVERY_CODE_COUNT)]
-    session.add_all(RecoveryCode(user_id=user.id, code_hash=sha256(code)) for code in codes)
+    codes = add_recovery_codes(session, user)
     token = start_session(session, user)
     session.commit()
     return RegisterResponse(token=token, user=to_read(user), recovery_codes=codes)
@@ -339,6 +350,78 @@ def login(
     token = start_session(session, user)
     session.commit()
     return LoginResponse(token=token, user=to_read(user))
+
+
+class PasswordResetRequest(BaseModel):
+    nickname: str
+    # A Recovery code, or the current code from the authenticator app when MFA is on.
+    code: str
+    new_password: str = Field(min_length=8, max_length=128)
+    turnstile_token: str | None = None
+
+
+@router.post("/password-reset", response_model=LoginResponse)
+def password_reset(
+    body: PasswordResetRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+    verify_captcha: Verifier = Depends(turnstile_verifier),
+):
+    """A forgotten password, without email (ADR-0005). Ends all old sessions and starts a new
+    one, so the user is logged in at once and needs no second code from the app."""
+    reset_per_ip.hit(client_ip(request))
+    # First, so a bot gets no answer about Nicknames or codes.
+    require_captcha(verify_captcha, body.turnstile_token, request, CAPTCHA_FAILED)
+    user = session.exec(
+        select(User).where(func.lower(User.nickname) == body.nickname.lower())
+    ).first()
+    # The same answer for an unknown Nickname and a wrong code.
+    if user is None or not (
+        (user.mfa_enabled_at is not None and check_totp(session, user, body.code))
+        or use_recovery_code(session, user, body.code)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Nickname oder Code falsch"
+        )
+    user.password_hash = password_hash.hash(body.new_password)
+    user.failed_logins = 0
+    session.exec(delete(LoginSession).where(LoginSession.user_id == user.id))
+    token = start_session(session, user)
+    session.commit()
+    return LoginResponse(token=token, user=to_read(user))
+
+
+class NewRecoveryCodesRequest(BaseModel):
+    # Asked again, so a stolen session token alone cannot get codes for a password reset.
+    password: str
+    # Needed when MFA is on: with the codes, a thief could turn MFA off.
+    code: str | None = None
+
+
+class RecoveryCodesResponse(BaseModel):
+    # Shown once. The database keeps only the hashes.
+    recovery_codes: list[str]
+
+
+@router.post("/recovery-codes", response_model=RecoveryCodesResponse)
+def new_recovery_codes(
+    body: NewRecoveryCodesRequest,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    """A new set of Recovery codes. The old set stops working, used or not."""
+    recovery_codes_per_user.hit(user.id)
+    if not password_hash.verify(body.password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwort falsch")
+    if user.mfa_enabled_at is not None and not (
+        body.code
+        and (check_totp(session, user, body.code) or use_recovery_code(session, user, body.code))
+    ):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Code falsch")
+    session.exec(delete(RecoveryCode).where(RecoveryCode.user_id == user.id))
+    codes = add_recovery_codes(session, user)
+    session.commit()
+    return RecoveryCodesResponse(recovery_codes=codes)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)

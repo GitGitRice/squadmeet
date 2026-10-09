@@ -8,7 +8,8 @@ type Props = {
   error: string | null
   onRetry: () => void
   onClose: () => void
-  // The Meetups part (SCRUM-29), shown once the Place is loaded. Not for a Place suggestion.
+  // The Meetups (SCRUM-29) and Ratings (SCRUM-31) parts, shown once the Place is loaded.
+  // Not for a Place suggestion.
   children?: ReactNode
 }
 

@@ -1,5 +1,5 @@
 // Place suggestions (SCRUM-30): the API of backend/app/suggestions.py.
-import { answer } from './meetups'
+import { answer } from './http'
 import type { Place } from './places'
 import type { ActivityType } from '../places/activities'
 

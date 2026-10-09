@@ -1,4 +1,4 @@
-"""place suggestion and confirmation (SCRUM-30)
+"""create rating (stars and Reasons, SCRUM-31)
 
 Revision ID: 0007
 Revises: 0006
@@ -17,13 +17,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # True while a user-suggested Place has fewer than 3 Confirmations. OSM Places are false.
-    op.add_column(
-        "place",
-        sa.Column("is_suggestion", sa.Boolean(), nullable=False, server_default=sa.false()),
-    )
     op.create_table(
-        "place_confirmation",
+        "rating",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column(
             "place_id", sa.Integer(), sa.ForeignKey("place.id", ondelete="CASCADE"), nullable=False
@@ -34,12 +29,16 @@ def upgrade() -> None:
             sa.ForeignKey("app_user.id", ondelete="CASCADE"),
             nullable=False,
         ),
+        sa.Column("stars", sa.Integer(), nullable=False),
+        sa.Column("reasons", sa.ARRAY(sa.String()), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.UniqueConstraint("place_id", "user_id", name="uq_place_confirmation_place_user"),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
+        sa.UniqueConstraint("place_id", "user_id", name="uq_rating_place_user"),
+        sa.CheckConstraint("stars BETWEEN 1 AND 5", name="ck_rating_stars"),
+        sa.CheckConstraint("cardinality(reasons) >= 1", name="ck_rating_has_reason"),
     )
-    op.create_index("ix_place_confirmation_user_id", "place_confirmation", ["user_id"])
+    op.create_index("ix_rating_user_id", "rating", ["user_id"])
 
 
 def downgrade() -> None:
-    op.drop_table("place_confirmation")
-    op.drop_column("place", "is_suggestion")
+    op.drop_table("rating")

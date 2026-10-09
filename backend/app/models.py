@@ -3,6 +3,7 @@ from typing import Any
 
 from geoalchemy2 import Geometry
 from sqlalchemy import (
+    ARRAY,
     BigInteger,
     Boolean,
     CheckConstraint,
@@ -11,6 +12,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    String,
     UniqueConstraint,
     false,
     text,
@@ -167,3 +169,54 @@ class Meetup(SQLModel, table=True):
     # The Host ending the Meetup early sets this to the moment of the end.
     ends_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
 
+
+
+class Rating(SQLModel, table=True):
+    """A user's 1–5 stars for a Place with at least one Reason (SCRUM-31, see CONTEXT.md).
+
+    One per user per Place: a second Rating replaces the first.
+    """
+
+    __tablename__ = "rating"
+    __table_args__ = (
+        UniqueConstraint("place_id", "user_id", name="uq_rating_place_user"),
+        CheckConstraint("stars BETWEEN 1 AND 5", name="ck_rating_stars"),
+        CheckConstraint("cardinality(reasons) >= 1", name="ck_rating_has_reason"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(
+        sa_column=Column(ForeignKey("place.id", ondelete="CASCADE"), nullable=False)
+    )
+    user_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    stars: int
+    # Keys from app/reasons.py for the Place's Activity type. No free text (ADR-0004).
+    reasons: list[str] = Field(sa_column=Column(ARRAY(String), nullable=False))
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    # Set again when the user changes the Rating; the Condition counts only recent ones.
+    updated_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
+class ConditionVote(SQLModel, table=True):
+    """A user's answer to "Ist das noch so?" for an issue of a Place (SCRUM-31, app/ratings.py).
+
+    Only stored, never changed: the open check and its result are worked out from the votes.
+    """
+
+    __tablename__ = "condition_vote"
+    __table_args__ = (Index("ix_condition_vote_place_reason", "place_id", "reason_key"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(
+        sa_column=Column(ForeignKey("place.id", ondelete="CASCADE"), nullable=False)
+    )
+    # A condition_issue key from app/reasons.py.
+    reason_key: str
+    user_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    # True = the issue is still there; False = it is fixed.
+    still_there: bool
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))

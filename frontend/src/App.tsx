@@ -13,6 +13,7 @@ import {
 } from './api/auth'
 import AuthDialog from './auth/AuthDialog'
 import MfaDialog from './auth/MfaDialog'
+import RecoveryCodesDialog from './auth/RecoveryCodesDialog'
 import { AVATARS } from './auth/avatars'
 import ActivityFilter from './places/ActivityFilter'
 import { ACTIVITY_TYPES, activityOf, type ActivityType } from './places/activities'
@@ -21,6 +22,7 @@ import { placeIcon, spotIcon } from './places/markers'
 import PlaceDetail from './places/PlaceDetail'
 import PlaceMeetups from './places/PlaceMeetups'
 import SuggestPlaceDialog from './places/SuggestPlaceDialog'
+import PlaceRatings from './places/PlaceRatings'
 import { placeIdFromPath, placePath, usePath } from './places/route'
 import { groupBySpot } from './places/spots'
 
@@ -75,6 +77,7 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false)
   const [showMfa, setShowMfa] = useState(false)
   const [showSuggest, setShowSuggest] = useState(false)
+  const [showRecoveryCodes, setShowRecoveryCodes] = useState(false)
   const [chosen, setChosen] = useState<Set<ActivityType>>(() => new Set(ACTIVITY_TYPES))
   const [path, navigate] = usePath()
   const selectedId = placeIdFromPath(path)
@@ -172,6 +175,7 @@ export default function App() {
     setUser(null)
     setShowMfa(false)
     setShowSuggest(false)
+    setShowRecoveryCodes(false)
     if (token) await logout(token).catch(() => {})
   }
 
@@ -204,6 +208,10 @@ export default function App() {
           token={loadToken() ?? ''}
           user={user}
           onChanged={setUser}
+          onNewRecoveryCodes={() => {
+            setShowMfa(false)
+            setShowRecoveryCodes(true)
+          }}
           onClose={() => setShowMfa(false)}
         />
       )}
@@ -218,6 +226,13 @@ export default function App() {
       <button type="button" className="suggest-button" onClick={startSuggesting}>
         ＋ Platz vorschlagen
       </button>
+      {showRecoveryCodes && user && (
+        <RecoveryCodesDialog
+          token={loadToken() ?? ''}
+          user={user}
+          onClose={() => setShowRecoveryCodes(false)}
+        />
+      )}
       <ActivityFilter chosen={chosen} onChange={setChosen} />
       {selectedId !== null && (
         <PlaceDetail
@@ -226,15 +241,20 @@ export default function App() {
           onRetry={() => setDetailTry((n) => n + 1)}
           onClose={() => navigate('/')}
         >
-          {selectedId !== null && (
-            <PlaceMeetups
-              key={selectedId}
-              placeId={selectedId}
-              user={user}
-              onLoginNeeded={() => setShowAuth(true)}
-              onChanged={reloadPlaces}
-            />
-          )}
+          <PlaceMeetups
+            key={selectedId}
+            placeId={selectedId}
+            user={user}
+            onLoginNeeded={() => setShowAuth(true)}
+            onChanged={reloadPlaces}
+          />
+          {/* A new key per user, so a logout does not keep the old user's own Rating. */}
+          <PlaceRatings
+            key={`${selectedId}-${user?.id ?? 'guest'}`}
+            placeId={selectedId}
+            user={user}
+            onLoginNeeded={() => setShowAuth(true)}
+          />
         </PlaceDetail>
       )}
       <MapContainer center={LEIPZIG} zoom={13} minZoom={MIN_ZOOM} style={{ height: '100%' }}>

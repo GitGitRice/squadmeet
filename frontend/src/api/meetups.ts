@@ -1,5 +1,7 @@
 // Now-meetups (SCRUM-29): the API of backend/app/meetups.py.
 
+import { answer } from './http'
+
 export type MeetupHost = { id: number; nickname: string; avatar: string }
 
 export type Meetup = {
@@ -14,20 +16,6 @@ export type Meetup = {
 }
 
 export type NowMeetupInput = { place_id: number; hours: number; party_size: number }
-
-export async function answer<T>(response: Response, what: string): Promise<T> {
-  if (!response.ok) {
-    let detail = `${what} failed: ${response.status}`
-    try {
-      const body = await response.json()
-      if (typeof body.detail === 'string') detail = body.detail
-    } catch {
-      // not JSON: keep the status text
-    }
-    throw new Error(detail)
-  }
-  return response.json()
-}
 
 export async function fetchMeetups(placeId: number): Promise<Meetup[]> {
   return answer(await fetch(`/api/places/${placeId}/meetups`), 'GET meetups')
