@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pwdlib import PasswordHash
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import func
+from sqlalchemy import delete, func, or_, update
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
@@ -131,7 +131,7 @@ def to_read(user: User) -> UserRead:
     )
 
 
-def check_totp(user: User, code: str) -> bool:
+def check_totp(session: Session, user: User, code: str) -> bool:
     """True for a valid code from the app. Each code works once: a used or older step fails."""
     code = code.replace(" ", "")
     if user.mfa_secret is None or not re.fullmatch(r"\d{6}", code):
@@ -142,24 +142,42 @@ def check_totp(user: User, code: str) -> bool:
         if user.mfa_last_step is not None and step <= user.mfa_last_step:
             continue
         if hmac.compare_digest(totp.at(step * totp.interval), code):
-            user.mfa_last_step = step
-            return True
+            # A conditional UPDATE, not read-check-write: of two requests with the same code at
+            # the same moment, the database lets only one through.
+            claimed = session.exec(
+                update(User)
+                .where(
+                    User.id == user.id,
+                    or_(User.mfa_last_step.is_(None), User.mfa_last_step < step),
+                )
+                .values(mfa_last_step=step)
+            )
+            return claimed.rowcount == 1
     return False
 
 
 def use_recovery_code(session: Session, user: User, code: str) -> bool:
     """True for an unused Recovery code of the user; it is used up."""
-    recovery = session.exec(
-        select(RecoveryCode).where(
+    # A conditional UPDATE for the same reason as in check_totp.
+    used = session.exec(
+        update(RecoveryCode)
+        .where(
             RecoveryCode.user_id == user.id,
             RecoveryCode.code_hash == sha256(normalize_recovery_code(code)),
             RecoveryCode.used_at.is_(None),
         )
-    ).first()
-    if recovery is None:
-        return False
-    recovery.used_at = datetime.now(UTC)
-    return True
+        .values(used_at=datetime.now(UTC))
+    )
+    return used.rowcount == 1
+
+
+def end_other_sessions(session: Session, login: LoginSession) -> None:
+    """Log out the user's other devices, so none of them stays logged in without the change."""
+    session.exec(
+        delete(LoginSession).where(
+            LoginSession.user_id == login.user_id, LoginSession.id != login.id
+        )
+    )
 
 
 def current_login(
@@ -248,7 +266,10 @@ def login(body: LoginRequest, session: Session = Depends(get_session)):
         # Only after the right password, so this answer tells nothing to a guesser.
         if not body.code:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=MFA_REQUIRED)
-        if not (check_totp(user, body.code) or use_recovery_code(session, user, body.code)):
+        if not (
+            check_totp(session, user, body.code)
+            or use_recovery_code(session, user, body.code)
+        ):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Code falsch")
     token = start_session(session, user)
     session.commit()
@@ -281,6 +302,11 @@ class MfaCodeRequest(BaseModel):
     code: str
 
 
+class MfaDisableRequest(MfaCodeRequest):
+    # Asked again: a stolen session token alone must not be enough to turn MFA off.
+    password: str
+
+
 @router.post("/mfa/setup", response_model=MfaSetupResponse)
 def mfa_setup(user: User = Depends(current_user), session: Session = Depends(get_session)):
     """A new secret. MFA is not on until /mfa/enable confirms a code from it."""
@@ -302,24 +328,27 @@ def mfa_setup(user: User = Depends(current_user), session: Session = Depends(get
 @router.post("/mfa/enable", response_model=UserRead)
 def mfa_enable(
     body: MfaCodeRequest,
-    user: User = Depends(current_user),
+    login: LoginSession = Depends(current_login),
     session: Session = Depends(get_session),
 ):
+    user = session.get(User, login.user_id)
     if user.mfa_enabled_at is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Zwei-Faktor-Anmeldung ist schon an"
         )
     # Only a code from the app: it proves the app has the secret. A Recovery code does not.
-    if not check_totp(user, body.code):
+    if not check_totp(session, user, body.code):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Code falsch")
     user.mfa_enabled_at = datetime.now(UTC)
+    # A device that logged in before has no code; it must log in again with one.
+    end_other_sessions(session, login)
     session.commit()
     return to_read(user)
 
 
 @router.post("/mfa/disable", response_model=UserRead)
 def mfa_disable(
-    body: MfaCodeRequest,
+    body: MfaDisableRequest,
     user: User = Depends(current_user),
     session: Session = Depends(get_session),
 ):
@@ -327,7 +356,11 @@ def mfa_disable(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Zwei-Faktor-Anmeldung ist schon aus"
         )
-    if not (check_totp(user, body.code) or use_recovery_code(session, user, body.code)):
+    if not password_hash.verify(body.password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwort falsch")
+    if not (
+        check_totp(session, user, body.code) or use_recovery_code(session, user, body.code)
+    ):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Code falsch")
     user.mfa_secret = None
     user.mfa_enabled_at = None
