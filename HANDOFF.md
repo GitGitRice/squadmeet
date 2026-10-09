@@ -7,7 +7,7 @@ debugging case.
 Each person's own progress (*Now*, *In flight*, *Next*, *Log*) is in **`HANDOFF.local.md`**.
 That file is not in git (`.gitignore`), because each person's progress differs.
 
-**Last update:** 2026-10-09 · Steven · `SCRUM-33` decisions (password reset, new Recovery codes)
+**Last update:** 2026-10-09 · Steven · manual tests move to `SCRUM-50`; `SCRUM-33` decisions
 
 ---
 
@@ -135,6 +135,9 @@ next; each owner writes them (for example with `/mattpocock-skills:to-tickets`).
   branch to the issue.
 - **Commit message:** start with the key: `SCRUM-9 add build job`.
 - **Done means:** merged, and the pipeline is green. Not "works on my laptop".
+- **Manual tests go to `SCRUM-50`** (manual test of the whole app, Thu 15.10. / Fri 16.10.).
+  A feature ticket needs automated tests and a green pipeline, not a browser or phone check.
+  The PR lists what to test by hand, and the same list goes as a comment on `SCRUM-50`.
 - **Status flow:** To Do → In Progress → In Review → Done.
 - **Language:** [DIARY.md](DIARY.md) is in German. Everything else (code, commits, pull requests,
   docs) is in English.
@@ -160,6 +163,7 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 
 | Date | Decision | Why | Where |
 |------|----------|-----|-------|
+| 2026-10-09 | All manual tests (browser, phone, live site) move to `SCRUM-50`. A feature ticket is done with automated tests and a green pipeline. Each PR lists its manual checks; they go as a comment on `SCRUM-50` | Steven: browser checks cost time in every ticket and break on tool problems (a Chrome extension blocked the `SCRUM-33` check). One test round on the live site before the feature freeze tests the real setup once | this file → *Conventions*, `SCRUM-50` |
 | 2026-10-09 | Password reset (`POST /api/auth/password-reset`): Nickname + Recovery code (or the current MFA code, **only when MFA is on**) + new password + Turnstile on every try, 10 tries per hour per IP. It ends **all** old sessions and answers with a **new** session, so the user is logged in at once. Unknown Nickname and wrong code get the same 400 "Nickname oder Code falsch" | The ticket; ADR-0005 (no email). A new session saves a second MFA code: the one used for the reset works only once, so a login right after it would fail for up to 30 s. A set-up but unconfirmed MFA secret must not count | `SCRUM-33`, [backend/app/auth.py](backend/app/auth.py) |
 | 2026-10-09 | New Recovery codes (`POST /api/auth/recovery-codes`, logged in): need the password again, plus a code when MFA is on; 5 tries per 15 min per user. The old set is deleted, used or not. The button is in the "Zwei-Faktor" dialog for now; after `SCRUM-28` (privacy + delete account) is merged, it moves into its "Konto" dialog | A stolen session token alone must not get codes that reset the password or turn MFA off (same rule as turning MFA off). `SCRUM-28`'s branch is not in `dev` yet | `SCRUM-33`, [frontend/src/auth/RecoveryCodesDialog.tsx](frontend/src/auth/RecoveryCodesDialog.tsx) |
 | 2026-10-09 | Captcha = Cloudflare Turnstile. Registration always needs a valid token. Login needs one from the 3rd failed login of a Nickname on (counter `app_user.failed_logins`; wrong passwords **and** wrong MFA codes count; a login resets it). Without a valid token, login answers 401 `captcha_required`, before the password check | The ticket's rules; Stefan's review of `SCRUM-26` (a guesser who knows the password must not try MFA codes freely). The counter is in the database, so a restart does not reset it. The answer shows that the Nickname exists, but Nicknames are public anyway | `SCRUM-27`, [backend/app/auth.py](backend/app/auth.py) |
