@@ -7,7 +7,7 @@ debugging case.
 Each person's own progress (*Now*, *In flight*, *Next*, *Log*) is in **`HANDOFF.local.md`**.
 That file is not in git (`.gitignore`), because each person's progress differs.
 
-**Last update:** 2026-10-09 · Steven · `SCRUM-27` decisions (captcha, rate limits)
+**Last update:** 2026-10-09 · Steven · `SCRUM-28` decisions, new `SCRUM-49` / `SCRUM-50` (review + manual test)
 
 ---
 
@@ -115,6 +115,8 @@ web push, `SCRUM-45` Home area (Steven). Each ticket's "Blocked by" is a Jira li
 In Jira (since 2026-10-08), each ticket has the label `must`, `should` or `could` and the priority
 High, Medium or Low to match. Change both when a ticket changes category. `SCRUM-47` (deploy role
 permissions) is a Must.
+`SCRUM-49` (review the whole codebase) and `SCRUM-50` (manual test of the whole app): Musts on
+Thu 15.10. / Fri 16.10., several sessions possible, both in Sprint 2.
 `SCRUM-48` (handover: Stefan hosts and owns the repo, server, domain and Cloudflare) is the **last
 Must**: after the presentation on 21.10., blocked by all other Musts. It is in no sprint yet.
 
@@ -160,6 +162,10 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 
 | Date | Decision | Why | Where |
 |------|----------|-----|-------|
+| 2026-10-09 | "Konto löschen" (`POST /api/auth/delete-account`) needs the password again; with MFA on also a code from the app or a Recovery code. 5 tries per 15 min per user. One `DELETE` of the user row: the foreign keys to `app_user` cascade (sessions, Recovery codes, Meetups). There are no database backups, so the data is gone at once | Same rule as turning MFA off: a stolen session token alone must not delete the account. The cascade cannot forget a table that a later feature adds, as long as its foreign key cascades too | `SCRUM-28`, [backend/app/auth.py](backend/app/auth.py) |
+| 2026-10-09 | Until Join (`SCRUM-34`) exists, the Meetups of a deleted Host are deleted with the user (nobody else can be in them). `SCRUM-37` (Host handover) must run the handover in `delete_account` first | The ticket's rule "handover, or Cancel if nobody else joined" has only the second case today | `SCRUM-28`, comment on `SCRUM-37` |
+| 2026-10-09 | Production backend runs with `--no-access-log` | The uvicorn access log had the real client IP on each line, and Docker keeps logs without a time limit. Now the privacy page can say: no IP addresses in logs. Error logs stay | `SCRUM-28`, [deploy/compose.yml](deploy/compose.yml) |
+| 2026-10-09 | Privacy page `/datenschutz` and imprint `/impressum`: own URLs, a full page over the map, linked bottom left on the map, in the Place detail and in every dialog. The name and address of the responsible person are in one constant, [frontend/src/legal/legal.ts](frontend/src/legal/legal.ts); it changes at the handover (`SCRUM-48`). A feature that stores new personal data or calls a new service must update the privacy text | Reachable without login and as a plain link; one place to change at the handover | `SCRUM-28`, [frontend/src/legal/LegalPage.tsx](frontend/src/legal/LegalPage.tsx) |
 | 2026-10-09 | Captcha = Cloudflare Turnstile. Registration always needs a valid token. Login needs one from the 3rd failed login of a Nickname on (counter `app_user.failed_logins`; wrong passwords **and** wrong MFA codes count; a login resets it). Without a valid token, login answers 401 `captcha_required`, before the password check | The ticket's rules; Stefan's review of `SCRUM-26` (a guesser who knows the password must not try MFA codes freely). The counter is in the database, so a restart does not reset it. The answer shows that the Nickname exists, but Nicknames are public anyway | `SCRUM-27`, [backend/app/auth.py](backend/app/auth.py) |
 | 2026-10-09 | Rate limits in the backend's memory: login 10 requests per minute per IP address; turning MFA off 5 tries per 15 min per user. Answer 429 with `Retry-After`. The client IP comes from Caddy's `X-Forwarded-For` (uvicorn `--forwarded-allow-ips '*'`) | One backend process on one host (ADR-0002, one EC2 host with Docker Compose), so no Redis is needed. 10/min is enough for a room of people behind one router | `SCRUM-27`, [backend/app/rate_limit.py](backend/app/rate_limit.py) |
 | 2026-10-09 | Turnstile keys: production reads both from SSM (`/squadmeet/turnstile-site-key`, `/squadmeet/turnstile-secret-key`); local and CI use Cloudflare's public test keys. The frontend gets the site key from `GET /api/auth/captcha`, not at build time. The Turnstile script loads only when a form shows the widget. Without an answer from Cloudflare, the check fails | One frontend image for test and real keys; a map visit sends nothing to Cloudflare (privacy); no unchecked path when Cloudflare is down | `SCRUM-27`, [backend/app/turnstile.py](backend/app/turnstile.py), [deploy/README.md](deploy/README.md) |

@@ -13,11 +13,16 @@ Die Details stehen in Jira. Nenne also den Ticket-Key und kopiere nicht den Tick
 
 ---
 
+## Fr 09.10.2026 — Tag 3
+
+- **Steven:** `SCRUM-26` Fixes aus Stefans Review gemergt (PR #31). `SCRUM-27` Captcha (Cloudflare Turnstile) und Login-Limit gebaut, Turnstile-Schlüssel per Wizard in AWS gespeichert (PR #32, wartet auf Review). `SCRUM-48` angelegt: Übergabe an Stefan nach der Präsentation.
+- **Stefan:** _bitte ausfüllen_
+
 ## Do 08.10.2026 — Tag 2
 
 - **Team:** David hat das Projekt verlassen. Seine Tickets sind aufgeteilt (`SCRUM-46`).
 - **Stefan:** `SCRUM-18` Begründungen pro Aktivitätstyp und `SCRUM-17` klickbarer Meetup-Prototyp (Karte + Panel) gemergt; Stevens Review beantwortet (Gastgeber darf verlassen, Zustand = was die Stadt beheben muss). Umfang zu zweit entschieden (`SCRUM-46`).
-- **Steven:** `SCRUM-20` App läuft live auf AWS mit HTTPS (https://squadmeet.duckdns.org). `SCRUM-19` CI fertig. `SCRUM-21` und `SCRUM-24` (Stefans Plätze und Filter) reviewt und gemergt. `SCRUM-23` automatisches Deploy bei Merge in `main` gebaut (PR #20, wartet auf Review); strengere Deploy-Rechte vor v1 als `SCRUM-47` geplant.
+- **Steven:** `SCRUM-20` App läuft live auf AWS mit HTTPS (https://squadmeet.duckdns.org), `SCRUM-19` CI fertig, Stefans `SCRUM-21`/`SCRUM-24` reviewt. `SCRUM-23` automatisches Deploy bei Merge in `main` läuft (erster Deploy scheiterte am AWS-Login per OIDC, behoben in PR #24). Sprint 1 abgeschlossen, Sprint 2 geplant; `SCRUM-26` Zwei-Faktor-Anmeldung (Authenticator-App) gemergt.
 
 ## Mi 07.10.2026 — Tag 1: Thema und Planung
 

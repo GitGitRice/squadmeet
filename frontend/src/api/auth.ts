@@ -139,6 +139,21 @@ export function mfaDisable(token: string, password: string, code: string): Promi
   return postJson('/api/auth/mfa/disable', { password, code }, token)
 }
 
+/**
+ * Deletes the account and all its data (SCRUM-28). The password is asked again; `code` is
+ * needed only when MFA is on (from the app or a Recovery code).
+ */
+export async function deleteAccount(token: string, password: string, code?: string): Promise<void> {
+  const response = await fetch('/api/auth/delete-account', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ password, ...(code && { code }) }),
+  })
+  if (!response.ok) {
+    throw new Error(await errorMessage(response))
+  }
+}
+
 export async function logout(token: string): Promise<void> {
   // A 401 means the session already ended on the server; the client clears its token anyway.
   await fetch('/api/auth/logout', {

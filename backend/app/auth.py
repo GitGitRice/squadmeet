@@ -1,5 +1,5 @@
 """Register, log in, log out (SCRUM-22), MFA with an authenticator app (SCRUM-26),
-captcha and rate limits (SCRUM-27). No email address (ADR-0005).
+captcha and rate limits (SCRUM-27), delete my account (SCRUM-28). No email address (ADR-0005).
 
 Passwords are hashed with Argon2: people choose weak passwords, so the hash must be slow.
 Recovery codes and session tokens are long random values, so a fast SHA-256 hash is enough.
@@ -54,6 +54,8 @@ login_per_ip = RateLimit(limit=10, window_seconds=60)
 # Attempts to turn MFA off per user. It asks for password and code, so a stolen session
 # token must not become an unlimited guessing machine for both (Stefan's review of SCRUM-26).
 mfa_disable_per_user = RateLimit(limit=5, window_seconds=15 * 60)
+# Attempts to delete the account per user, for the same reason.
+delete_account_per_user = RateLimit(limit=5, window_seconds=15 * 60)
 
 password_hash = PasswordHash.recommended()
 bearer = HTTPBearer(auto_error=False)
@@ -433,3 +435,36 @@ def mfa_disable(
     user.mfa_last_step = None
     session.commit()
     return to_read(user)
+
+
+class DeleteAccountRequest(BaseModel):
+    # Asked again, like for turning MFA off: a stolen session token alone must not be enough.
+    password: str
+    # Needed when MFA is on: a code from the app or a Recovery code.
+    code: str | None = None
+
+
+@router.post("/delete-account", status_code=status.HTTP_204_NO_CONTENT)
+def delete_account(
+    body: DeleteAccountRequest,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    """Deletes the user and all their personal data. The foreign keys to app_user cascade, so
+    their sessions, Recovery codes and Meetups go in the same statement.
+
+    The Meetups of the Host go with the user: nobody else can be in them, because Join
+    (SCRUM-34) does not exist yet. When it does, the Host handover (SCRUM-37) must run here
+    first, so a Meetup with others in it keeps going.
+    """
+    delete_account_per_user.hit(user.id)
+    if not password_hash.verify(body.password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwort falsch")
+    if user.mfa_enabled_at is not None and not (
+        body.code
+        and (check_totp(session, user, body.code) or use_recovery_code(session, user, body.code))
+    ):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Code falsch")
+    session.delete(user)
+    session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
