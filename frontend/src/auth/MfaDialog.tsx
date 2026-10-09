@@ -5,11 +5,13 @@ type Props = {
   token: string
   user: User
   onChanged: (user: User) => void
+  // Opens the dialog for a new set of Recovery codes (SCRUM-33).
+  onNewRecoveryCodes: () => void
   onClose: () => void
 }
 
 /** Turn two-factor login with an authenticator app on or off (SCRUM-26). */
-export default function MfaDialog({ token, user, onChanged, onClose }: Props) {
+export default function MfaDialog({ token, user, onChanged, onNewRecoveryCodes, onClose }: Props) {
   const [setup, setSetup] = useState<MfaSetup | null>(null)
   const [code, setCode] = useState('')
   const [password, setPassword] = useState('')
@@ -116,6 +118,9 @@ export default function MfaDialog({ token, user, onChanged, onClose }: Props) {
 
         {error && <p className="form-error">{error}</p>}
 
+        <button type="button" className="link" onClick={onNewRecoveryCodes}>
+          Neue Wiederherstellungscodes erstellen
+        </button>
         <button type="button" className="link" onClick={onClose}>
           Schließen
         </button>

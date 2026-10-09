@@ -7,7 +7,9 @@ import {
   MfaRequiredError,
   mfaDisable,
   mfaEnable,
+  newRecoveryCodes,
   register,
+  resetPassword,
 } from './auth'
 
 const user = { id: 1, nickname: 'Pingpong_Paula', avatar: 'fox', mfa_enabled: false, is_admin: false }
@@ -127,5 +129,48 @@ describe('mfaDisable', () => {
     const [url, init] = fetchMock.mock.calls[0]
     expect(url).toBe('/api/auth/mfa/disable')
     expect(JSON.parse(init.body)).toEqual({ password: 'geheim123', code: '123456' })
+  })
+})
+
+describe('resetPassword (SCRUM-33)', () => {
+  it('sends Nickname, code, new password and captcha token', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json({ token: 't', user }))
+    vi.stubGlobal('fetch', fetchMock)
+    const input = {
+      nickname: 'Pingpong_Paula',
+      code: 'ABCD-EFGH-JKMN-PQRS',
+      new_password: 'neues-passwort',
+      turnstile_token: 'cf-token',
+    }
+
+    await expect(resetPassword(input)).resolves.toEqual({ token: 't', user })
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe('/api/auth/password-reset')
+    expect(JSON.parse(init.body)).toEqual(input)
+  })
+
+  it('throws the German message from the API', async () => {
+    const answer = Response.json({ detail: 'Nickname oder Code falsch' }, { status: 400 })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(answer))
+
+    const input = { nickname: 'x', code: 'y', new_password: 'z', turnstile_token: 't' }
+    await expect(resetPassword(input)).rejects.toThrow('Nickname oder Code falsch')
+  })
+})
+
+describe('newRecoveryCodes (SCRUM-33)', () => {
+  it('returns the new codes and sends the code only when there is one', async () => {
+    const fetchMock = vi.fn(async (_url: string, _init: RequestInit) =>
+      Response.json({ recovery_codes: ['AAAA-BBBB-CCCC-DDDD'] }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(newRecoveryCodes('t', 'geheim123')).resolves.toEqual(['AAAA-BBBB-CCCC-DDDD'])
+    await newRecoveryCodes('t', 'geheim123', '123456')
+
+    const bodies = fetchMock.mock.calls.map(([, init]) => JSON.parse(init.body as string))
+    expect(bodies[0]).toEqual({ password: 'geheim123' })
+    expect(bodies[1]).toEqual({ password: 'geheim123', code: '123456' })
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/auth/recovery-codes')
   })
 })

@@ -13,6 +13,7 @@ import {
 } from './api/auth'
 import AuthDialog from './auth/AuthDialog'
 import MfaDialog from './auth/MfaDialog'
+import RecoveryCodesDialog from './auth/RecoveryCodesDialog'
 import { AVATARS } from './auth/avatars'
 import ActivityFilter from './places/ActivityFilter'
 import { ACTIVITY_TYPES, activityOf, type ActivityType } from './places/activities'
@@ -73,6 +74,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null)
   const [showAuth, setShowAuth] = useState(false)
   const [showMfa, setShowMfa] = useState(false)
+  const [showRecoveryCodes, setShowRecoveryCodes] = useState(false)
   const [chosen, setChosen] = useState<Set<ActivityType>>(() => new Set(ACTIVITY_TYPES))
   const [path, navigate] = usePath()
   const selectedId = placeIdFromPath(path)
@@ -158,6 +160,7 @@ export default function App() {
     clearToken()
     setUser(null)
     setShowMfa(false)
+    setShowRecoveryCodes(false)
     if (token) await logout(token).catch(() => {})
   }
 
@@ -190,7 +193,18 @@ export default function App() {
           token={loadToken() ?? ''}
           user={user}
           onChanged={setUser}
+          onNewRecoveryCodes={() => {
+            setShowMfa(false)
+            setShowRecoveryCodes(true)
+          }}
           onClose={() => setShowMfa(false)}
+        />
+      )}
+      {showRecoveryCodes && user && (
+        <RecoveryCodesDialog
+          token={loadToken() ?? ''}
+          user={user}
+          onClose={() => setShowRecoveryCodes(false)}
         />
       )}
       <ActivityFilter chosen={chosen} onChange={setChosen} />
