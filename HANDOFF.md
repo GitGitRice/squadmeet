@@ -7,7 +7,7 @@ debugging case.
 Each person's own progress (*Now*, *In flight*, *Next*, *Log*) is in **`HANDOFF.local.md`**.
 That file is not in git (`.gitignore`), because each person's progress differs.
 
-**Last update:** 2026-10-09 · Steven · `SCRUM-47` deploy role decision
+**Last update:** 2026-10-09 · Steven · debugging case "two migrations with the same number" (`SCRUM-30`)
 
 ---
 
@@ -168,6 +168,9 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 | 2026-10-09 | New Recovery codes (`POST /api/auth/recovery-codes`, logged in): need the password again, plus a code when MFA is on; 5 tries per 15 min per user. The old set is deleted, used or not. The button is in the "Zwei-Faktor" dialog for now; after `SCRUM-28` (privacy + delete account) is merged, it moves into its "Konto" dialog | A stolen session token alone must not get codes that reset the password or turn MFA off (same rule as turning MFA off). `SCRUM-28`'s branch is not in `dev` yet | `SCRUM-33`, [frontend/src/auth/RecoveryCodesDialog.tsx](frontend/src/auth/RecoveryCodesDialog.tsx) |
 | 2026-10-09 | An issue (a `condition_issue` Reason in a Rating) counts for 2 months (`RECENT_DAYS` = 60) after the last Rating that names it. Then it stays, marked "seit über 2 Monaten nicht bestätigt", and the Place detail asks logged-in users "Ist das noch so?". 3 different users "Ja, noch so" → it counts 2 more months. "Nein, behoben" can be said at any time, also in the first 2 months; 3 of them end the issue until a Rating names it again. Votes count from the last report or confirmation on; one vote per user per round, a later one replaces it. Condition `unknown` = no issue and no Rating or vote in 2 months. Average stars and the top 3 Reasons count all Ratings | Stefan (product owner): a Mangel should not vanish just because nobody rated for a while, and a repair should not wait 2 months; users who are there know best. Votes are only stored; the check state is worked out from Ratings and votes each time, so no race and no job | `SCRUM-31`, [backend/app/ratings.py](backend/app/ratings.py) (`issue_state`) |
 | 2026-10-09 | A Rating is saved with `PUT /api/places/{id}/ratings/mine`, one `INSERT … ON CONFLICT DO UPDATE` on (place, user). The Reasons are a `text[]` column, checked against the Place's Activity type | One Rating per user per Place without a race; a few Ratings per Place are counted in Python, so no extra table | `SCRUM-31` |
+| 2026-10-09 | A Place suggestion is a row in `place` with `is_suggestion = true`. Confirmations are rows in `place_confirmation` (one per user and Place); the suggester's row is the first. `GET /api/places` sends `is_suggestion` and `confirmations`. API: `GET /api/place-suggestions/nearby` (duplicate warning) and `POST /api/place-suggestions`. `SCRUM-36` adds the confirm call and sets `is_suggestion = false` at 3 | The map, the Place detail and `/platz/<id>` work for a suggestion with no extra code; nothing moves when it is confirmed. A path under `/api/places/` would clash with `/api/places/{id}` | `SCRUM-30`, [backend/app/suggestions.py](backend/app/suggestions.py) |
+| 2026-10-09 | No Meetups at a Place suggestion (409); the detail shows "1 von 3 Bestätigungen" instead of the Meetup part. **Stefan (product owner) must confirm** | CONTEXT.md: a suggestion becomes an active Place only with 3 Confirmations; a Meetup at a fake Place is the harm the rule stops | `SCRUM-30`, [backend/app/meetups.py](backend/app/meetups.py) |
+| 2026-10-09 | Duplicate warning = Places of the same Activity type within 50 m, suggestions included, measured on the earth (PostGIS `geography`), nearest first. A user can save 5 suggestions per hour (429 after that). Deleting a user deletes their Confirmations, not the suggestion. The privacy text (`SCRUM-28`) must name the Confirmations (who confirmed which Place, when) | An existing suggestion should be confirmed, not suggested again; the limit stops map spam; the delete follows the `SCRUM-28` cascade rule | `SCRUM-30`, [backend/tests/test_suggestions.py](backend/tests/test_suggestions.py) |
 | 2026-10-09 | Captcha = Cloudflare Turnstile. Registration always needs a valid token. Login needs one from the 3rd failed login of a Nickname on (counter `app_user.failed_logins`; wrong passwords **and** wrong MFA codes count; a login resets it). Without a valid token, login answers 401 `captcha_required`, before the password check | The ticket's rules; Stefan's review of `SCRUM-26` (a guesser who knows the password must not try MFA codes freely). The counter is in the database, so a restart does not reset it. The answer shows that the Nickname exists, but Nicknames are public anyway | `SCRUM-27`, [backend/app/auth.py](backend/app/auth.py) |
 | 2026-10-09 | Rate limits in the backend's memory: login 10 requests per minute per IP address; turning MFA off 5 tries per 15 min per user. Answer 429 with `Retry-After`. The client IP comes from Caddy's `X-Forwarded-For` (uvicorn `--forwarded-allow-ips '*'`) | One backend process on one host (ADR-0002, one EC2 host with Docker Compose), so no Redis is needed. 10/min is enough for a room of people behind one router | `SCRUM-27`, [backend/app/rate_limit.py](backend/app/rate_limit.py) |
 | 2026-10-09 | Turnstile keys: production reads both from SSM (`/squadmeet/turnstile-site-key`, `/squadmeet/turnstile-secret-key`); local and CI use Cloudflare's public test keys. The frontend gets the site key from `GET /api/auth/captcha`, not at build time. The Turnstile script loads only when a form shows the widget. Without an answer from Cloudflare, the check fails | One frontend image for test and real keys; a map visit sends nothing to Cloudflare (privacy); no unchecked path when Cloudflare is down | `SCRUM-27`, [backend/app/turnstile.py](backend/app/turnstile.py), [deploy/README.md](deploy/README.md) |
@@ -270,6 +273,19 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
   sets `starts_at` ([backend/app/meetups.py](backend/app/meetups.py)). Lesson: `now()` in
   PostgreSQL is frozen per transaction (`clock_timestamp()` is not); compare times from one
   clock.
+- **Two migrations with the same number** (`SCRUM-30`, 2026-10-09). Symptom: PR #34 (Place
+  suggestions) and PR #33 (Ratings, `SCRUM-31`) were written at the same time. Each added a
+  migration with revision `0007` after `0006`. Git showed no conflict, because the two files have
+  different names (`…_0007_place_suggestion.py`, `…_0007_create_rating.py`). Found while merging
+  `dev` into PR #35 (`SCRUM-33`), before PR #34 was merged. A local database that had run the
+  branch's `0007` then ran `dev`'s `0008` without an error: the database stores only the ID `0007`, and `dev`'s `0008` follows `0007`. The
+  result: Alembic says `0008`, the `place_confirmation` table exists, the `rating` table does not.
+  Real cause: Alembic revisions are a chain of plain IDs, and each branch picked the "next" number
+  on its own. Fix: merge `dev` into the branch and renumber the suggestion migration to `0009`
+  (down_revision `0008`); checked with `alembic heads` (one head) and an upgrade/downgrade
+  round-trip on an empty database. The broken local database must be reset
+  (`docker compose down -v`). Lesson: a merge without Git conflicts can still break the
+  migration chain. Before a merge, run `alembic heads`; more than one head means a collision.
 
 ---
 

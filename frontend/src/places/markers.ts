@@ -7,18 +7,22 @@ import { typeCount, type Spot } from './spots'
 const cache = new Map<string, L.DivIcon>()
 
 // peopleNow > 0: someone is there now (SCRUM-29). The ring turns red and a badge shows how many,
-// as agreed in the prototype (SCRUM-17).
-export function placeIcon(activityType: string, selected = false, peopleNow = 0): L.DivIcon {
-  const key = `${activityType}:${selected}:${peopleNow}`
+// as agreed in the prototype (SCRUM-17). A Place suggestion (SCRUM-30) has a dashed, pale ring
+// and a "?" badge; it has no Meetups.
+export function placeIcon(activityType: string, selected = false, peopleNow = 0, suggestion = false): L.DivIcon {
+  const key = `${activityType}:${selected}:${peopleNow}:${suggestion}`
   let icon = cache.get(key)
   if (!icon) {
     const { emoji, color } = activityOf(activityType)
     const size = selected ? 46 : 34
+    const classes = `place-pin${suggestion ? ' suggestion' : ''}${selected ? ' selected' : ''}`
     icon = L.divIcon({
       className: '',
       html: peopleNow > 0
         ? `<div class="place-pin live${selected ? ' selected' : ''}">${emoji}<span class="pin-badge">${peopleNow}</span></div>`
-        : `<div class="place-pin${selected ? ' selected' : ''}" style="border-color:${color}">${emoji}</div>`,
+        : suggestion
+          ? `<div class="${classes}" style="border-color:${color}">${emoji}<span class="pin-badge">?</span></div>`
+          : `<div class="${classes}" style="border-color:${color}">${emoji}</div>`,
       iconSize: [size, size],
       iconAnchor: [size / 2, size / 2],
     })

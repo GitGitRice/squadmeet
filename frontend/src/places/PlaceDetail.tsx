@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Place } from '../api/places'
+import { CONFIRMATIONS_NEEDED } from '../api/suggestions'
 import { activityOf } from './activities'
 
 type Props = {
@@ -8,6 +9,7 @@ type Props = {
   onRetry: () => void
   onClose: () => void
   // The Meetups (SCRUM-29) and Ratings (SCRUM-31) parts, shown once the Place is loaded.
+  // Not for a Place suggestion.
   children?: ReactNode
 }
 
@@ -31,6 +33,12 @@ export default function PlaceDetail({ place, error, onRetry, onClose, children }
         </div>
       </div>
 
+      {place?.is_suggestion && (
+        <p className="suggestion-note">
+          <strong>Vorschlag, noch nicht bestätigt:</strong> {place.confirmations} von {CONFIRMATIONS_NEEDED}{' '}
+          Bestätigungen. Treffen sind erst an bestätigten Plätzen möglich.
+        </p>
+      )}
       {place && (
         <p className="place-detail-location">
           Lage: {coordinates}{' '}
@@ -43,7 +51,7 @@ export default function PlaceDetail({ place, error, onRetry, onClose, children }
           </a>
         </p>
       )}
-      {place && children}
+      {place && !place.is_suggestion && children}
       {error && (
         <>
           <p className="form-error">{error}</p>

@@ -16,7 +16,7 @@ function render(props: Parameters<typeof PlaceDetail>[0]) {
   return container
 }
 
-const place = { id: 7, name: 'Korbanlage', activity_type: 'basketball', lat: 51.3, lon: 12.3, people_now: 0 }
+const place = { id: 7, name: 'Korbanlage', activity_type: 'basketball', lat: 51.3, lon: 12.3, people_now: 0, is_suggestion: false, confirmations: 0 }
 
 describe('PlaceDetail', () => {
   it('shows name, Activity type and location', () => {
@@ -25,6 +25,14 @@ describe('PlaceDetail', () => {
     expect(text).toContain('Korbanlage')
     expect(text).toContain('Basketball')
     expect(text).toContain('51.30000, 12.30000')
+  })
+
+  it('marks a Place suggestion and hides the Meetups', () => {
+    const suggestion = { ...place, is_suggestion: true, confirmations: 1 }
+    const container = render({ place: suggestion, error: null, onRetry: () => {}, onClose: () => {}, children: <p>Treffen hier</p> })
+
+    expect(container.textContent).toContain('1 von 3 Bestätigungen')
+    expect(container.textContent).not.toContain('Treffen hier')
   })
 
   it('offers to try again after an error', () => {
