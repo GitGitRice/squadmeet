@@ -12,6 +12,7 @@ type Props = {
 export default function MfaDialog({ token, user, onChanged, onClose }: Props) {
   const [setup, setSetup] = useState<MfaSetup | null>(null)
   const [code, setCode] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -30,9 +31,12 @@ export default function MfaDialog({ token, user, onChanged, onClose }: Props) {
   function submit(event: FormEvent) {
     event.preventDefault()
     run(async () => {
-      onChanged(await (user.mfa_enabled ? mfaDisable(token, code) : mfaEnable(token, code)))
+      onChanged(
+        await (user.mfa_enabled ? mfaDisable(token, password, code) : mfaEnable(token, code)),
+      )
       setSetup(null)
       setCode('')
+      setPassword('')
     })
   }
 
@@ -43,7 +47,7 @@ export default function MfaDialog({ token, user, onChanged, onClose }: Props) {
         value={code}
         onChange={(e) => setCode(e.target.value)}
         required
-        autoFocus
+        autoFocus={!user.mfa_enabled}
         autoComplete="one-time-code"
         placeholder="123456"
       />
@@ -61,6 +65,17 @@ export default function MfaDialog({ token, user, onChanged, onClose }: Props) {
               Die Zwei-Faktor-Anmeldung ist <strong>an</strong>. Beim Anmelden fragen wir nach dem
               Code aus deiner Authenticator-App.
             </p>
+            <label>
+              Passwort
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoFocus
+                autoComplete="current-password"
+              />
+            </label>
             {codeField}
             <button type="submit" disabled={busy}>
               Ausschalten
@@ -68,6 +83,10 @@ export default function MfaDialog({ token, user, onChanged, onClose }: Props) {
           </>
         ) : setup ? (
           <>
+            <p>
+              Nach dem Einschalten melden wir deine anderen Geräte ab. Dort meldest du dich dann
+              mit Passwort und Code wieder an.
+            </p>
             <p>Scanne den QR-Code mit deiner Authenticator-App (z. B. Google Authenticator).</p>
             <img className="mfa-qr" src={setup.qr_code} alt="QR-Code für die Authenticator-App" />
             <p>

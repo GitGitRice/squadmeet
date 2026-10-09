@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fetchMe, login, MfaRequiredError, mfaEnable, register } from './auth'
+import { fetchMe, login, MfaRequiredError, mfaDisable, mfaEnable, register } from './auth'
 
 const user = { id: 1, nickname: 'Pingpong_Paula', avatar: 'fox', mfa_enabled: false, is_admin: false }
 
@@ -78,5 +78,17 @@ describe('mfaEnable', () => {
     expect(url).toBe('/api/auth/mfa/enable')
     expect(init.headers.Authorization).toBe('Bearer t')
     expect(JSON.parse(init.body)).toEqual({ code: '123456' })
+  })
+})
+
+describe('mfaDisable', () => {
+  it('sends the password again with the code', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json(user))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(mfaDisable('t', 'geheim123', '123456')).resolves.toEqual(user)
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe('/api/auth/mfa/disable')
+    expect(JSON.parse(init.body)).toEqual({ password: 'geheim123', code: '123456' })
   })
 })

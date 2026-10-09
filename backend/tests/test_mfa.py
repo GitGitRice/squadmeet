@@ -3,11 +3,12 @@ import time
 import pyotp
 import pytest
 from fastapi import HTTPException
+from sqlalchemy.orm.attributes import set_committed_value
 from sqlmodel import select
 
 from app.admin import set_admin
-from app.auth import MFA_REQUIRED, require_admin
-from app.models import RecoveryCode, User
+from app.auth import MFA_REQUIRED, check_totp, require_admin
+from app.models import LoginSession, RecoveryCode, User
 from tests.test_auth import PASSWORD, auth_header, register
 
 
@@ -137,13 +138,58 @@ def test_recovery_code_works_once_for_login(client, session, mfa_user):
     assert len(used) == 1
 
 
+def test_a_code_works_only_once_even_with_a_stale_read(session, mfa_user):
+    """Two requests at the same moment: both read the old mfa_last_step before either writes."""
+    _, totp, _ = mfa_user
+    user = session.exec(select(User).where(User.nickname == "Pingpong_Paula")).one()
+    code = code_in(totp, 1)
+    old_step = user.mfa_last_step
+
+    assert check_totp(session, user, code) is True
+    # The second request still has the value from before the first one wrote.
+    set_committed_value(user, "mfa_last_step", old_step)
+    assert check_totp(session, user, code) is False
+
+
+def test_enable_logs_out_the_other_devices(client, session):
+    token = register(client).json()["token"]
+    other = login(client).json()["token"]
+    totp = setup_mfa(client, token)
+
+    response = client.post(
+        "/api/auth/mfa/enable", json={"code": code_in(totp, 0)}, headers=auth_header(token)
+    )
+
+    assert response.status_code == 200
+    assert client.get("/api/auth/me", headers=auth_header(token)).status_code == 200
+    assert client.get("/api/auth/me", headers=auth_header(other)).status_code == 401
+    user = session.exec(select(User).where(User.nickname == "Pingpong_Paula")).one()
+    assert len(session.exec(select(LoginSession).where(LoginSession.user_id == user.id)).all()) == 1
+
+
+def disable(client, token, code, password=PASSWORD):
+    return client.post(
+        "/api/auth/mfa/disable",
+        json={"code": code, "password": password},
+        headers=auth_header(token),
+    )
+
+
+def test_disable_needs_the_password(client, mfa_user):
+    token, totp, _ = mfa_user
+
+    response = disable(client, token, code_in(totp, 1), password="falsch123")
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Passwort falsch"
+    assert client.get("/api/auth/me", headers=auth_header(token)).json()["mfa_enabled"] is True
+
+
 def test_disable_needs_a_valid_code(client, mfa_user):
     token, totp, _ = mfa_user
 
-    wrong = client.post("/api/auth/mfa/disable", json={"code": "000000"}, headers=auth_header(token))
-    right = client.post(
-        "/api/auth/mfa/disable", json={"code": code_in(totp, 1)}, headers=auth_header(token)
-    )
+    wrong = disable(client, token, "000000")
+    right = disable(client, token, code_in(totp, 1))
 
     assert wrong.status_code == 400
     assert right.status_code == 200

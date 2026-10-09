@@ -100,9 +100,9 @@ export function mfaEnable(token: string, code: string): Promise<User> {
   return postJson('/api/auth/mfa/enable', { code }, token)
 }
 
-/** `code` from the authenticator app or a Recovery code. */
-export function mfaDisable(token: string, code: string): Promise<User> {
-  return postJson('/api/auth/mfa/disable', { code }, token)
+/** `code` from the authenticator app or a Recovery code. The password is asked again. */
+export function mfaDisable(token: string, password: string, code: string): Promise<User> {
+  return postJson('/api/auth/mfa/disable', { password, code }, token)
 }
 
 export async function logout(token: string): Promise<void> {
