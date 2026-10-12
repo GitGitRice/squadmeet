@@ -11,6 +11,7 @@ import {
 import { AVATARS } from './avatars'
 import RecoveryCodes from './RecoveryCodes'
 import Turnstile from './Turnstile'
+import LegalLinks from '../legal/LegalLinks'
 
 type Props = {
   onLoggedIn: (result: LoginResult) => void
@@ -211,6 +212,7 @@ export default function AuthDialog({ onLoggedIn, onClose }: Props) {
         <button type="button" className="link" onClick={onClose}>
           Abbrechen
         </button>
+        <LegalLinks className="legal-links-inline" />
       </form>
     </div>
   )

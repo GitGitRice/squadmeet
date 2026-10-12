@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { Place } from '../api/places'
 import { DUPLICATE_RADIUS_M, fetchNearby, suggestPlace, type NearbyPlace } from '../api/suggestions'
+import LegalLinks from '../legal/LegalLinks'
 import { ACTIVITIES, ACTIVITY_TYPES, activityOf, type ActivityType } from './activities'
 
 type Props = {
@@ -106,6 +107,7 @@ export default function SuggestPlaceDialog({ token, onCreated, onOpenPlace, onCl
           <button type="button" className="link" onClick={onClose}>
             Abbrechen
           </button>
+          <LegalLinks className="legal-links-inline" />
         </div>
       </div>
     )
@@ -165,6 +167,7 @@ export default function SuggestPlaceDialog({ token, onCreated, onOpenPlace, onCl
         <button type="button" className="link" onClick={onClose}>
           Abbrechen
         </button>
+        <LegalLinks className="legal-links-inline" />
       </form>
     </div>
   )
