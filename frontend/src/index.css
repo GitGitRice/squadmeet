@@ -506,6 +506,47 @@ body {
   cursor: pointer;
 }
 
+/* SCRUM-35: later Meetups. Grey edge = not running yet, red = live. */
+
+.later-button {
+  min-height: 48px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #16181d;
+  background: white;
+  border: 2px solid #16181d;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.place-meetups .field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.place-meetups input[type='datetime-local'] {
+  min-height: 44px;
+  padding: 6px 10px;
+  font: inherit;
+  font-weight: 400;
+  border: 2px solid #d5d8de;
+  border-radius: 10px;
+}
+
+.meetup-card.later {
+  border-left-color: #8a909c;
+}
+
+.move-form {
+  display: flex;
+  flex-wrap: wrap;
+  flex-basis: 100%;
+  gap: 8px;
+  align-items: flex-end;
+}
+
 /* SCRUM-31: Ratings. Gold = stars, green = a good Reason, orange = a Reason against. */
 
 .place-ratings {
