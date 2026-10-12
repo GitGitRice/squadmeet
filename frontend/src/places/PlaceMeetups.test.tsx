@@ -7,14 +7,20 @@ import PlaceMeetups from './PlaceMeetups'
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
 const paula: User = { id: 1, nickname: 'Paula', avatar: 'fox', mfa_enabled: false, is_admin: false }
+const hoursFromNow = (h: number) => new Date(Date.now() + h * 3_600_000).toISOString()
+
+// Running now.
 const meetup = {
   id: 7,
   place_id: 3,
   host: { id: 1, nickname: 'Paula', avatar: 'fox' },
   party_size: 3,
-  starts_at: '2026-10-12T09:00:00Z',
-  ends_at: '2026-10-12T11:00:00Z',
+  starts_at: hoursFromNow(-1),
+  ends_at: hoursFromNow(1),
 }
+
+// Starts tomorrow (SCRUM-35).
+const laterMeetup = { ...meetup, id: 8, starts_at: hoursFromNow(24), ends_at: hoursFromNow(26) }
 
 afterEach(() => {
   document.body.innerHTML = ''
@@ -80,5 +86,59 @@ describe('PlaceMeetups', () => {
     for (let i = 0; i < 12; i++) act(() => button(container, '+')!.click())
     expect(container.querySelector('output')!.textContent).toBe('10')
     expect(button(container, '+')!.disabled).toBe(true)
+  })
+
+  it('shows a later Meetup with its date and time, not as LIVE', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([laterMeetup])))
+
+    const text = (await render(null)).textContent
+
+    expect(text).not.toContain('LIVE')
+    expect(text).toMatch(/\d\d\.\d\d\., \d\d:\d\d–\d\d:\d\d Uhr/)
+  })
+
+  it('offers the Host "Zeit ändern" for a later Meetup, not "Jetzt beenden"', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([laterMeetup])))
+    const container = await render(paula)
+
+    expect(button(container, 'Zeit ändern')).toBeDefined()
+    expect(button(container, 'Jetzt beenden')).toBeUndefined()
+  })
+
+  it('plans a later Meetup with the chosen start time', async () => {
+    localStorage.setItem('squadmeet.token', 'tok')
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === 'POST' ? Response.json(laterMeetup, { status: 201 }) : Response.json([]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const container = await render(paula)
+
+    act(() => button(container, 'Später treffen')!.click())
+    const field = container.querySelector<HTMLInputElement>('input[type="datetime-local"]')!
+    expect(field.value).not.toBe('')
+    await act(async () => button(container, 'Treffen planen')!.click())
+
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')!
+    const body = JSON.parse(post[1]!.body as string)
+    expect(new Date(body.starts_at).getTime()).toBe(new Date(field.value).getTime())
+    expect(body).toMatchObject({ place_id: 3, hours: 2, party_size: 1 })
+  })
+
+  it('lets the Host move the start of a later Meetup', async () => {
+    localStorage.setItem('squadmeet.token', 'tok')
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === 'PATCH' ? Response.json(laterMeetup) : Response.json([laterMeetup]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const container = await render(paula)
+
+    act(() => button(container, 'Zeit ändern')!.click())
+    await act(async () => button(container, 'Speichern')!.click())
+
+    const patch = fetchMock.mock.calls.find(([, init]) => init?.method === 'PATCH')!
+    expect(patch[0]).toBe('/api/meetups/8')
+    expect(new Date(JSON.parse(patch[1]!.body as string).starts_at).getTime()).toBe(
+      new Date(laterMeetup.starts_at).setSeconds(0, 0),
+    )
   })
 })

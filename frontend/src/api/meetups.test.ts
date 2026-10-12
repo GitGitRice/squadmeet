@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createNowMeetup, endMeetup, fetchMeetups, type Meetup } from './meetups'
+import { createMeetup, endMeetup, fetchMeetups, moveMeetupStart, type Meetup } from './meetups'
 
 const meetup: Meetup = {
   id: 7,
@@ -27,12 +27,35 @@ describe('meetups API', () => {
     const fetchMock = vi.fn().mockResolvedValue(Response.json(meetup, { status: 201 }))
     vi.stubGlobal('fetch', fetchMock)
 
-    await createNowMeetup('tok', { place_id: 3, hours: 2, party_size: 2 })
+    await createMeetup('tok', { place_id: 3, hours: 2, party_size: 2 })
 
     const [url, init] = fetchMock.mock.calls[0]
     expect(url).toBe('/api/meetups')
     expect(init.headers.Authorization).toBe('Bearer tok')
     expect(JSON.parse(init.body)).toEqual({ place_id: 3, hours: 2, party_size: 2 })
+  })
+
+  it('creates a later Meetup with its start time', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json(meetup, { status: 201 }))
+    vi.stubGlobal('fetch', fetchMock)
+    const input = { place_id: 3, hours: 2, party_size: 1, starts_at: '2026-10-17T16:00:00.000Z' }
+
+    await createMeetup('tok', input)
+
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual(input)
+  })
+
+  it('moves the start of a Meetup', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json(meetup))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await moveMeetupStart('tok', 7, '2026-10-18T16:00:00.000Z')
+
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe('/api/meetups/7')
+    expect(init.method).toBe('PATCH')
+    expect(init.headers.Authorization).toBe('Bearer tok')
+    expect(JSON.parse(init.body)).toEqual({ starts_at: '2026-10-18T16:00:00.000Z' })
   })
 
   it("shows the server's message when the Host may not end it", async () => {
