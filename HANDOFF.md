@@ -7,7 +7,7 @@ debugging case.
 Each person's own progress (*Now*, *In flight*, *Next*, *Log*) is in **`HANDOFF.local.md`**.
 That file is not in git (`.gitignore`), because each person's progress differs.
 
-**Last update:** 2026-10-12 · Steven · no Ratings at a Place suggestion (`SCRUM-30`, confirmed by Stefan)
+**Last update:** 2026-10-12 · Steven · `SCRUM-36` confirm a Place suggestion (`POST /api/place-suggestions/{id}/confirm`, 100 m, 7-day account age, "Von Nutzern hinzugefügt")
 
 ---
 
@@ -170,6 +170,7 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 
 | Date | Decision | Why | Where |
 |------|----------|-----|-------|
+| 2026-10-12 | Confirming a Place suggestion (`POST /api/place-suggestions/{id}/confirm`): checks `ST_DWithin` 100 m on PostGIS `Geography`, one row per user in `place_confirmation` (`ON CONFLICT DO NOTHING`), sets `is_suggestion = false` at 3 (`SCRUM-56` later adds Admin approval). Suggesting and confirming require `user.created_at <= now - 7 days` (403). `PlaceDetail` marks active Places with `confirmations > 0` as "Von Nutzern hinzugefügt" | No extra DB column or migration needed in `SCRUM-36`: OSM Places always have `confirmations = 0`, and confirmed user Places have `confirmations >= 3` | `SCRUM-36`, [backend/app/suggestions.py](backend/app/suggestions.py), [frontend/src/places/PlaceDetail.tsx](frontend/src/places/PlaceDetail.tsx) |
 | 2026-10-12 | Dominik joins (all-round: frontend and backend). All open tickets are redistributed among the three; Steven agreed | A third person; work ends Fri 23.10., presentation Mon 26.10. | this file → *Team* |
 | 2026-10-12 | Feature freeze **Wed 21.10. evening**. Sprint 3 = Mon 19.10. – Wed 21.10. for the new features; Thu–Fri 22.–23.10. only fixes, `SCRUM-50` manual test, `SCRUM-49` review, docs and presentation. Replaces "freeze Fri 16.10." | The deadline moved to 23.10.; two days of fixes before the end, as before | this file → *Sprints* |
 | 2026-10-12 | New features (tickets follow): search (place or address → map jumps there, plus named Places) together with the address in the Place detail; "Route" link; City report link; protection against invented Places | Stefan (product owner) with the new person on the team | [CONTEXT.md](CONTEXT.md) |

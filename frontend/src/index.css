@@ -684,7 +684,7 @@ body {
   min-height: 65px;
 }
 
-/* SCRUM-30: Place suggestions. Dashed and pale until 3 Confirmations (SCRUM-36). */
+/* SCRUM-30, SCRUM-36: Place suggestions. Dashed and pale until 3 Confirmations. */
 
 .place-pin.suggestion {
   position: relative;
@@ -697,12 +697,45 @@ body {
   background: #ffd43b;
 }
 
+.suggestion-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .suggestion-note {
   margin: 0;
   padding: 8px 10px;
   background: #fff9db;
   border-left: 4px solid #ffd43b;
   border-radius: 6px;
+}
+
+.confirm-button {
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  background: #1a5fb4;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.confirm-button:disabled {
+  opacity: 0.6;
+}
+
+.user-added-note {
+  align-self: flex-start;
+  margin: 0;
+  padding: 3px 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a5fb4;
+  background: #eef4fc;
+  border-radius: 999px;
 }
 
 /* Above the Leaflet attribution; the Place detail (z-index 1100) covers it. */
