@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import type { User } from '../api/auth'
 import { loadToken } from '../api/auth'
 import {
+  answerMove,
+  cancelMeetup,
   createMeetup,
   endMeetup,
   fetchMeetups,
@@ -63,7 +65,8 @@ function PartySizeStepper({ value, onChange }: { value: number; onChange: (n: nu
 // The Meetups part of the Place detail, as in the prototype (SCRUM-17): the active and later
 // Meetups, the "Ich bin jetzt hier" form (SCRUM-29), "Später treffen" (SCRUM-35), and
 // "Ich komme mit" / "Verlassen" (SCRUM-34). Guests see only the number of people.
-// Cancel and the Host Leaving are SCRUM-37.
+// The Host can cancel before the start, Leave (handover), and move a Meetup with Joins; the
+// users who were in then choose go along / stay / leave (SCRUM-37).
 export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }: Props) {
   const [meetups, setMeetups] = useState<Meetup[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -209,10 +212,17 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
         {meetups.map((meetup) => {
           const isHost = user !== null && user.id === meetup.host?.id
           const joined = meetup.participants?.some((p) => p.id === user?.id) ?? false
-          const live = isLive(meetup, now)
+          const live = !meetup.cancelled && isLive(meetup, now)
+          const open = !meetup.cancelled
+          const offer = meetup.move_offer
           return (
-            <li key={meetup.id} className={live ? 'meetup-card' : 'meetup-card later'}>
+            <li key={meetup.id} className={live ? 'meetup-card' : meetup.cancelled ? 'meetup-card cancelled' : 'meetup-card later'}>
               <div>
+                {meetup.cancelled && (
+                  <>
+                    <span className="cancelled-tag">Abgesagt</span>{' '}
+                  </>
+                )}
                 {live ? (
                   <>
                     <span className="live">LIVE</span> bis {time.format(new Date(meetup.ends_at))} Uhr
@@ -243,7 +253,30 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
                 )}
               </div>
               <strong className="meetup-people">{people(meetup.people)}</strong>
-              {!isHost && !joined && joining?.id !== meetup.id && (
+              {offer && (
+                <div className="move-offer" role="group" aria-label="Neue Zeit">
+                  <p>
+                    {AVATARS[offer.host.avatar]?.emoji} {offer.host.nickname} hat verschoben auf {slot(offer)}.
+                  </p>
+                  {(
+                    [
+                      ['go', 'Mitgehen'],
+                      ['stay', 'Hierbleiben'],
+                      ['leave', 'Absagen'],
+                    ] as const
+                  ).map(([choice, label]) => (
+                    <button
+                      key={choice}
+                      type="button"
+                      disabled={busy}
+                      onClick={() => run((token) => answerMove(token, meetup.id, choice))}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {open && !isHost && !joined && joining?.id !== meetup.id && (
                 <button
                   type="button"
                   disabled={busy}
@@ -252,7 +285,7 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
                   Ich komme mit
                 </button>
               )}
-              {joined && (
+              {open && (joined || isHost) && (
                 <button type="button" disabled={busy} onClick={() => run((token) => leaveMeetup(token, meetup.id))}>
                   Verlassen
                 </button>
@@ -282,8 +315,12 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
                   Jetzt beenden
                 </button>
               )}
-              {/* With Joins, moving the start is SCRUM-37. */}
-              {isHost && !live && meetup.participants?.length === 0 && moving?.id !== meetup.id && (
+              {isHost && open && !live && (
+                <button type="button" disabled={busy} onClick={() => run((token) => cancelMeetup(token, meetup.id))}>
+                  Absagen
+                </button>
+              )}
+              {isHost && open && !live && moving?.id !== meetup.id && (
                 <button
                   type="button"
                   disabled={busy}
@@ -300,6 +337,11 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
                     run((token) => moveMeetupStart(token, meetup.id, fromInputValue(moving.startsAt)))
                   }}
                 >
+                  {(meetup.participants?.length ?? 0) > 0 && (
+                    <p className="hint">
+                      Die anderen bleiben bei der alten Zeit und werden gefragt, ob sie mitgehen.
+                    </p>
+                  )}
                   <label className="field">
                     Neuer Beginn
                     <input

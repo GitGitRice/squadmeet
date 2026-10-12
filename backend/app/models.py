@@ -169,6 +169,23 @@ class Meetup(SQLModel, table=True):
     starts_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     # The Host ending the Meetup early sets this to the moment of the end.
     ends_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    # SCRUM-37: the Host called it off before the start; it stays listed as cancelled.
+    cancelled_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
+    # SCRUM-37: nobody is left; it is gone from the list and the map.
+    closed_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
+    # SCRUM-37: the Host moved to this new Meetup; the users who were in get an offer.
+    moved_to_id: int | None = Field(
+        default=None,
+        sa_column=Column(ForeignKey("meetup.id", ondelete="SET NULL"), nullable=True),
+    )
+    # True while the current Host (who got the role after the move) has not answered.
+    host_move_pending: bool = Field(
+        default=False, sa_column=Column(Boolean, nullable=False, server_default=false())
+    )
 
 
 class MeetupJoin(SQLModel, table=True):
@@ -193,6 +210,10 @@ class MeetupJoin(SQLModel, table=True):
     )
     party_size: int
     joined_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    # SCRUM-37: the Host moved the Meetup; this user has not yet chosen go / stay / leave.
+    move_pending: bool = Field(
+        default=False, sa_column=Column(Boolean, nullable=False, server_default=false())
+    )
 
 
 

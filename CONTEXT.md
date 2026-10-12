@@ -50,12 +50,19 @@ passes to the user who joined earliest.
 _Avoid_: owner, organizer, creator
 
 **Cancel** (absagen):
-The Host ends a Meetup for everyone.
+The Host calls off a Meetup for everyone before it starts. It stays visible as cancelled until its
+end time. A running Meetup is ended early instead.
 _Avoid_: delete, close
 
 **Leave** (verlassen):
 A user takes back their own Join. A Host can Leave instead of Cancel when others have joined.
 _Avoid_: unjoin, cancel
+
+**Move** (verschieben):
+The Host changes the start of a Meetup that has not started. If others have joined, the Meetup
+stays at the old time for them (the Host Leaves it) and the Host gets a new Meetup at the new
+time; everyone who was in chooses to go along, stay or Leave.
+_Avoid_: reschedule, edit
 
 **Closed** (geschlossen):
 The state of a Meetup that has no users left after everyone Left.
