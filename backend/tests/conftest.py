@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app.db import engine, get_session
+from app.geocoding import get_geocoder
 from app.main import app
 from app.rate_limit import reset_all
 from app.turnstile import turnstile_verifier
@@ -19,6 +20,14 @@ CAPTCHA_OK = "ok"
 
 def fake_turnstile(token, ip):
     return token == CAPTCHA_OK
+
+
+class NoGeocoder:
+    def search(self, query, limit=5):
+        return []
+
+    def reverse(self, lat, lon):
+        return None
 
 
 @pytest.fixture(autouse=True)
@@ -42,5 +51,6 @@ def session():
 def client(session):
     app.dependency_overrides[get_session] = lambda: session
     app.dependency_overrides[turnstile_verifier] = lambda: fake_turnstile
+    app.dependency_overrides[get_geocoder] = lambda: NoGeocoder()
     yield TestClient(app)
     app.dependency_overrides.clear()

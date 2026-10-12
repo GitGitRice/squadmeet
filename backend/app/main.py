@@ -8,7 +8,8 @@ from app.auth import router as auth_router
 from app.meetups import router as meetups_router
 from app.ratings import router as ratings_router
 from app.db import get_session
-from app.models import Place, PlaceRead
+from app.geocoding import NominatimGeocoder, get_geocoder
+from app.models import Place, PlaceRead, PlaceSearchHit
 from app.place_reads import select_place_reads
 from app.suggestions import router as suggestions_router
 
@@ -66,15 +67,72 @@ def list_places(
 MAX_DB_INT = 2_147_483_647
 
 
+@api.get("/search", response_model=list[PlaceSearchHit])
+def search_places(
+    q: str = Query(min_length=1, max_length=200),
+    session: Session = Depends(get_session),
+    geocoding: NominatimGeocoder = Depends(get_geocoder),
+):
+    """Named database Places plus address/POI hits from Nominatim (SCRUM-52).
+
+    The UI calls this only when its search form is submitted; it is deliberately not an
+    autocomplete endpoint, in accordance with the public Nominatim usage policy.
+    """
+    query = q.strip()
+    if not query:
+        return []
+    places = session.exec(
+        select(
+            Place.id,
+            Place.name,
+            func.ST_Y(Place.location).label("lat"),
+            func.ST_X(Place.location).label("lon"),
+        )
+        .where(Place.name.icontains(query, autoescape=True))
+        .order_by(Place.name, Place.id)
+        .limit(5)
+    ).all()
+    hits = [
+        PlaceSearchHit(kind="place", label=place.name, lat=place.lat, lon=place.lon, place_id=place.id)
+        for place in places
+    ]
+    try:
+        external = geocoding.search(query, limit=5)
+    except (OSError, TimeoutError, ValueError):
+        # Database Place search remains useful when the optional public service is unavailable.
+        external = []
+    hits.extend(
+        PlaceSearchHit(kind="address", label=hit.label, lat=hit.lat, lon=hit.lon)
+        for hit in external
+    )
+    return hits
+
+
 @api.get("/places/{place_id}", response_model=PlaceRead)
-def get_place(place_id: int, session: Session = Depends(get_session)):
+def get_place(
+    place_id: int,
+    session: Session = Depends(get_session),
+    geocoding: NominatimGeocoder = Depends(get_geocoder),
+):
     """One Place, for the Place detail page (SCRUM-24): its URL can be shared and reloaded."""
     if not 1 <= place_id <= MAX_DB_INT:
         raise HTTPException(status_code=404, detail="Place not found")
     row = session.exec(select_place_reads().where(Place.id == place_id)).first()
     if row is None:
         raise HTTPException(status_code=404, detail="Place not found")
-    return PlaceRead.model_validate(row, from_attributes=True)
+    result = PlaceRead.model_validate(row, from_attributes=True)
+    if result.address is None:
+        try:
+            address = geocoding.reverse(result.lat, result.lon)
+        except (OSError, TimeoutError, ValueError):
+            address = None
+        if address:
+            place = session.get(Place, place_id)
+            place.address = address
+            session.add(place)
+            session.commit()
+            result.address = address
+    return result
 
 
 api.include_router(auth_router)
