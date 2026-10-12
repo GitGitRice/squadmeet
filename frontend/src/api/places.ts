@@ -6,6 +6,9 @@ export type Place = {
   lon: number
   // Party sizes of the Meetups at the Place right now; 0 = nobody is there (SCRUM-29).
   people_now: number
+  // A Place suggestion and its Confirmations so far (SCRUM-30); it needs 3 to become a Place.
+  is_suggestion: boolean
+  confirmations: number
 }
 
 // The visible map area in degrees, in the order the API expects.

@@ -26,6 +26,7 @@ import { filterPlaces } from './places/filter'
 import { placeIcon, spotIcon } from './places/markers'
 import PlaceDetail from './places/PlaceDetail'
 import PlaceMeetups from './places/PlaceMeetups'
+import SuggestPlaceDialog from './places/SuggestPlaceDialog'
 import PlaceRatings from './places/PlaceRatings'
 import { placeIdFromPath, placePath, usePath } from './places/route'
 import { groupBySpot } from './places/spots'
@@ -81,6 +82,7 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false)
   const [showAccount, setShowAccount] = useState(false)
   const [showMfa, setShowMfa] = useState(false)
+  const [showSuggest, setShowSuggest] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [showRecoveryCodes, setShowRecoveryCodes] = useState(false)
   const [chosen, setChosen] = useState<Set<ActivityType>>(() => new Set(ACTIVITY_TYPES))
@@ -164,11 +166,25 @@ export default function App() {
     setShowAuth(false)
   }
 
+  function startSuggesting() {
+    if (user) setShowSuggest(true)
+    else setShowAuth(true)
+  }
+
+  function openFromSuggest(id: number) {
+    setShowSuggest(false)
+    reloadPlaces()
+    openPlace(id)
+  }
+
   async function handleLogout() {
     const token = loadToken()
     clearToken()
     setUser(null)
+    setShowAccount(false)
     setShowMfa(false)
+    setShowSuggest(false)
+    setShowDelete(false)
     setShowRecoveryCodes(false)
     if (token) await logout(token).catch(() => {})
   }
@@ -177,6 +193,8 @@ export default function App() {
   function handleDeleted() {
     clearToken()
     setUser(null)
+    setShowAccount(false)
+    setShowSuggest(false)
     setShowDelete(false)
     reloadPlaces()
   }
@@ -231,6 +249,17 @@ export default function App() {
           onClose={() => setShowMfa(false)}
         />
       )}
+      {showSuggest && user && (
+        <SuggestPlaceDialog
+          token={loadToken() ?? ''}
+          onCreated={(place) => openFromSuggest(place.id)}
+          onOpenPlace={openFromSuggest}
+          onClose={() => setShowSuggest(false)}
+        />
+      )}
+      <button type="button" className="suggest-button" onClick={startSuggesting}>
+        ＋ Platz vorschlagen
+      </button>
       {showDelete && user && (
         <DeleteAccountDialog
           token={loadToken() ?? ''}
@@ -255,6 +284,12 @@ export default function App() {
           error={current?.error ?? null}
           onRetry={() => setDetailTry((n) => n + 1)}
           onClose={() => navigate('/')}
+          user={user}
+          onLoginNeeded={() => setShowAuth(true)}
+          onConfirmed={(updated) => {
+            setDetail({ id: updated.id, place: updated })
+            reloadPlaces()
+          }}
         >
           <PlaceMeetups
             key={selectedId}
@@ -288,7 +323,7 @@ export default function App() {
               <Marker
                 key={place.id}
                 position={[spot.lat, spot.lon]}
-                icon={placeIcon(place.activity_type, isSelected, place.people_now)}
+                icon={placeIcon(place.activity_type, isSelected, place.people_now, place.is_suggestion)}
                 title={place.name}
                 eventHandlers={{ click: () => openPlace(place.id) }}
               />

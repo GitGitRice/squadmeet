@@ -15,10 +15,10 @@ Erledigte Tickets aus Sprint 1 und 2 stehen in Jira.
 
 | | Key | Titel | Epic | Prio | Blockiert von |
 |-|-----|-------|------|------|---------------|
-| ● | SCRUM-27 | Captcha (Turnstile) und Login-Rate-Limit | SCRUM-2 Anmeldung | Must | 22 |
+| ✓ | SCRUM-27 | Captcha (Turnstile) und Login-Rate-Limit | SCRUM-2 Anmeldung | Must | 22 |
 | | SCRUM-39 | Admin: Platz sperren, entsperren und löschen | SCRUM-13 Admin & Moderation | Must | 26, 37 |
-| ● | SCRUM-30 | Einen Platz vorschlagen, mit der Duplikat-Warnung | SCRUM-9 Platzvorschläge | Should | 22, 21 |
-| | SCRUM-36 | Platzvorschlag am Platz bestätigen (+ Konto ab 7 Tagen, Kennzeichnung) | SCRUM-9 Platzvorschläge | Should | 30 |
+| ✓ | SCRUM-30 | Einen Platz vorschlagen, mit der Duplikat-Warnung | SCRUM-9 Platzvorschläge | Should | 22, 21 |
+| ● | SCRUM-36 | Platzvorschlag am Platz bestätigen (+ Konto ab 7 Tagen, Kennzeichnung) | SCRUM-9 Platzvorschläge | Should | 30 |
 | | SCRUM-56 | Admin-Freigabe für Platzvorschläge, 24 h, OSM-Hinweis | SCRUM-9 Platzvorschläge | Should | 36, 39 |
 | | SCRUM-57 | Platz melden | SCRUM-13 Admin & Moderation | Could | 39 |
 | | SCRUM-48 | Übergabe: Stefan hostet und besitzt Squadmeet nach der Präsentation | — | Must | alle anderen Musts |
@@ -27,8 +27,8 @@ Erledigte Tickets aus Sprint 1 und 2 stehen in Jira.
 
 | | Key | Titel | Epic | Prio | Blockiert von |
 |-|-----|-------|------|------|---------------|
-| ● | SCRUM-28 | Datenschutzseite, Impressum und "Mein Konto löschen" | SCRUM-14 Datenschutz & Konto | Must | 22 |
-| ▶ | SCRUM-35 | Meetup zu einer späteren Zeit | SCRUM-8 Treffen | Must | 29 |
+| ✓ | SCRUM-28 | Datenschutzseite, Impressum und "Mein Konto löschen" | SCRUM-14 Datenschutz & Konto | Must | 22 |
+| ● | SCRUM-35 | Meetup zu einer späteren Zeit | SCRUM-8 Treffen | Must | 29 |
 | ▶ | SCRUM-34 | Einem Meetup mit Party-Größe beitreten, und Verlassen | SCRUM-8 Treffen | Must | 29 |
 | | SCRUM-37 | Host: Absagen, Übergabe und Geschlossen | SCRUM-8 Treffen | Must | 34 |
 | ▶ | SCRUM-55 | Meldung an die Stadt (City report) | SCRUM-10 Bewertungen & Fotos | Should | 31 |

@@ -278,3 +278,11 @@ def test_the_new_start_follows_the_same_rules(client, place, host):
 
 def test_moving_an_unknown_meetup_is_404(client, host):
     assert change_time(client, host[0], 999999999, later(days=1)).status_code == 404
+
+
+def test_no_later_meetup_at_a_place_suggestion(client, session, place, host):
+    # The rule of SCRUM-30 holds for a later Meetup too.
+    place.is_suggestion = True
+    session.commit()
+
+    assert create(client, host[0], place.id, starts_at=later(days=1)).status_code == 409

@@ -97,8 +97,15 @@ def create_meetup(
 ):
     """A Meetup that starts now or at `starts_at` and ends after `hours`. The creator is the
     Host."""
-    if session.get(Place, body.place_id) is None:
+    place = session.get(Place, body.place_id)
+    if place is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place not found")
+    # A Place suggestion may not be real; it becomes a Place with 3 Confirmations (SCRUM-36).
+    if place.is_suggestion:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Dieser Platz ist noch nicht bestätigt",
+        )
     now = datetime.now(UTC)
     starts_at = now
     if body.starts_at is not None:

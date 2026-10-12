@@ -13,9 +13,16 @@ Die Details stehen in Jira. Nenne also den Ticket-Key und kopiere nicht den Tick
 
 ---
 
+## Mo 12.10.2026 — Tag 4
+
+- **Team:** Dominik ist neu im Team; offene Tickets und neue Features aufgeteilt (`SCRUM-51`).
+- **Steven:** `SCRUM-30` Platzvorschlag nach Stefans Entscheidung (keine Bewertungen an Vorschlägen) fertiggestellt und gemergt (PR #34). `SCRUM-36` Platzvorschlag vor Ort bestätigen gebaut (100-m-Prüfung, Konto-Mindestalter 7 Tage, Kennzeichnung „Von Nutzern hinzugefügt", PR #41 im Review). `TICKETS.md` aktualisiert.
+- **Stefan:** Neue Features und Neuverteilung mit Dominik geplant (`SCRUM-51`, Tickets `SCRUM-52`–`57`). `SCRUM-28` Datenschutz/Impressum/Konto löschen fertiggestellt und gemergt (PR #39). `SCRUM-35` späteres Treffen mit „Zeit ändern“ gebaut (PR #40, approved). Entscheidungen zu Platzvorschlägen für Steven getroffen.
+- **Dominik:** _bitte ausfüllen_
+
 ## Fr 09.10.2026 — Tag 3
 
-- **Steven:** `SCRUM-26` Fixes aus Stefans Review gemergt (PR #31). `SCRUM-27` Captcha (Cloudflare Turnstile) und Login-Limit gebaut, Turnstile-Schlüssel per Wizard in AWS gespeichert (PR #32, wartet auf Review). `SCRUM-48` angelegt: Übergabe an Stefan nach der Präsentation.
+- **Steven:** `SCRUM-26` Fixes aus Stefans Review gemergt (PR #31). `SCRUM-27` Captcha (Cloudflare Turnstile) und Login-Limit (PR #32), `SCRUM-33` Passwort-Reset + neue Recovery-Codes (PR #35) und `SCRUM-47` eingeschränkte Deploy-Rolle per SSM-Dokument (PR #36) gebaut und gemergt. `SCRUM-28` Datenschutz/Impressum/Konto-löschen vorbereitet und `SCRUM-30` Platzvorschlag mit Duplikat-Warnung gestartet (PR #34).
 - **Stefan:** _bitte ausfüllen_
 
 ## Do 08.10.2026 — Tag 2
