@@ -1,13 +1,13 @@
 # Abschlussprojekt — Handoff (shared)
 
-The shared handoff for the team (2 people) and their coding agents. It is in git. It holds
+The shared handoff for the team (3 people) and their coding agents. It is in git. It holds
 what both people need: rules, project, team, Jira, open questions, decisions and the
 debugging case.
 
 Each person's own progress (*Now*, *In flight*, *Next*, *Log*) is in **`HANDOFF.local.md`**.
 That file is not in git (`.gitignore`), because each person's progress differs.
 
-**Last update:** 2026-10-09 · Steven · debugging case "two migrations with the same number" (`SCRUM-30`)
+**Last update:** 2026-10-12 · Steven · no Ratings at a Place suggestion (`SCRUM-30`, confirmed by Stefan)
 
 ---
 
@@ -42,7 +42,7 @@ Rules. Keep them short so everybody follows them.
   [BRIEF.md](BRIEF.md). Timeline and must-haves: [NOTES.md](NOTES.md).
 - **Must-haves:** cloud deployment, Docker, CI/CD (test → build → deploy), one complete
   business workflow, tests, docs, one debugging case.
-- **Deadline:** presentation on **Wed 21.10.2026** (15–20 min, live demo).
+- **Deadline:** work ends **Fri 23.10.2026**; presentation on **Mon 26.10.2026** (15–20 min, live demo). Changed on 2026-10-12 (was Wed 21.10.).
 - **Live:** https://squadmeet.duckdns.org (since 2026-10-08, `SCRUM-20`). It runs on one EC2 host in the Syntax course AWS account (SSO role "Student", region `eu-central-1`). Setup, shell access and troubleshooting: [deploy/README.md](deploy/README.md).
 - **Repo:** https://github.com/GitGitRice/squadmeet (private). Who starts with which ticket:
   [TICKETS.md](TICKETS.md).
@@ -53,8 +53,9 @@ Rules. Keep them short so everybody follows them.
 
 | Person | Role / area | Jira name |
 |--------|-------------|-----------|
-| Steven | DevOps (Docker, CI/CD, AWS, HTTPS) + login + push notifications | Steven Tanu |
+| Steven | DevOps (Docker, CI/CD, AWS, HTTPS) + login + Admin + Place suggestions | Steven Tanu |
 | Stefan | Product owner (his idea) + frontend PWA (map, meetup screens, ratings) | Stefan Kallinich |
+| Dominik | Joined on 2026-10-12. All-round. Finding (search, Meetup list), Home area, Notifications, manual test | Dominik Fischer |
 | ~~David~~ | Left the project on 2026-10-08. His tickets are split in `SCRUM-46` | David Ludwig-Erbs |
 
 ---
@@ -79,7 +80,7 @@ Rules. Keep them short so everybody follows them.
 | `SCRUM-9` | Platzvorschläge & Bestätigungen | **Steven** | `SCRUM-2`, `SCRUM-7` |
 | `SCRUM-10` | Bewertungen & Fotos | **Stefan** | `SCRUM-2`, `SCRUM-7` |
 | `SCRUM-11` | Kontakte & Blockieren | **Stefan** | `SCRUM-2` |
-| `SCRUM-12` | Benachrichtigungen | **Steven** | `SCRUM-8` |
+| `SCRUM-12` | Benachrichtigungen | **Dominik** (since 2026-10-12) | `SCRUM-8` |
 | `SCRUM-13` | Admin & Moderation | **Steven** | `SCRUM-7`, `SCRUM-10` |
 | `SCRUM-14` | Datenschutz & Konto | **Steven** | `SCRUM-2` |
 | `SCRUM-15` | Präsentation & Doku | **Stefan** (product owner) + all | — |
@@ -89,8 +90,9 @@ Rules. Keep them short so everybody follows them.
 - **Sprint 1** ("SCRUM Sprint 1", sprint ID 1) — Wed 07.10. – Fri 09.10.: walking skeleton, `SCRUM-16` – `SCRUM-25`.
   **Done on 2026-10-08:** all tickets Done, the app deploys automatically from `main`. Sprint completed in Jira.
 - **Sprint 2** ("SCRUM Sprint 2", sprint ID 34) — created 2026-10-08 (Sprint 1 finished early), ends
-  Fri 16.10. (feature freeze). 21 tickets: `SCRUM-26` – `SCRUM-45` and `SCRUM-47`. An agent moves a
-  ticket in with `customfield_10020: 34`.
+  Wed 21.10. (feature freeze; extended from Fri 16.10. on 2026-10-12, `SCRUM-51` — **the end date
+  must still be changed in the Jira UI**). Tickets: `SCRUM-26` – `SCRUM-45`, `SCRUM-47`, `SCRUM-49` –
+  `SCRUM-57`. An agent moves a ticket in with `customfield_10020: 34`.
 - Sprints must be created in the Jira UI (the agent's Jira tools cannot create sprints). An agent
   reads a sprint ID from the `customfield_10020` (Sprint) field of an issue in that sprint.
 
@@ -109,14 +111,17 @@ Join/Leave (Stefan) → `SCRUM-37` Host Cancel/handover/Closed (Stefan) and `SCR
 (Stefan); `SCRUM-31` Ratings (Stefan); `SCRUM-39` Admin lock/unlock/delete (Steven).
 Should since 2026-10-08 (`SCRUM-46`): `SCRUM-38` Series (Stefan); `SCRUM-30` suggest Place →
 `SCRUM-36` confirm (Steven).
-Should: `SCRUM-40` in-app Notifications, `SCRUM-41` Favorites (Steven); `SCRUM-42` Photos,
-`SCRUM-32` Contacts + Block (Stefan). Could: `SCRUM-43` Contact notifications (Stefan), `SCRUM-44`
-web push, `SCRUM-45` Home area (Steven). Each ticket's "Blocked by" is a Jira link.
+Should: `SCRUM-40` in-app Notifications, `SCRUM-41` Favorites (Dominik since 2026-10-12); `SCRUM-42`
+Photos, `SCRUM-32` Contacts + Block (Stefan). Could: `SCRUM-43` Contact notifications (Stefan),
+`SCRUM-44` web push, `SCRUM-45` Home area (Dominik). Each ticket's "Blocked by" is a Jira link.
+New on 2026-10-12 (`SCRUM-51`, Dominik joins): `SCRUM-52` search + address, `SCRUM-53` Route link,
+`SCRUM-54` Meetup list + Time filter (Dominik); `SCRUM-55` City report (Stefan); `SCRUM-56` Admin
+approval of Place suggestions, `SCRUM-57` Place report (Steven). `SCRUM-50` manual test: Dominik.
 In Jira (since 2026-10-08), each ticket has the label `must`, `should` or `could` and the priority
 High, Medium or Low to match. Change both when a ticket changes category. `SCRUM-47` (deploy role
 permissions) is a Must.
 `SCRUM-48` (handover: Stefan hosts and owns the repo, server, domain and Cloudflare) is the **last
-Must**: after the presentation on 21.10., blocked by all other Musts. It is in no sprint yet.
+Must**: after the presentation on 26.10., blocked by all other Musts. It is in no sprint yet.
 
 "Blocked by" on `SCRUM-6` means only the walking skeleton, not the whole Epic. Stories come
 next; each owner writes them (for example with `/mattpocock-skills:to-tickets`).
@@ -163,6 +168,12 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 
 | Date | Decision | Why | Where |
 |------|----------|-----|-------|
+| 2026-10-12 | Dominik joins (all-round: frontend and backend). All open tickets are redistributed among the three; Steven agreed | A third person; work ends Fri 23.10., presentation Mon 26.10. | this file → *Team* |
+| 2026-10-12 | Feature freeze **Wed 21.10. evening**. Sprint 3 = Mon 19.10. – Wed 21.10. for the new features; Thu–Fri 22.–23.10. only fixes, `SCRUM-50` manual test, `SCRUM-49` review, docs and presentation. Replaces "freeze Fri 16.10." | The deadline moved to 23.10.; two days of fixes before the end, as before | this file → *Sprints* |
+| 2026-10-12 | New features (tickets follow): search (place or address → map jumps there, plus named Places) together with the address in the Place detail; "Route" link; City report link; protection against invented Places | Stefan (product owner) with the new person on the team | [CONTEXT.md](CONTEXT.md) |
+| 2026-10-12 | City report: a link in the Place detail to the city's official defect report, for all 5 cities. Always visible, highlighted when the Condition has an issue; after a Rating with a `condition_issue` Reason the app asks "Willst du das der Stadt melden?". The app sends nothing itself | ADR-0005 (no email); the city fixes what the Condition names | [CONTEXT.md](CONTEXT.md) |
+| 2026-10-12 | Ticket split by area. **Dominik:** finding (search + address, Route link, Meetup list with time filter), Home area `SCRUM-45`, Notifications `SCRUM-40`/`41`/`44`, manual test `SCRUM-50`. **Steven:** auth/DevOps (27, 48), Admin `SCRUM-39`, Place suggestions `SCRUM-30`/`36` with the whole protection package. **Stefan:** Meetup workflow (34, 35, 37, 38), privacy `SCRUM-28`, City report, Photos `SCRUM-42`, Contacts `SCRUM-32`/`43`. `SCRUM-49` review: all three | Each person owns whole features; Home area and Notifications belong together; Steven keeps the security parts | Jira assignees |
+| 2026-10-12 | Protection against invented Places: a Place suggestion with 3 Confirmations still needs an **Admin approval**; at least **24 h** between suggestion and approval; only accounts at least **7 days** old may confirm; the server checks in OSM whether the point lies in a building or on private/residential land and shows that **only as a hint to the Admin**, never as a block; user-added Places are marked "Von Nutzern hinzugefügt"; a Place report button | Stefan (product owner): a group could invent a Place, confirm it themselves and lure someone there. Overpass was unreliable (504s), so its answer may not block anything | `SCRUM-36`, [CONTEXT.md](CONTEXT.md) |
 | 2026-10-09 | All manual tests (browser, phone, live site) move to `SCRUM-50`. A feature ticket is done with automated tests and a green pipeline. Each PR lists its manual checks; they go as a comment on `SCRUM-50` | Steven: browser checks cost time in every ticket and break on tool problems (a Chrome extension blocked the `SCRUM-33` check). One test round on the live site before the feature freeze tests the real setup once | this file → *Conventions*, `SCRUM-50` |
 | 2026-10-09 | Password reset (`POST /api/auth/password-reset`): Nickname + Recovery code (or the current MFA code, **only when MFA is on**) + new password + Turnstile on every try, 10 tries per hour per IP. It ends **all** old sessions and answers with a **new** session, so the user is logged in at once. Unknown Nickname and wrong code get the same 400 "Nickname oder Code falsch" | The ticket; ADR-0005 (no email). A new session saves a second MFA code: the one used for the reset works only once, so a login right after it would fail for up to 30 s. A set-up but unconfirmed MFA secret must not count | `SCRUM-33`, [backend/app/auth.py](backend/app/auth.py) |
 | 2026-10-09 | New Recovery codes (`POST /api/auth/recovery-codes`, logged in): need the password again, plus a code when MFA is on; 5 tries per 15 min per user. The old set is deleted, used or not. The button is in the "Zwei-Faktor" dialog for now; after `SCRUM-28` (privacy + delete account) is merged, it moves into its "Konto" dialog | A stolen session token alone must not get codes that reset the password or turn MFA off (same rule as turning MFA off). `SCRUM-28`'s branch is not in `dev` yet | `SCRUM-33`, [frontend/src/auth/RecoveryCodesDialog.tsx](frontend/src/auth/RecoveryCodesDialog.tsx) |
