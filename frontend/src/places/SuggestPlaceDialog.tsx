@@ -1,6 +1,13 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { Place } from '../api/places'
-import { DUPLICATE_RADIUS_M, fetchNearby, suggestPlace, type NearbyPlace } from '../api/suggestions'
+import {
+  DUPLICATE_RADIUS_M,
+  fetchNearby,
+  locate,
+  suggestPlace,
+  type NearbyPlace,
+  type Position,
+} from '../api/suggestions'
 import LegalLinks from '../legal/LegalLinks'
 import { ACTIVITIES, ACTIVITY_TYPES, activityOf, type ActivityType } from './activities'
 
@@ -13,23 +20,7 @@ type Props = {
   onClose: () => void
 }
 
-type Position = { lat: number; lon: number; accuracy: number }
-
 const MAX_NAME_LENGTH = 60
-
-function locate(): Promise<Position> {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('Dein Browser kann den Standort nicht bestimmen.'))
-      return
-    }
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => resolve({ lat: coords.latitude, lon: coords.longitude, accuracy: coords.accuracy }),
-      () => reject(new Error('Kein Standort. Erlaube den Standort für diese Seite und versuche es noch einmal.')),
-      { enableHighAccuracy: true, timeout: 15_000, maximumAge: 0 },
-    )
-  })
-}
 
 /** Suggest a missing Place at the user's position, with the duplicate warning (SCRUM-30). */
 export default function SuggestPlaceDialog({ token, onCreated, onOpenPlace, onClose }: Props) {

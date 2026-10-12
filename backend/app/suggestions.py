@@ -1,19 +1,22 @@
-"""Place suggestions (SCRUM-30): a user at a Place that is missing on the map suggests it.
+"""Place suggestions (SCRUM-30, SCRUM-36): a user at a Place that is missing on the map suggests
+it, and two other users confirm it at the Place.
 
 Before saving, the app asks for Places of the same Activity type within DUPLICATE_RADIUS_M
 ("Ist es einer davon?"); the user can still continue. A suggestion is a Place with
 is_suggestion = true, so the map, the Place detail and its URL work for it as for any Place.
-The suggester's own Confirmation is the first of CONFIRMATIONS_NEEDED; confirming at the Place
-is SCRUM-36.
+The suggester's own Confirmation is the first of CONFIRMATIONS_NEEDED; at CONFIRMATIONS_NEEDED
+the Place becomes active (SCRUM-56 later adds an Admin approval step). Suggesting and
+confirming require an account that is at least MIN_ACCOUNT_AGE old.
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from geoalchemy2 import Geography
 from pydantic import BaseModel, Field
 from sqlalchemy import cast, func
-from sqlmodel import Session
+from sqlalchemy.dialects.postgresql import insert
+from sqlmodel import Session, select
 
 from app.activities import LABELS, ActivityType
 from app.auth import current_user
@@ -23,8 +26,11 @@ from app.place_reads import select_place_reads
 from app.rate_limit import RateLimit
 
 DUPLICATE_RADIUS_M = 50
+CONFIRM_RADIUS_M = 100
 CONFIRMATIONS_NEEDED = 3
+MIN_ACCOUNT_AGE = timedelta(days=7)
 MAX_NAME_LENGTH = 60
+MAX_DB_INT = 2_147_483_647
 
 router = APIRouter(prefix="/place-suggestions", tags=["place suggestions"])
 
@@ -44,8 +50,22 @@ class SuggestionCreate(BaseModel):
     name: str = Field(default="", max_length=MAX_NAME_LENGTH)
 
 
+class ConfirmInput(BaseModel):
+    lat: float = Field(ge=-90, le=90)
+    lon: float = Field(ge=-180, le=180)
+
+
 def point(lat: float, lon: float):
     return func.ST_SetSRID(func.ST_MakePoint(lon, lat), 4326)
+
+
+def require_account_age(user: User, now: datetime) -> None:
+    """Only accounts at least MIN_ACCOUNT_AGE old may suggest or confirm a Place (SCRUM-36)."""
+    if now - user.created_at < MIN_ACCOUNT_AGE:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Dein Konto muss mindestens 7 Tage alt sein, um Plätze vorzuschlagen oder zu bestätigen.",
+        )
 
 
 @router.get("/nearby", response_model=list[NearbyPlace])
@@ -80,6 +100,8 @@ def suggest_place(
     session: Session = Depends(get_session),
 ):
     """Add a Place suggestion at the user's position, with the user's own Confirmation."""
+    now = datetime.now(UTC)
+    require_account_age(user, now)
     suggest_per_user.hit(user.id)
     place = Place(
         name=body.name.strip() or LABELS[body.activity_type],
@@ -89,9 +111,68 @@ def suggest_place(
     )
     session.add(place)
     session.flush()
-    session.add(
-        PlaceConfirmation(place_id=place.id, user_id=user.id, created_at=datetime.now(UTC))
-    )
+    session.add(PlaceConfirmation(place_id=place.id, user_id=user.id, created_at=now))
     session.commit()
     row = session.exec(select_place_reads().where(Place.id == place.id)).one()
     return PlaceRead.model_validate(row, from_attributes=True)
+
+
+@router.post("/{place_id}/confirm", response_model=PlaceRead)
+def confirm_place(
+    place_id: int,
+    body: ConfirmInput,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    """Confirm a Place suggestion while standing within CONFIRM_RADIUS_M of it (SCRUM-36)."""
+    if not 1 <= place_id <= MAX_DB_INT:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place not found")
+    place = session.get(Place, place_id)
+    if place is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place not found")
+    if not place.is_suggestion:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Dieser Platz ist schon bestätigt."
+        )
+    now = datetime.now(UTC)
+    require_account_age(user, now)
+    already = session.exec(
+        select(PlaceConfirmation.id).where(
+            PlaceConfirmation.place_id == place_id, PlaceConfirmation.user_id == user.id
+        )
+    ).first()
+    if already is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Du hast diesen Platzvorschlag schon bestätigt.",
+        )
+    here = cast(point(body.lat, body.lon), Geography)
+    there = cast(Place.location, Geography)
+    within = session.exec(
+        select(func.ST_DWithin(there, here, CONFIRM_RADIUS_M)).where(Place.id == place_id)
+    ).one()
+    if not within:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Du musst am Platz sein (höchstens {CONFIRM_RADIUS_M} m entfernt), um ihn zu bestätigen.",
+        )
+    inserted = session.exec(
+        insert(PlaceConfirmation)
+        .values(place_id=place_id, user_id=user.id, created_at=now)
+        .on_conflict_do_nothing(constraint="uq_place_confirmation_place_user")
+        .returning(PlaceConfirmation.id)
+    ).first()
+    if inserted is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Du hast diesen Platzvorschlag schon bestätigt.",
+        )
+    total = session.exec(
+        select(func.count()).where(PlaceConfirmation.place_id == place_id)
+    ).one()
+    if total >= CONFIRMATIONS_NEEDED:
+        place.is_suggestion = False
+    session.commit()
+    row = session.exec(select_place_reads().where(Place.id == place_id)).one()
+    return PlaceRead.model_validate(row, from_attributes=True)
+

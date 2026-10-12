@@ -1,7 +1,9 @@
+from datetime import UTC, datetime, timedelta
+
 import pytest
 from sqlmodel import select
 
-from app.models import Place, PlaceConfirmation
+from app.models import Place, PlaceConfirmation, User
 from tests.test_auth import auth_header, register
 
 # Far away in the Atlantic, so imported OSM Places never fall near it.
@@ -37,9 +39,25 @@ def suggest(client, token, **changes):
     return client.post("/api/place-suggestions", json=body, headers=auth_header(token))
 
 
+def confirm(client, token, place_id, metres_north=0.0):
+    return client.post(
+        f"/api/place-suggestions/{place_id}/confirm",
+        json={"lat": north_of_start(metres_north), "lon": LON},
+        headers=auth_header(token),
+    )
+
+
+def user_token(client, session, nickname="Steven", age=timedelta(days=8)):
+    body = register(client, nickname=nickname).json()
+    user = session.get(User, body["user"]["id"])
+    user.created_at = datetime.now(UTC) - age
+    session.commit()
+    return body["token"]
+
+
 @pytest.fixture
-def token(client):
-    return register(client).json()["token"]
+def token(client, session):
+    return user_token(client, session)
 
 
 def test_a_place_49_m_away_is_a_possible_duplicate(client, session):
@@ -164,8 +182,6 @@ def test_no_rating_at_a_suggestion(client, token):
 
 
 def test_deleting_the_user_keeps_the_suggestion_but_not_the_confirmation(client, session, token):
-    from app.models import User
-
     place_id = suggest(client, token).json()["id"]
     me = client.get("/api/auth/me", headers=auth_header(token)).json()
 
@@ -175,3 +191,89 @@ def test_deleting_the_user_keeps_the_suggestion_but_not_the_confirmation(client,
 
     read = client.get(f"/api/places/{place_id}").json()
     assert (read["is_suggestion"], read["confirmations"]) == (True, 0)
+
+
+def test_suggest_and_confirm_require_an_account_at_least_7_days_old(client, session, token):
+    place_id = suggest(client, token).json()["id"]
+    too_young = user_token(client, session, "Neuling", age=timedelta(days=6, hours=23))
+    old_enough = user_token(client, session, "Erfahren", age=timedelta(days=7))
+
+    young_suggest = suggest(client, too_young)
+    young_confirm = confirm(client, too_young, place_id)
+
+    assert young_suggest.status_code == 403
+    assert "7 Tage" in young_suggest.json()["detail"]
+    assert young_confirm.status_code == 403
+    assert "7 Tage" in young_confirm.json()["detail"]
+    assert suggest(client, old_enough).status_code == 201
+    assert confirm(client, old_enough, place_id).status_code == 200
+
+
+def test_confirm_at_99_m_is_accepted_and_at_101_m_is_rejected(client, session, token):
+    place_id = suggest(client, token).json()["id"]
+    other = user_token(client, session, "Stefan")
+
+    too_far = confirm(client, other, place_id, metres_north=101)
+    near_enough = confirm(client, other, place_id, metres_north=99)
+
+    assert too_far.status_code == 400
+    assert "100 m" in too_far.json()["detail"]
+    assert near_enough.status_code == 200
+    assert near_enough.json()["confirmations"] == 2
+    assert near_enough.json()["is_suggestion"] is True
+
+
+def test_a_user_can_confirm_a_suggestion_only_once(client, session, token):
+    place_id = suggest(client, token).json()["id"]
+    other = user_token(client, session, "Stefan")
+
+    assert confirm(client, token, place_id).status_code == 409
+    assert confirm(client, other, place_id).status_code == 200
+    second_try = confirm(client, other, place_id)
+
+    assert second_try.status_code == 409
+    assert client.get(f"/api/places/{place_id}").json()["confirmations"] == 2
+
+
+def test_a_suggestion_becomes_active_at_3_confirmations(client, session, token):
+    place_id = suggest(client, token).json()["id"]
+    second = user_token(client, session, "Stefan")
+    third = user_token(client, session, "Dominik")
+    fourth = user_token(client, session, "Paula")
+
+    after_two = confirm(client, second, place_id).json()
+    after_three = confirm(client, third, place_id).json()
+
+    assert (after_two["is_suggestion"], after_two["confirmations"]) == (True, 2)
+    assert (after_three["is_suggestion"], after_three["confirmations"]) == (False, 3)
+    read = client.get(f"/api/places/{place_id}").json()
+    assert (read["is_suggestion"], read["confirmations"]) == (False, 3)
+    assert confirm(client, fourth, place_id).status_code == 409
+    assert (
+        client.post(
+            "/api/meetups", json={"place_id": place_id}, headers=auth_header(token)
+        ).status_code
+        == 201
+    )
+    assert (
+        client.put(
+            f"/api/places/{place_id}/ratings/mine",
+            json={"stars": 5, "reasons": ["table_good"]},
+            headers=auth_header(token),
+        ).status_code
+        == 200
+    )
+
+
+def test_confirm_needs_a_login_and_an_existing_suggestion(client, session, token):
+    osm_place = add_place(session)
+
+    assert (
+        client.post(
+            f"/api/place-suggestions/{osm_place.id}/confirm", json={"lat": LAT, "lon": LON}
+        ).status_code
+        == 401
+    )
+    assert confirm(client, token, 999_999_999).status_code == 404
+    assert confirm(client, token, osm_place.id).status_code == 409
+

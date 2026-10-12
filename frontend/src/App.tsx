@@ -284,6 +284,12 @@ export default function App() {
           error={current?.error ?? null}
           onRetry={() => setDetailTry((n) => n + 1)}
           onClose={() => navigate('/')}
+          user={user}
+          onLoginNeeded={() => setShowAuth(true)}
+          onConfirmed={(updated) => {
+            setDetail({ id: updated.id, place: updated })
+            reloadPlaces()
+          }}
         >
           <PlaceMeetups
             key={selectedId}
