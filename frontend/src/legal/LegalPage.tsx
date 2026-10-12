@@ -110,6 +110,12 @@ function Privacy() {
           geantwortet haben.
         </li>
         <li>
+          <strong>Platzvorschläge und Bestätigungen:</strong> welchen Platz du vorgeschlagen oder
+          bestätigt hast, und wann. Andere sehen nur die Zahl der Bestätigungen, nicht deinen
+          Nickname. Beim Löschen deines Kontos werden deine Bestätigungen gelöscht; der
+          vorgeschlagene Platz bleibt auf der Karte.
+        </li>
+        <li>
           <strong>Heimatgebiet und Fotos:</strong> nur, wenn du sie angibst oder hochlädst, sobald
           es diese Funktionen gibt.
         </li>

@@ -43,6 +43,30 @@ class Place(SQLModel, table=True):
     osm_id: str | None = None
     # WGS 84 (lon/lat), the coordinate system of OpenStreetMap and Leaflet.
     location: Any = Field(sa_column=Column(Geometry("POINT", srid=4326), nullable=False))
+    # A Place suggestion (SCRUM-30): a user added it, and it has fewer than 3 Confirmations.
+    is_suggestion: bool = Field(
+        default=False, sa_column=Column(Boolean, nullable=False, server_default=false())
+    )
+
+
+class PlaceConfirmation(SQLModel, table=True):
+    """A user's Confirmation that a Place suggestion is real (see CONTEXT.md). The user who
+    suggested the Place has the first one (SCRUM-30); others confirm at the Place (SCRUM-36)."""
+
+    __tablename__ = "place_confirmation"
+    __table_args__ = (
+        UniqueConstraint("place_id", "user_id", name="uq_place_confirmation_place_user"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(
+        sa_column=Column(ForeignKey("place.id", ondelete="CASCADE"), nullable=False)
+    )
+    # Deleting the account deletes the user's Confirmations; the Place suggestion stays.
+    user_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
 
 
 class PlaceRead(SQLModel):
@@ -53,6 +77,9 @@ class PlaceRead(SQLModel):
     lon: float
     # Party sizes of the active Meetups at the Place; 0 = nobody is there now (SCRUM-29).
     people_now: int = 0
+    # A Place suggestion and its number of Confirmations so far (SCRUM-30); 0 for OSM Places.
+    is_suggestion: bool = False
+    confirmations: int = 0
 
 
 class User(SQLModel, table=True):

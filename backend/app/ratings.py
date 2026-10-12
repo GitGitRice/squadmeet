@@ -230,6 +230,11 @@ def rate_place(
 ):
     """Rate the Place, or replace the user's earlier Rating of it."""
     place = get_place(session, place_id)
+    if place.is_suggestion:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Dieser Platz ist noch nicht bestätigt",
+        )
     allowed = {reason.key for reason in reasons_for(place.activity_type)}
     unknown = [key for key in body.reasons if key not in allowed]
     if unknown:
