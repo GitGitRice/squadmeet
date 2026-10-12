@@ -96,12 +96,22 @@ function Privacy() {
         </li>
         <li>
           <strong>Treffen:</strong> an welchem Platz, Beginn, Ende und wie viele ihr seid. Solange
-          ein Treffen läuft, sieht jede Person auf der Karte den Platz, die Zeit, die Gruppengröße
-          und deinen Nickname mit Avatar.
+          ein Treffen läuft, zeigt die Karte am Platz die Zahl der Personen. Wer den Platz öffnet,
+          sieht die Zeit, die Gruppengröße und deinen Nickname mit Avatar.
         </li>
         <li>
-          <strong>Heimatgebiet, Bewertungen und Fotos:</strong> nur, wenn du sie angibst oder
-          hochlädst, sobald es diese Funktionen gibt.
+          <strong>Bewertungen:</strong> pro Platz deine Sterne, deine Gründe und wann du bewertet
+          hast. Andere sehen nur die Zusammenfassung aller Bewertungen (Durchschnitt und häufigste
+          Gründe), nicht deinen Nickname.
+        </li>
+        <li>
+          <strong>Antworten auf „Ist das noch so?“:</strong> pro Mangel an einem Platz, ob du
+          „noch so“ oder „behoben“ gesagt hast, und wann. Andere sehen nur, wie viele so
+          geantwortet haben.
+        </li>
+        <li>
+          <strong>Heimatgebiet und Fotos:</strong> nur, wenn du sie angibst oder hochlädst, sobald
+          es diese Funktionen gibt.
         </li>
       </ul>
       <p>
@@ -172,14 +182,16 @@ function Privacy() {
       <p>
         Angemeldet findest du oben rechts unter „Konto“ den Punkt „Konto löschen“. Wir fragen dein Passwort (und mit
         Zwei-Faktor-Anmeldung einen Code) ab. Dann löschen wir sofort dein Konto mit allen oben
-        genannten Daten, auch deine Treffen. Danach ist dein Nickname wieder frei.
+        genannten Daten, auch deine Treffen, Bewertungen und Antworten. Danach ist dein Nickname wieder frei.
       </p>
 
       <h2>Deine Rechte</h2>
       <p>
         Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung,
         Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO). Schreib uns dazu an die Adresse
-        oben. Du kannst dich auch bei einer Datenschutz-Aufsichtsbehörde beschweren.
+        oben. Du kannst dich auch bei einer Datenschutz-Aufsichtsbehörde beschweren, zum Beispiel
+        bei der für uns zuständigen: Die Sächsische Datenschutz- und Transparenzbeauftragte,
+        Devrientstraße 5, 01067 Dresden.
       </p>
     </>
   )
