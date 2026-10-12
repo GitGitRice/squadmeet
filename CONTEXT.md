@@ -17,12 +17,20 @@ _Avoid_: sport, category
 
 **Place suggestion** (Platzvorschlag):
 A Place that a user added and that is not yet confirmed. It becomes an active Place when 3 different
-users confirm it at the Place; the user who suggested it counts as one of the 3.
+users confirm it at the Place and then an Admin approves it, at least 24 hours after the suggestion.
+The user who suggested it counts as one of the 3. Suggesting and confirming need an account that is
+at least 7 days old. A Place that came from a suggestion is marked as added by users.
 _Avoid_: draft, new place
 
 **Confirmation** (Bestätigung):
 A user's statement, made at the Place, that a Place suggestion is real.
 _Avoid_: vote, verification
+
+**Place report** (Platz melden):
+A user's statement that a Place does not exist, is not public, or is dangerous, chosen from fixed
+reasons. A reported Place shows that users reported it; after reports from 3 different users it
+leaves the map until an Admin dismisses the reports or locks the Place.
+_Avoid_: complaint, flag, City report
 
 **Locked place** (gesperrter Platz):
 A Place that an Admin marked as not publicly accessible. It is not on the map, and its future
@@ -58,6 +66,16 @@ A Meetup that starts at the moment it is created and ends automatically after 1�
 chooses; default 2). The Host can end it early.
 _Avoid_: check-in, presence
 
+**Meetup list** (Treffen-Liste):
+The Meetups at the Places in the visible part of the map that fall inside the Time filter. Zooming in
+makes it shorter.
+_Avoid_: feed, timeline, today list
+
+**Time filter** (Zeitfilter):
+The choice of a time span (now, next 3 hours, next 6 hours, today) that limits the map and the Meetup
+list to Places with Meetups in that span.
+_Avoid_: Time rule, schedule
+
 **Series** (Serie):
 A weekly repeating set of Meetups at one Place, on one or more weekdays, each with its own time.
 _Avoid_: recurring event
@@ -87,8 +105,15 @@ _Avoid_: comment, tag
 **Condition** (Zustand):
 The state of a Place, derived from the negative Reasons in recent Ratings that name a problem the
 city or the operator must fix (broken or missing equipment, litter, broken glass, standing water).
-Negative Reasons such as "Oft überfüllt" do not change it.
+Negative Reasons such as "Oft überfüllt" do not change it. An issue that nobody confirmed for
+two months stays, and users are asked "Ist das noch so?"; three "still there" confirm it for two
+more months. Three "fixed", which users can say at any time, end it.
 _Avoid_: status, quality
+
+**City report** (Meldung an die Stadt):
+A link from a Place to the city's own defect report, so a user can tell the city about a problem
+in the Condition. The app sends nothing itself.
+_Avoid_: complaint, ticket, Place report
 
 **Photo** (Foto):
 A picture of a Place uploaded by a user. It is visible only after an Admin approves it.

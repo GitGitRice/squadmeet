@@ -2,6 +2,8 @@
 # Deploys one image tag to the EC2 host through AWS SSM, then runs the smoke test (SCRUM-23).
 # CI runs it after a merge into main; the setup wizard runs it for the first deploy.
 # A rollback is the same command with an older commit SHA (its images are still in GHCR).
+# Only SHAs from SCRUM-47 on have the squadmeet-deploy image, so a rollback cannot go back
+# further (see deploy/README.md).
 #
 # Usage: deploy/deploy.sh <image-tag>      (a full commit SHA, or "main" / "dev")
 # Needs: aws (CLI v2, logged in), jq, curl, and the env variables
@@ -11,26 +13,18 @@ set -euo pipefail
 TAG="${1:?Usage: deploy/deploy.sh <image-tag>}"
 : "${AWS_REGION:?}" "${EC2_INSTANCE_ID:?}" "${APP_DOMAIN:?}"
 export AWS_REGION
-cd "$(dirname "$0")"
 
-# Send the current compose.yml and host-deploy.sh with the command, so a change to them
-# ships with the same deploy. cloud-init: on the first boot Docker may not be ready yet.
-params=$(jq -n \
-  --arg compose "$(base64 < compose.yml | tr -d '\n')" \
-  --arg script "$(base64 < host-deploy.sh | tr -d '\n')" \
-  --arg domain "$APP_DOMAIN" --arg tag "$TAG" '{
-  commands: [
-    "cloud-init status --wait > /dev/null || true",
-    "mkdir -p /opt/squadmeet",
-    "echo \($compose) | base64 -d > /opt/squadmeet/compose.yml",
-    "echo \($script) | base64 -d > /opt/squadmeet/host-deploy.sh",
-    "bash /opt/squadmeet/host-deploy.sh \($domain) \($tag)"],
-  executionTimeout: ["1800"]}')
+# The same pattern as in the SSM document; checked here too for a clear error message.
+[[ "$TAG" =~ ^([0-9a-f]{40}|main|dev)$ ]] \
+  || { echo "✗ The tag must be a full commit SHA, or main / dev: $TAG" >&2; exit 1; }
 
+# The SSM document squadmeet-deploy (deploy/setup-deploy-document.sh) takes the
+# compose.yml and host-deploy.sh of this tag from the image squadmeet-deploy and runs them.
+# The deploy role may send only this document (SCRUM-47).
 echo "Deploying $TAG to $EC2_INSTANCE_ID ($APP_DOMAIN) …"
 command_id=$(aws ssm send-command --instance-ids "$EC2_INSTANCE_ID" \
-  --document-name AWS-RunShellScript --comment "squadmeet deploy ${TAG:0:40}" \
-  --parameters "$params" --query Command.CommandId --output text)
+  --document-name squadmeet-deploy --comment "squadmeet deploy $TAG" \
+  --parameters "tag=$TAG" --query Command.CommandId --output text)
 
 # Wait at most 35 minutes (the host command itself stops after 30, executionTimeout).
 # Right after send-command the invocation may not exist yet, so a few errors are normal;

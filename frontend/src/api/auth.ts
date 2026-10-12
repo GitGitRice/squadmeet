@@ -116,6 +116,36 @@ export function login(
   })
 }
 
+export type PasswordResetInput = {
+  nickname: string
+  // A Recovery code, or the current code from the authenticator app when MFA is on.
+  code: string
+  new_password: string
+  turnstile_token: string | null
+}
+
+/** A forgotten password (SCRUM-33). Ends all old sessions; the answer is a new one. */
+export function resetPassword(input: PasswordResetInput): Promise<LoginResult> {
+  return postJson('/api/auth/password-reset', input)
+}
+
+/**
+ * A new set of Recovery codes; the old set stops working. The password is asked again;
+ * `code` is needed only when MFA is on.
+ */
+export async function newRecoveryCodes(
+  token: string,
+  password: string,
+  code?: string,
+): Promise<string[]> {
+  const body = await postJson<{ recovery_codes: string[] }>(
+    '/api/auth/recovery-codes',
+    { password, ...(code && { code }) },
+    token,
+  )
+  return body.recovery_codes
+}
+
 /** The public Turnstile key from the server; null when the server has none. */
 export async function fetchCaptchaSiteKey(): Promise<string | null> {
   const response = await fetch('/api/auth/captcha')

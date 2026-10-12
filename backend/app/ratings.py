@@ -1,0 +1,299 @@
+"""Ratings (SCRUM-31): 1–5 stars and at least one Reason for a Place (see CONTEXT.md).
+
+One Rating per user per Place; a second one replaces the first. No location check.
+The Place detail shows the average stars, the most chosen Reasons and the Condition.
+
+The Condition comes only from the Reasons that the city or the operator must fix
+(`condition_issue` in app/reasons.py). Such an issue stays until users say it is fixed
+(Stefan's decision, 2026-10-09):
+
+- For RECENT_DAYS after the last Rating that names it, the issue simply counts.
+- Then a check opens: the Place detail shows the issue as "not confirmed" and asks logged-in
+  users "Ist das noch so?". VOTES_NEEDED votes "still there" confirm it for another
+  RECENT_DAYS, from the last of them.
+- "Fixed" can be said at any time, so a repair does not wait for the check (Stefan,
+  2026-10-09). VOTES_NEEDED votes "fixed" end the issue, until a new or changed Rating names
+  it again.
+- Votes count in a round: from the last report or confirmation on. Each user has one vote per
+  round; a later vote replaces their own.
+
+Nothing is stored about checks except the votes: the state is worked out from the Ratings and
+the votes each time (`issue_state`), so two votes at the same moment cannot break it.
+"""
+
+from collections import Counter
+from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
+from typing import Literal
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
+from sqlalchemy.dialects.postgresql import insert
+from sqlmodel import Session, select
+
+from app.auth import current_user
+from app.db import get_session
+from app.models import ConditionVote, Place, Rating, User
+from app.reasons import Reason, reasons_for
+
+# Two months: how long a reported or confirmed issue counts before users are asked again.
+# Also: without a Rating or a vote in this time, the Condition is "unknown".
+RECENT_DAYS = 60
+# Votes of different users that confirm an issue or end it.
+VOTES_NEEDED = 3
+# How many of the most chosen Reasons the Place detail shows.
+TOP_REASONS = 3
+
+router = APIRouter(tags=["ratings"])
+
+
+class ReasonRead(BaseModel):
+    key: str
+    label: str
+    positive: bool
+
+
+class ReasonCount(ReasonRead):
+    count: int
+
+
+class IssueRead(ReasonCount):
+    """A problem named in Ratings; `count` is the number of Ratings that name it."""
+
+    # True when it was not confirmed for RECENT_DAYS and users are asked "Ist das noch so?".
+    needs_check: bool
+    # The votes of the current round so far ("fixed" can come before the check opens).
+    still_there_votes: int
+    fixed_votes: int
+
+
+class ConditionRead(BaseModel):
+    # unknown = no Rating or vote in RECENT_DAYS and no issue; good = no issue; issues = some.
+    state: Literal["unknown", "good", "issues"]
+    # The issues that are not fixed, the most named first.
+    issues: list[IssueRead]
+
+
+class RatingSummary(BaseModel):
+    count: int
+    # None while nobody rated the Place.
+    average_stars: float | None
+    top_reasons: list[ReasonCount]
+    condition: ConditionRead
+
+
+class RatingInput(BaseModel):
+    stars: int = Field(ge=1, le=5)
+    reasons: list[str] = Field(min_length=1)
+
+
+class RatingRead(BaseModel):
+    place_id: int
+    stars: int
+    reasons: list[str]
+    updated_at: datetime
+
+
+def get_place(session: Session, place_id: int) -> Place:
+    place = session.get(Place, place_id)
+    if place is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place not found")
+    return place
+
+
+def to_read(reason: Reason) -> ReasonRead:
+    return ReasonRead(key=reason.key, label=reason.label, positive=reason.positive)
+
+
+def counted(counts: Counter, reasons: dict[str, Reason]) -> list[ReasonCount]:
+    """The Reasons with their counts, the most chosen first. Keys the Place's Activity type no
+    longer has are left out."""
+    return [
+        ReasonCount(**to_read(reasons[key]).model_dump(), count=n)
+        for key, n in counts.most_common()
+        if key in reasons
+    ]
+
+
+@dataclass
+class IssueState:
+    needs_check: bool
+    still_there_votes: int
+    fixed_votes: int
+
+
+def issue_state(
+    reported: list[datetime], votes: list[ConditionVote], now: datetime
+) -> IssueState | None:
+    """The state of one issue at a Place, or None when there is none (never named, or fixed).
+
+    `reported` are the times of the Ratings that name it; `votes` are the votes about it.
+    """
+    if not reported:
+        return None
+    window = timedelta(days=RECENT_DAYS)
+    # A new or changed Rating that names the issue starts over: older votes do not count.
+    confirmed = max(reported)
+    round_votes: dict[int, bool] = {}
+    for vote in sorted(votes, key=lambda v: (v.created_at, v.id or 0)):
+        if vote.created_at <= confirmed:
+            continue  # from an earlier round
+        if vote.still_there and vote.created_at < confirmed + window:
+            continue  # "still there" only counts while a check is open
+        round_votes[vote.user_id] = vote.still_there
+        still_there = sum(round_votes.values())
+        if still_there >= VOTES_NEEDED:
+            confirmed = vote.created_at
+            round_votes = {}
+        elif len(round_votes) - still_there >= VOTES_NEEDED:
+            return None
+    still_there = sum(round_votes.values())
+    return IssueState(
+        needs_check=now >= confirmed + window,
+        still_there_votes=still_there,
+        fixed_votes=len(round_votes) - still_there,
+    )
+
+
+def summarize(
+    ratings: list[Rating],
+    votes: list[ConditionVote],
+    reasons: dict[str, Reason],
+    now: datetime,
+) -> RatingSummary:
+    issues = []
+    for key, n in Counter(key for r in ratings for key in r.reasons).most_common():
+        if key not in reasons or not reasons[key].affects_condition:
+            continue
+        state = issue_state(
+            [r.updated_at for r in ratings if key in r.reasons],
+            [v for v in votes if v.reason_key == key],
+            now,
+        )
+        if state:
+            issues.append(IssueRead(**to_read(reasons[key]).model_dump(), count=n, **vars(state)))
+    since = now - timedelta(days=RECENT_DAYS)
+    recent = any(r.updated_at > since for r in ratings) or any(v.created_at > since for v in votes)
+    if issues:
+        state = "issues"
+    else:
+        state = "good" if recent else "unknown"
+    return RatingSummary(
+        count=len(ratings),
+        average_stars=round(sum(r.stars for r in ratings) / len(ratings), 1) if ratings else None,
+        top_reasons=counted(Counter(key for r in ratings for key in r.reasons), reasons)[
+            :TOP_REASONS
+        ],
+        condition=ConditionRead(state=state, issues=issues),
+    )
+
+
+def load_summary(session: Session, place: Place) -> RatingSummary:
+    ratings = session.exec(select(Rating).where(Rating.place_id == place.id)).all()
+    votes = session.exec(select(ConditionVote).where(ConditionVote.place_id == place.id)).all()
+    reasons = {reason.key: reason for reason in reasons_for(place.activity_type)}
+    return summarize(list(ratings), list(votes), reasons, datetime.now(UTC))
+
+
+@router.get("/places/{place_id}/reasons", response_model=list[ReasonRead])
+def list_reasons(place_id: int, session: Session = Depends(get_session)):
+    """The Reasons the rating form offers for this Place (SCRUM-18)."""
+    place = get_place(session, place_id)
+    return [to_read(reason) for reason in reasons_for(place.activity_type)]
+
+
+@router.get("/places/{place_id}/ratings", response_model=RatingSummary)
+def rating_summary(place_id: int, session: Session = Depends(get_session)):
+    return load_summary(session, get_place(session, place_id))
+
+
+@router.get("/places/{place_id}/ratings/mine", response_model=RatingRead | None)
+def my_rating(
+    place_id: int,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    """The user's own Rating of the Place, or null, so the form can show it for a change."""
+    get_place(session, place_id)
+    rating = session.exec(
+        select(Rating).where(Rating.place_id == place_id, Rating.user_id == user.id)
+    ).first()
+    return rating and RatingRead.model_validate(rating, from_attributes=True)
+
+
+@router.put("/places/{place_id}/ratings/mine", response_model=RatingRead)
+def rate_place(
+    place_id: int,
+    body: RatingInput,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    """Rate the Place, or replace the user's earlier Rating of it."""
+    place = get_place(session, place_id)
+    allowed = {reason.key for reason in reasons_for(place.activity_type)}
+    unknown = [key for key in body.reasons if key not in allowed]
+    if unknown:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Diese Begründung passt nicht zu dem Platz: {', '.join(unknown)}",
+        )
+    now = datetime.now(UTC)
+    values = {
+        "stars": body.stars,
+        # dict.fromkeys drops a Reason sent twice and keeps the order.
+        "reasons": list(dict.fromkeys(body.reasons)),
+        "updated_at": now,
+    }
+    # One statement, so two requests at the same moment cannot make two Ratings.
+    session.exec(
+        insert(Rating)
+        .values(place_id=place_id, user_id=user.id, created_at=now, **values)
+        .on_conflict_do_update(constraint="uq_rating_place_user", set_=values)
+    )
+    session.commit()
+    rating = session.exec(
+        select(Rating).where(Rating.place_id == place_id, Rating.user_id == user.id)
+    ).one()
+    session.refresh(rating)
+    return RatingRead.model_validate(rating, from_attributes=True)
+
+
+class ConditionVoteInput(BaseModel):
+    # True = "Ja, ist noch so"; False = "Nein, behoben".
+    still_there: bool
+
+
+@router.post("/places/{place_id}/condition/{reason_key}/check", response_model=RatingSummary)
+def vote_on_issue(
+    place_id: int,
+    reason_key: str,
+    body: ConditionVoteInput,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    """"Fixed" for an issue at any time, "still there" while its check is open.
+
+    Returns the new summary."""
+    place = get_place(session, place_id)
+    summary = load_summary(session, place)
+    issue = next((i for i in summary.condition.issues if i.key == reason_key), None)
+    if issue is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Diesen Mangel gibt es hier nicht"
+        )
+    if body.still_there and not issue.needs_check:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Dieser Mangel wurde erst vor Kurzem bestätigt",
+        )
+    session.add(
+        ConditionVote(
+            place_id=place_id,
+            reason_key=reason_key,
+            user_id=user.id,
+            still_there=body.still_there,
+            created_at=datetime.now(UTC),
+        )
+    )
+    session.commit()
+    return load_summary(session, place)

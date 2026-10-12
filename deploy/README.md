@@ -1,4 +1,4 @@
-# Deploy (SCRUM-20, SCRUM-23)
+# Deploy (SCRUM-20, SCRUM-23, SCRUM-47)
 
 The app runs on one AWS EC2 host with Docker Compose ([ADR-0002](../docs/adr/0002-one-ec2-host-with-docker-compose.md)).
 The same files work on the NAS later.
@@ -12,7 +12,9 @@ browser ──HTTPS──▶ web (Caddy: built React app + /api/* → backend) �
 | [setup-aws.sh](setup-aws.sh) | Wizard for the first setup. You run it on your laptop; it uses the AWS CLI |
 | [compose.yml](compose.yml) | The production stack. It pulls the images from GHCR; nothing is built on the host |
 | [host-deploy.sh](host-deploy.sh) | Runs on the host: writes `.env`, logs in to GHCR, pulls the images, restarts the stack |
-| [deploy.sh](deploy.sh) | Runs on your laptop or in CI: sends `compose.yml` + `host-deploy.sh` through SSM, runs them with one image tag, then the smoke test |
+| [deploy.sh](deploy.sh) | Runs on your laptop or in CI: sends the SSM document `squadmeet-deploy` with one image tag, then the smoke test |
+| [Dockerfile](Dockerfile) | The image `squadmeet-deploy`: only `compose.yml` + `host-deploy.sh`. CI pushes it with the same tags as the app images |
+| [setup-deploy-document.sh](setup-deploy-document.sh) | Creates the SSM document `squadmeet-deploy`: pull the `squadmeet-deploy` image of one tag, copy its two files to `/opt/squadmeet`, run `host-deploy.sh` |
 | [setup-github-deploy.sh](setup-github-deploy.sh) | Creates the GitHub OIDC provider and the IAM role `squadmeet-github-deploy` for the automatic deploy |
 | [setup-turnstile.sh](setup-turnstile.sh) | Wizard: makes the Cloudflare Turnstile widget (captcha, `SCRUM-27`) and stores its keys in SSM |
 | [ec2-user-data.sh](ec2-user-data.sh) | First boot of the EC2 host: Docker, Compose plugin (fixed version, checksum checked), 2 GB swap file |
@@ -42,8 +44,8 @@ before (by the name `squadmeet`) and keeps the values in `.env.aws` (not in git)
    `squadmeet-ec2` (SSM may run commands; the host may read `/squadmeet/*`).
 6. **EC2** `t2.micro` (Free Tier eligible; `t3.micro` is not in this account), Amazon Linux 2023, 20 GB, CPU credits "standard", and an **Elastic IP**.
 7. **DuckDNS** points the subdomain to the Elastic IP.
-8. **Deploy** with `deploy.sh` (tag `main`; before the first merge into `main`, run the wizard
-   with `DEPLOY_TAG=dev`).
+8. **Deploy:** `setup-deploy-document.sh` creates the SSM document, then `deploy.sh` deploys
+   (tag `main`; before the first merge into `main`, run the wizard with `DEPLOY_TAG=dev`).
 9. **Check** `https://<subdomain>.duckdns.org/api/health` and the map.
 10. **Automatic deploy:** `setup-github-deploy.sh` creates the OIDC provider and the deploy role,
     then sets the GitHub variables `AWS_DEPLOY_ROLE_ARN`, `AWS_REGION`, `EC2_INSTANCE_ID`, `APP_DOMAIN`.
@@ -62,12 +64,19 @@ A merge into `main` runs the CI workflow ([../.github/workflows/ci.yml](../.gith
 tests → images with the tags `<commit SHA>` and `main` → job **Deploy to AWS + smoke test**.
 
 ```
-GitHub Actions ──OIDC──▶ AWS role squadmeet-github-deploy ──SSM──▶ EC2: host-deploy.sh <domain> <SHA>
+GitHub Actions ──OIDC──▶ AWS role squadmeet-github-deploy ──SSM document squadmeet-deploy (tag=<SHA>)──▶ EC2
+   EC2: pull squadmeet-deploy:<SHA> → copy compose.yml + host-deploy.sh → host-deploy.sh <domain> <SHA>
        └── smoke test: https://<domain>/api/health must answer with "version": "<SHA>"
 ```
 
 - No AWS keys and no SSH keys in GitHub. The role trusts only runs on `main` of
-  `GitGitRice/squadmeet`. It may only send `AWS-RunShellScript` to our one instance.
+  `GitGitRice/squadmeet`. It may only send the SSM document `squadmeet-deploy` to our one
+  instance (`SCRUM-47`). It cannot send `AWS-RunShellScript`, so it cannot run other commands.
+- The document takes one parameter, the tag. SSM accepts only a full commit SHA, `main` or
+  `dev`. The domain and the region are fixed in the document.
+- A change to `compose.yml` or `host-deploy.sh` ships with the deploy: they are in the image
+  `squadmeet-deploy` of the same commit. Only a change to the document's own steps needs a
+  manual run of `deploy/setup-deploy-document.sh <domain>` (logged in to AWS, `AWS_REGION` set).
 - A merge into `dev` builds and pushes images (tags `<SHA>` and `dev`), but does not deploy.
 - `/api/health` shows the running commit: `curl https://squadmeet.duckdns.org/api/health`.
 
@@ -82,7 +91,8 @@ deploy/deploy.sh dev               # try the newest dev images on the server
 ```
 
 The values are in the GitHub variables (`gh variable list`). The images of every pushed commit
-stay in GHCR, so you can deploy each older SHA again. Database migrations do not go back by
+stay in GHCR, so you can deploy each older SHA again. **Limit:** only commits from `SCRUM-47` on
+have the `squadmeet-deploy` image. An older SHA fails at `docker pull`. Database migrations do not go back by
 themselves: a rollback over a migration needs `alembic downgrade` first.
 
 ## Troubleshooting

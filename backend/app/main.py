@@ -8,6 +8,7 @@ from sqlmodel import Session, select
 from app.auth import router as auth_router
 from app.meetups import is_active
 from app.meetups import router as meetups_router
+from app.ratings import router as ratings_router
 from app.db import get_session
 from app.models import Meetup, Place, PlaceRead
 
@@ -95,4 +96,5 @@ def get_place(place_id: int, session: Session = Depends(get_session)):
 
 api.include_router(auth_router)
 api.include_router(meetups_router)
+api.include_router(ratings_router)
 app.include_router(api)

@@ -476,7 +476,10 @@ done
 # Same path as the automatic deploy (SCRUM-23). The tag "main" exists after the first
 # merge into main; before that, run the wizard with DEPLOY_TAG=dev.
 DEPLOY_TAG="${DEPLOY_TAG:-main}"
-say "Sending compose.yml and host-deploy.sh, then: pull the '$DEPLOY_TAG' images and start …"
+# The SSM document is the only command the deploy role may send (SCRUM-47).
+AWS_REGION="$AWS_REGION" deploy/setup-deploy-document.sh "$DOMAIN" \
+  || die "The SSM document setup failed (output above)."
+say "Pulling the '$DEPLOY_TAG' images on the server and starting them …"
 AWS_REGION="$AWS_REGION" EC2_INSTANCE_ID="$INSTANCE_ID" APP_DOMAIN="$DOMAIN" \
   deploy/deploy.sh "$DEPLOY_TAG" || die "The deploy on the server failed (output above)."
 say "${GREEN}✓${RESET} The stack runs on the server."

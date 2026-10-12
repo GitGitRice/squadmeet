@@ -3,8 +3,9 @@
 # Creates (or updates) in AWS:
 #   - the OIDC provider for GitHub Actions (token.actions.githubusercontent.com),
 #   - the IAM role squadmeet-github-deploy. Only workflow runs on the main branch of
-#     GitGitRice/squadmeet may assume it. It may only send AWS-RunShellScript to our one
-#     instance and read the result.
+#     GitGitRice/squadmeet may assume it. It may only send the SSM document squadmeet-deploy
+#     (deploy/setup-deploy-document.sh, SCRUM-47) to our one instance and read the result.
+#     It cannot send AWS-RunShellScript, so it cannot run any other command on the host.
 # Then it sets the GitHub variable AWS_DEPLOY_ROLE_ARN (an ARN is not a secret).
 # Safe to run again. The setup wizard (setup-aws.sh, stage 10) runs it.
 #
@@ -18,6 +19,10 @@ export AWS_REGION
 REPO="GitGitRice/squadmeet"
 ROLE="squadmeet-github-deploy"
 ISSUER="token.actions.githubusercontent.com"
+DOCUMENT="squadmeet-deploy"
+
+aws ssm describe-document --name "$DOCUMENT" >/dev/null 2>&1 \
+  || { echo "✗ SSM document $DOCUMENT missing. Run deploy/setup-deploy-document.sh first." >&2; exit 1; }
 
 account_id=$(aws sts get-caller-identity --query Account --output text)
 provider_arn="arn:aws:iam::$account_id:oidc-provider/$ISSUER"
@@ -55,18 +60,19 @@ else
   echo "✓ Role $ROLE created"
 fi
 
-# SendCommand needs both the instance and the document as resources.
+# SendCommand needs both the instance and the document as resources. put-role-policy
+# replaces the whole policy, so the old right to send AWS-RunShellScript is gone.
 # GetCommandInvocation has no resource-level permissions, so it needs "*" (read only).
 permissions=$(jq -n \
   --arg instance "arn:aws:ec2:$AWS_REGION:$account_id:instance/$INSTANCE_ID" \
-  --arg document "arn:aws:ssm:$AWS_REGION::document/AWS-RunShellScript" '{
+  --arg document "arn:aws:ssm:$AWS_REGION:$account_id:document/$DOCUMENT" '{
   Version: "2012-10-17",
   Statement: [
     {Effect: "Allow", Action: "ssm:SendCommand", Resource: [$instance, $document]},
     {Effect: "Allow", Action: "ssm:GetCommandInvocation", Resource: "*"}]}')
 aws iam put-role-policy --role-name "$ROLE" --policy-name squadmeet-deploy-via-ssm \
   --policy-document "$permissions"
-echo "✓ Role may send AWS-RunShellScript to $INSTANCE_ID only"
+echo "✓ Role may send only $DOCUMENT, and only to $INSTANCE_ID"
 
 role_arn=$(aws iam get-role --role-name "$ROLE" --query Role.Arn --output text)
 gh variable set AWS_DEPLOY_ROLE_ARN --repo "$REPO" --body "$role_arn" >/dev/null
