@@ -151,6 +151,18 @@ def test_no_meetup_at_a_suggestion(client, token):
     assert response.status_code == 409
 
 
+def test_no_rating_at_a_suggestion(client, token):
+    place_id = suggest(client, token).json()["id"]
+
+    response = client.put(
+        f"/api/places/{place_id}/ratings/mine",
+        json={"stars": 5, "reasons": ["table_good"]},
+        headers=auth_header(token),
+    )
+
+    assert response.status_code == 409
+
+
 def test_deleting_the_user_keeps_the_suggestion_but_not_the_confirmation(client, session, token):
     from app.models import User
 

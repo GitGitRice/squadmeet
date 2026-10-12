@@ -36,7 +36,7 @@ export default function PlaceDetail({ place, error, onRetry, onClose, children }
       {place?.is_suggestion && (
         <p className="suggestion-note">
           <strong>Vorschlag, noch nicht bestätigt:</strong> {place.confirmations} von {CONFIRMATIONS_NEEDED}{' '}
-          Bestätigungen. Treffen sind erst an bestätigten Plätzen möglich.
+          Bestätigungen. Treffen und Bewertungen sind erst an bestätigten Plätzen möglich.
         </p>
       )}
       {place && (

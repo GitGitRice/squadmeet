@@ -27,12 +27,24 @@ describe('PlaceDetail', () => {
     expect(text).toContain('51.30000, 12.30000')
   })
 
-  it('marks a Place suggestion and hides the Meetups', () => {
+  it('marks a Place suggestion and hides Meetups and Ratings', () => {
     const suggestion = { ...place, is_suggestion: true, confirmations: 1 }
-    const container = render({ place: suggestion, error: null, onRetry: () => {}, onClose: () => {}, children: <p>Treffen hier</p> })
+    const container = render({
+      place: suggestion,
+      error: null,
+      onRetry: () => {},
+      onClose: () => {},
+      children: (
+        <>
+          <p>Treffen hier</p>
+          <p>Bewertungen hier</p>
+        </>
+      ),
+    })
 
     expect(container.textContent).toContain('1 von 3 Bestätigungen')
     expect(container.textContent).not.toContain('Treffen hier')
+    expect(container.textContent).not.toContain('Bewertungen hier')
   })
 
   it('offers to try again after an error', () => {
