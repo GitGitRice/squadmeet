@@ -15,9 +15,16 @@ const meetup = {
   place_id: 3,
   host: { id: 1, nickname: 'Paula', avatar: 'fox' },
   party_size: 3,
+  people: 3,
+  participants: [] as { id: number; nickname: string; avatar: string; party_size: number }[],
   starts_at: hoursFromNow(-1),
   ends_at: hoursFromNow(1),
 }
+
+// As a guest sees it (SCRUM-34): only the number of people.
+const guestView = { ...meetup, host: null, participants: null }
+
+const karl: User = { ...paula, id: 2, nickname: 'Korb_Karl', avatar: 'bear' }
 
 // Starts tomorrow (SCRUM-35).
 const laterMeetup = { ...meetup, id: 8, starts_at: hoursFromNow(24), ends_at: hoursFromNow(26) }
@@ -46,7 +53,7 @@ describe('PlaceMeetups', () => {
   it('lists the active Meetups with Host and people', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([meetup])))
 
-    const text = (await render(null)).textContent
+    const text = (await render(paula)).textContent
 
     expect(text).toContain('LIVE')
     expect(text).toContain('Paula')
@@ -140,5 +147,80 @@ describe('PlaceMeetups', () => {
     expect(new Date(JSON.parse(patch[1]!.body as string).starts_at).getTime()).toBe(
       new Date(laterMeetup.starts_at).setSeconds(0, 0),
     )
+  })
+
+  it('shows a guest only the number of people, no Nicknames', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([guestView])))
+
+    const text = (await render(null)).textContent
+
+    expect(text).toContain('3 Personen')
+    expect(text).not.toContain('Paula')
+  })
+
+  it('lists who joined, with their Party size', async () => {
+    const withKarl = { ...meetup, people: 5, participants: [{ id: 2, nickname: 'Korb_Karl', avatar: 'bear', party_size: 2 }] }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([withKarl])))
+
+    const text = (await render(paula)).textContent
+
+    expect(text).toContain('Korb_Karl (2)')
+    expect(text).toContain('5 Personen')
+  })
+
+  it('asks a guest to log in before "Ich komme mit"', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([guestView])))
+    const onLoginNeeded = vi.fn()
+    const container = await render(null, onLoginNeeded)
+
+    act(() => button(container, 'Ich komme mit')!.click())
+
+    expect(onLoginNeeded).toHaveBeenCalledOnce()
+  })
+
+  it('lets another user join with a Party size', async () => {
+    localStorage.setItem('squadmeet.token', 'tok')
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === 'POST' ? Response.json(meetup, { status: 201 }) : Response.json([meetup]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const container = await render(karl)
+
+    expect(button(container, 'Jetzt beenden')).toBeUndefined()
+    act(() => button(container, 'Ich komme mit')!.click())
+    act(() => button(container, '+')!.click())
+    await act(async () => button(container, 'Beitreten')!.click())
+
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')!
+    expect(post[0]).toBe('/api/meetups/7/join')
+    expect(JSON.parse(post[1]!.body as string)).toEqual({ party_size: 2 })
+  })
+
+  it('shows "Verlassen" to a user who joined, and leaves', async () => {
+    localStorage.setItem('squadmeet.token', 'tok')
+    const withKarl = { ...meetup, participants: [{ id: 2, nickname: 'Korb_Karl', avatar: 'bear', party_size: 1 }] }
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === 'DELETE' ? new Response(null, { status: 204 }) : Response.json([withKarl]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const container = await render(karl)
+
+    expect(button(container, 'Ich komme mit')).toBeUndefined()
+    await act(async () => button(container, 'Verlassen')!.click())
+
+    expect(fetchMock.mock.calls.some(([url, init]) => url === '/api/meetups/7/join' && init?.method === 'DELETE')).toBe(true)
+  })
+
+  it('does not offer the Host "Ich komme mit"', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([meetup])))
+
+    expect(button(await render(paula), 'Ich komme mit')).toBeUndefined()
+  })
+
+  it('hides "Zeit ändern" once someone joined (that is SCRUM-37)', async () => {
+    const joinedLater = { ...laterMeetup, participants: [{ id: 2, nickname: 'Korb_Karl', avatar: 'bear', party_size: 1 }] }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([joinedLater])))
+
+    expect(button(await render(paula), 'Zeit ändern')).toBeUndefined()
   })
 })

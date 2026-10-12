@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from app.models import Meetup, Place
-from tests.test_auth import auth_header, register
+from tests.test_auth import PASSWORD, auth_header, register
 
 
 @pytest.fixture
@@ -286,3 +286,161 @@ def test_no_later_meetup_at_a_place_suggestion(client, session, place, host):
     session.commit()
 
     assert create(client, host[0], place.id, starts_at=later(days=1)).status_code == 409
+
+
+# Join and Leave (SCRUM-34).
+
+
+@pytest.fixture
+def third(client):
+    body = register(client, nickname="Mia_Matte").json()
+    return body["token"], body["user"]["id"]
+
+
+def join(client, token, meetup_id, party_size=1):
+    return client.post(
+        f"/api/meetups/{meetup_id}/join", json={"party_size": party_size}, headers=auth_header(token)
+    )
+
+
+def leave(client, token, meetup_id):
+    return client.delete(f"/api/meetups/{meetup_id}/join", headers=auth_header(token))
+
+
+def meetups_seen_by(client, token, place_id):
+    return client.get(f"/api/places/{place_id}/meetups", headers=auth_header(token)).json()
+
+
+def test_join_with_a_party_size(client, place, host, guest):
+    meetup = create(client, host[0], place.id, party_size=2).json()
+
+    response = join(client, guest[0], meetup["id"], party_size=3)
+
+    assert response.status_code == 201
+    joined = response.json()
+    assert joined["people"] == 5
+    assert [(p["nickname"], p["party_size"]) for p in joined["participants"]] == [("Korb_Karl", 3)]
+
+
+def test_the_total_counts_the_host_and_every_join(client, place, host, guest, third):
+    meetup = create(client, host[0], place.id, party_size=2).json()
+    join(client, guest[0], meetup["id"], party_size=3)
+    join(client, third[0], meetup["id"])
+
+    [listed] = meetups_seen_by(client, host[0], place.id)
+
+    assert listed["people"] == 6
+    assert people_now(client, place.id) == 6
+
+
+@pytest.mark.parametrize("party_size", [0, 11])
+def test_join_party_size_must_be_one_to_ten(client, place, host, guest, party_size):
+    meetup = create(client, host[0], place.id).json()
+
+    assert join(client, guest[0], meetup["id"], party_size).status_code == 422
+
+
+def test_a_user_can_join_only_once(client, place, host, guest):
+    meetup = create(client, host[0], place.id).json()
+    join(client, guest[0], meetup["id"])
+
+    assert join(client, guest[0], meetup["id"]).status_code == 409
+
+
+def test_the_host_cannot_join_their_own_meetup(client, place, host):
+    meetup = create(client, host[0], place.id).json()
+
+    assert join(client, host[0], meetup["id"]).status_code == 409
+
+
+def test_joining_needs_a_login(client, place, host):
+    meetup = create(client, host[0], place.id).json()
+
+    response = client.post(f"/api/meetups/{meetup['id']}/join", json={"party_size": 1})
+
+    assert response.status_code == 401
+
+
+def test_joining_an_unknown_meetup_is_404(client, guest):
+    assert join(client, guest[0], 999999999).status_code == 404
+
+
+def test_a_user_cannot_join_an_ended_meetup(client, place, host, guest):
+    meetup = create(client, host[0], place.id).json()
+    client.post(f"/api/meetups/{meetup['id']}/end", headers=auth_header(host[0]))
+
+    assert join(client, guest[0], meetup["id"]).status_code == 409
+
+
+def test_a_user_can_join_a_later_meetup(client, place, host, guest):
+    meetup = create(client, host[0], place.id, starts_at=later(days=1)).json()
+
+    assert join(client, guest[0], meetup["id"], party_size=2).status_code == 201
+    assert people_now(client, place.id) == 0
+
+
+def test_leave_removes_the_join(client, place, host, guest):
+    meetup = create(client, host[0], place.id, party_size=2).json()
+    join(client, guest[0], meetup["id"], party_size=3)
+
+    response = leave(client, guest[0], meetup["id"])
+
+    assert response.status_code == 204
+    [listed] = meetups_seen_by(client, host[0], place.id)
+    assert (listed["people"], listed["participants"]) == (2, [])
+    assert people_now(client, place.id) == 2
+
+
+def test_leave_without_a_join_is_404(client, place, host, guest):
+    meetup = create(client, host[0], place.id).json()
+
+    assert leave(client, guest[0], meetup["id"]).status_code == 404
+
+
+def test_after_leave_the_user_can_join_again(client, place, host, guest):
+    meetup = create(client, host[0], place.id).json()
+    join(client, guest[0], meetup["id"])
+    leave(client, guest[0], meetup["id"])
+
+    assert join(client, guest[0], meetup["id"], party_size=4).status_code == 201
+
+
+def test_participants_are_listed_in_the_order_they_joined(client, place, host, guest, third):
+    meetup = create(client, host[0], place.id).json()
+    join(client, third[0], meetup["id"])
+    join(client, guest[0], meetup["id"])
+
+    [listed] = meetups_seen_by(client, host[0], place.id)
+
+    assert [p["nickname"] for p in listed["participants"]] == ["Mia_Matte", "Korb_Karl"]
+
+
+def test_a_guest_sees_only_the_number_of_people(client, place, host, guest):
+    meetup = create(client, host[0], place.id, party_size=2).json()
+    join(client, guest[0], meetup["id"])
+
+    [listed] = meetups_at(client, place.id)
+
+    assert listed["people"] == 3
+    assert listed["host"] is None
+    assert listed["participants"] is None
+
+
+def test_the_start_cannot_move_once_someone_joined(client, place, host, guest):
+    # Moving with Joins (stay / go along / leave) is SCRUM-37.
+    meetup = create(client, host[0], place.id, starts_at=later(days=1)).json()
+    join(client, guest[0], meetup["id"])
+
+    assert change_time(client, host[0], meetup["id"], later(days=2)).status_code == 409
+
+
+def test_deleting_the_account_removes_the_join(client, place, host, guest):
+    meetup = create(client, host[0], place.id).json()
+    join(client, guest[0], meetup["id"], party_size=3)
+
+    client.post(
+        "/api/auth/delete-account", json={"password": PASSWORD}, headers=auth_header(guest[0])
+    )
+
+    [listed] = meetups_seen_by(client, host[0], place.id)
+    assert listed["people"] == 1

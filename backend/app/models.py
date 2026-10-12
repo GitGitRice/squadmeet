@@ -164,11 +164,35 @@ class Meetup(SQLModel, table=True):
     host_id: int = Field(
         sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
     )
-    # The Host's own Party size, the Host included (1–10). Joins of others are SCRUM-34.
+    # The Host's own Party size, the Host included (1–10). Others come as MeetupJoin.
     party_size: int
     starts_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     # The Host ending the Meetup early sets this to the moment of the end.
     ends_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
+class MeetupJoin(SQLModel, table=True):
+    """A user's Join of a Meetup with their Party size (SCRUM-34, see CONTEXT.md).
+
+    One per user per Meetup; Leave deletes it. The Host has no Join: their Party size is on
+    the Meetup. The earliest Join gets the Host role when the Host Leaves (SCRUM-37).
+    """
+
+    __tablename__ = "meetup_join"
+    __table_args__ = (
+        UniqueConstraint("meetup_id", "user_id", name="uq_meetup_join_meetup_user"),
+        CheckConstraint("party_size BETWEEN 1 AND 10", name="ck_meetup_join_party_size"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    meetup_id: int = Field(
+        sa_column=Column(ForeignKey("meetup.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    user_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    party_size: int
+    joined_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
 
 
 

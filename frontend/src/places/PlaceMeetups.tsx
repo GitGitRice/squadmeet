@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { User } from '../api/auth'
 import { loadToken } from '../api/auth'
-import { createMeetup, endMeetup, fetchMeetups, moveMeetupStart, type Meetup } from '../api/meetups'
+import {
+  createMeetup,
+  endMeetup,
+  fetchMeetups,
+  joinMeetup,
+  leaveMeetup,
+  moveMeetupStart,
+  type Meetup,
+} from '../api/meetups'
 import { AVATARS } from '../auth/avatars'
 import { fromInputValue, inputBounds, isLive, slot, toInputValue } from './meetupTime'
 
@@ -31,9 +39,31 @@ function nextFullHour(now: Date): Date {
   return next
 }
 
+// The Party size, the user included (1–10), for a new Meetup and for a Join.
+function PartySizeStepper({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+  return (
+    <div className="stepper" role="group" aria-label="Personenzahl (mit dir)">
+      <span>Personenzahl (mit dir)</span>
+      <button type="button" aria-label="Eine Person weniger" disabled={value <= 1} onClick={() => onChange(value - 1)}>
+        −
+      </button>
+      <output>{value}</output>
+      <button
+        type="button"
+        aria-label="Eine Person mehr"
+        disabled={value >= MAX_PARTY_SIZE}
+        onClick={() => onChange(value + 1)}
+      >
+        +
+      </button>
+    </div>
+  )
+}
+
 // The Meetups part of the Place detail, as in the prototype (SCRUM-17): the active and later
-// Meetups, the "Ich bin jetzt hier" form (SCRUM-29) and "Später treffen" (SCRUM-35).
-// Joining is SCRUM-34, Cancel is SCRUM-37.
+// Meetups, the "Ich bin jetzt hier" form (SCRUM-29), "Später treffen" (SCRUM-35), and
+// "Ich komme mit" / "Verlassen" (SCRUM-34). Guests see only the number of people.
+// Cancel and the Host Leaving are SCRUM-37.
 export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }: Props) {
   const [meetups, setMeetups] = useState<Meetup[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -43,6 +73,8 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
   const [startsAt, setStartsAt] = useState('')
   // The Meetup whose start the Host is moving, and its new start.
   const [moving, setMoving] = useState<{ id: number; startsAt: string } | null>(null)
+  // The Meetup the user is joining, and their Party size.
+  const [joining, setJoining] = useState<{ id: number; partySize: number } | null>(null)
   // The time of the last load; it decides which Meetups are live.
   const [now, setNow] = useState(() => new Date())
   const [hours, setHours] = useState(2)
@@ -51,15 +83,16 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
   // When the form was opened; the shown end time is counted from here.
   const [openedAt, setOpenedAt] = useState(0)
 
+  // A guest sends no token and gets no Nicknames; after a login or logout this loads again.
   const reload = useCallback(() => {
-    fetchMeetups(placeId)
+    fetchMeetups(placeId, user ? loadToken() : null)
       .then((found) => {
         setMeetups(found)
         setNow(new Date())
         setError(null)
       })
       .catch((err: Error) => setError(err.message))
-  }, [placeId])
+  }, [placeId, user])
 
   useEffect(() => {
     reload()
@@ -79,6 +112,7 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
       await action(token)
       setCreating(null)
       setMoving(null)
+      setJoining(null)
       reload()
       onChanged()
     } catch (err) {
@@ -143,26 +177,7 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
               </button>
             ))}
           </fieldset>
-          <div className="stepper" role="group" aria-label="Personenzahl (mit dir)">
-            <span>Personenzahl (mit dir)</span>
-            <button
-              type="button"
-              aria-label="Eine Person weniger"
-              disabled={partySize <= 1}
-              onClick={() => setPartySize(partySize - 1)}
-            >
-              −
-            </button>
-            <output>{partySize}</output>
-            <button
-              type="button"
-              aria-label="Eine Person mehr"
-              disabled={partySize >= MAX_PARTY_SIZE}
-              onClick={() => setPartySize(partySize + 1)}
-            >
-              +
-            </button>
-          </div>
+          <PartySizeStepper value={partySize} onChange={setPartySize} />
           {creating === 'later' ? (
             <p className="hint">Alle sehen dein Treffen hier am Platz. Zur Startzeit erscheint es auf der Karte.</p>
           ) : (
@@ -192,7 +207,8 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
       {meetups.length === 0 && <p className="hint">Gerade ist niemand hier.</p>}
       <ul className="meetup-list">
         {meetups.map((meetup) => {
-          const isHost = user?.id === meetup.host.id
+          const isHost = user !== null && user.id === meetup.host?.id
+          const joined = meetup.participants?.some((p) => p.id === user?.id) ?? false
           const live = isLive(meetup, now)
           return (
             <li key={meetup.id} className={live ? 'meetup-card' : 'meetup-card later'}>
@@ -204,17 +220,70 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
                 ) : (
                   slot(meetup)
                 )}
-                <br />
-                {AVATARS[meetup.host.avatar]?.emoji} {meetup.host.nickname}
-                {isHost && ' (du, Gastgeber)'}
+                {meetup.host && (
+                  <>
+                    <br />
+                    {AVATARS[meetup.host.avatar]?.emoji} {meetup.host.nickname}
+                    {isHost && ' (du, Gastgeber)'}
+                  </>
+                )}
+                {meetup.participants && meetup.participants.length > 0 && (
+                  <>
+                    <br />
+                    <span className="participants">
+                      Dabei:{' '}
+                      {meetup.participants
+                        .map(
+                          (p) =>
+                            `${AVATARS[p.avatar]?.emoji ?? ''} ${p.nickname}${p.party_size > 1 ? ` (${p.party_size})` : ''}`,
+                        )
+                        .join(', ')}
+                    </span>
+                  </>
+                )}
               </div>
-              <strong className="meetup-people">{people(meetup.party_size)}</strong>
+              <strong className="meetup-people">{people(meetup.people)}</strong>
+              {!isHost && !joined && joining?.id !== meetup.id && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => (user ? setJoining({ id: meetup.id, partySize: 1 }) : onLoginNeeded())}
+                >
+                  Ich komme mit
+                </button>
+              )}
+              {joined && (
+                <button type="button" disabled={busy} onClick={() => run((token) => leaveMeetup(token, meetup.id))}>
+                  Verlassen
+                </button>
+              )}
+              {joining?.id === meetup.id && (
+                <form
+                  className="move-form"
+                  onSubmit={(event) => {
+                    event.preventDefault()
+                    run((token) => joinMeetup(token, meetup.id, joining.partySize))
+                  }}
+                >
+                  <PartySizeStepper
+                    value={joining.partySize}
+                    onChange={(n) => setJoining({ id: meetup.id, partySize: n })}
+                  />
+                  <button type="submit" disabled={busy}>
+                    Beitreten
+                  </button>
+                  <button type="button" className="link-button" onClick={() => setJoining(null)}>
+                    Abbrechen
+                  </button>
+                </form>
+              )}
               {isHost && live && (
                 <button type="button" disabled={busy} onClick={() => run((token) => endMeetup(token, meetup.id))}>
                   Jetzt beenden
                 </button>
               )}
-              {isHost && !live && moving?.id !== meetup.id && (
+              {/* With Joins, moving the start is SCRUM-37. */}
+              {isHost && !live && meetup.participants?.length === 0 && moving?.id !== meetup.id && (
                 <button
                   type="button"
                   disabled={busy}
