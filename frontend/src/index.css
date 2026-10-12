@@ -9,6 +9,18 @@ body {
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .error {
   position: absolute;
   z-index: 1000;
@@ -155,7 +167,7 @@ body {
 .activity-filter {
   position: absolute;
   z-index: 1000;
-  top: 52px;
+  top: 104px;
   left: 56px;
   right: 8px;
   display: flex;
@@ -163,6 +175,99 @@ body {
   overflow-x: auto;
   padding-bottom: 4px;
   scrollbar-width: none;
+}
+
+/* SCRUM-52: submit-only search. Nominatim forbids client-side autocomplete. */
+
+.place-search {
+  position: absolute;
+  z-index: 1200;
+  top: 52px;
+  left: 8px;
+  right: 8px;
+}
+
+.place-search form {
+  display: flex;
+  max-width: 420px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgb(0 0 0 / 30%);
+  overflow: hidden;
+}
+
+.place-search input {
+  min-width: 0;
+  flex: 1;
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 1rem;
+  border: none;
+}
+
+.place-search form button {
+  width: 48px;
+  border: none;
+  background: #1a5fb4;
+  color: white;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.place-search form button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.search-results {
+  max-width: 420px;
+  max-height: min(360px, calc(100vh - 150px));
+  overflow-y: auto;
+  box-sizing: border-box;
+  margin: 4px auto 0;
+  padding: 8px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
+}
+
+.search-results p {
+  margin: 6px 8px;
+}
+
+.search-results ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.search-results li + li {
+  border-top: 1px solid #e4e6ea;
+}
+
+.search-results li button {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 8px;
+  text-align: left;
+  font-size: 0.95rem;
+  background: white;
+  border: none;
+  cursor: pointer;
+}
+
+.search-results li button small {
+  display: block;
+  margin-top: 2px;
+  color: #505663;
+}
+
+.search-attribution {
+  display: block;
+  padding: 6px 8px 2px;
+  color: #505663;
 }
 
 .activity-filter button {
@@ -251,6 +356,16 @@ body {
   color: #505663;
 }
 
+.place-detail-location strong,
+.place-detail-location span {
+  display: block;
+}
+
+.place-detail-location a {
+  display: inline-block;
+  margin-top: 3px;
+}
+
 .place-detail-back {
   align-self: flex-start;
   padding: 10px 0;
@@ -261,8 +376,19 @@ body {
 
 /* Laptop: the detail is a card on the left, so the map stays big. */
 @media (min-width: 768px) {
+  .place-search {
+    top: 8px;
+    left: 56px;
+    right: auto;
+    width: 420px;
+  }
+
+  .activity-filter {
+    top: 60px;
+  }
+
   .place-detail {
-    top: 104px;
+    top: 112px;
     left: 12px;
     right: auto;
     bottom: auto;
