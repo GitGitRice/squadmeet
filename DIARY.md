@@ -17,7 +17,7 @@ Die Details stehen in Jira. Nenne also den Ticket-Key und kopiere nicht den Tick
 
 - **Steven:** `SCRUM-39` Admin: Platz sperren, entsperren und löschen gebaut (Sperren/Löschen sagt kommende Treffen ab und beendet laufende; gelöschter Platz kommt beim OSM-Import nicht zurück), gemergt (PR #45) und nach Stefans Bestätigung erledigt. Release-PR #46 (`dev` → `main`) gemergt, läuft live. `SCRUM-60` Platzstatus in einem Modul: Design im Grilling festgelegt, test-first gebaut (PR #48 im Review).
 - **Stefan:** _bitte ausfüllen_
-- **Dominik:** _bitte ausfüllen_
+- **Dominik:** `SCRUM-52` gemergt; `SCRUM-53` Route-Link zu Apple Maps auf iOS und Google Maps auf anderen Geräten implementiert und automatisiert getestet.
 
 ## Mo 12.10.2026 — Tag 4
 
