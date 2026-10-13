@@ -17,8 +17,9 @@ Die Details stehen in Jira. Nenne also den Ticket-Key und kopiere nicht den Tick
 
 - **Team:** Dominik ist neu im Team; offene Tickets und neue Features aufgeteilt (`SCRUM-51`).
 - **Steven:** `SCRUM-30` Platzvorschlag nach Stefans Entscheidung (keine Bewertungen an Vorschlägen) fertiggestellt und gemergt (PR #34). `SCRUM-36` Platzvorschlag vor Ort bestätigen gebaut (100-m-Prüfung, Konto-Mindestalter 7 Tage, Kennzeichnung „Von Nutzern hinzugefügt", PR #41 im Review). `TICKETS.md` aktualisiert.
-- **Stefan:** _bitte ausfüllen_
 - **Dominik:** `SCRUM-52` Suche nach Plätzen und Adressen sowie gespeicherte Platzadressen implementiert und automatisiert getestet; Jira-Zugriff in Codex hergestellt.
+- **Stefan:** Neue Features und Neuverteilung mit Dominik geplant (`SCRUM-51`, Tickets `SCRUM-52`–`57`). `SCRUM-28` Datenschutz/Impressum/Konto löschen fertiggestellt und gemergt (PR #39). `SCRUM-35` späteres Treffen mit „Zeit ändern“ gebaut (PR #40, approved). Entscheidungen zu Platzvorschlägen für Steven getroffen.
+
 
 ## Fr 09.10.2026 — Tag 3
 

@@ -156,8 +156,9 @@ class LoginSession(SQLModel, table=True):
 class Meetup(SQLModel, table=True):
     """A user's announcement to be at a Place from starts_at until ends_at (see CONTEXT.md).
 
-    SCRUM-29 builds the Now-meetup: it starts when it is created and ends after 1–4 hours.
-    It is active while starts_at <= now < ends_at; there is no job that deletes it.
+    A Now-meetup (SCRUM-29) starts when it is created, a later Meetup (SCRUM-35) at a start
+    time up to 30 days ahead; both end after 1–4 hours. It is active while
+    starts_at <= now < ends_at; there is no job that deletes it.
     """
 
     __tablename__ = "meetup"
