@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { mfaDisable, mfaEnable, mfaSetup, type MfaSetup, type User } from '../api/auth'
+import LegalLinks from '../legal/LegalLinks'
 
 type Props = {
   token: string
@@ -124,6 +125,7 @@ export default function MfaDialog({ token, user, onChanged, onNewRecoveryCodes, 
         <button type="button" className="link" onClick={onClose}>
           Schließen
         </button>
+        <LegalLinks className="legal-links-inline" />
       </form>
     </div>
   )

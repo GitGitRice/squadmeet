@@ -1,16 +1,19 @@
 import os
-from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response
 from sqlalchemy import func
 from sqlmodel import Session, select
 
+from app.admin_places import router as admin_places_router
 from app.auth import router as auth_router
-from app.meetups import is_active
 from app.meetups import router as meetups_router
 from app.ratings import router as ratings_router
 from app.db import get_session
-from app.models import Meetup, Place, PlaceRead
+from app.geocoding import NominatimGeocoder, get_geocoder
+from app.models import Place, PlaceRead, PlaceSearchHit
+from app.place_reads import select_place_reads
+from app.places import is_visible
+from app.suggestions import router as suggestions_router
 
 app = FastAPI(title="SquadMeet API")
 api = APIRouter(prefix="/api")
@@ -21,23 +24,6 @@ def health():
     # APP_VERSION is the commit SHA of the image (backend/Dockerfile). The deploy smoke
     # test waits for it, so an old container that still answers does not pass (SCRUM-23).
     return {"status": "ok", "version": os.environ.get("APP_VERSION", "local")}
-
-
-def select_place_reads():
-    """The columns of a PlaceRead: the PostGIS point as lat and lon, and the people there now."""
-    people_now = (
-        select(func.coalesce(func.sum(Meetup.party_size), 0))
-        .where(Meetup.place_id == Place.id, is_active(datetime.now(UTC)))
-        .scalar_subquery()
-    )
-    return select(
-        Place.id,
-        Place.name,
-        Place.activity_type,
-        func.ST_Y(Place.location).label("lat"),
-        func.ST_X(Place.location).label("lon"),
-        people_now.label("people_now"),
-    )
 
 
 # A whole city is about 700 Places; more than this only happens when the map is zoomed far out.
@@ -69,7 +55,7 @@ def list_places(
     rows = session.exec(
         select_place_reads()
         # && compares bounding boxes, so PostgreSQL can use the spatial index.
-        .where(Place.location.op("&&")(area))
+        .where(Place.location.op("&&")(area), is_visible())
         .order_by(Place.id)
         .limit(MAX_PLACES + 1)
     ).all()
@@ -83,18 +69,77 @@ def list_places(
 MAX_DB_INT = 2_147_483_647
 
 
+@api.get("/search", response_model=list[PlaceSearchHit])
+def search_places(
+    q: str = Query(min_length=1, max_length=200),
+    session: Session = Depends(get_session),
+    geocoding: NominatimGeocoder = Depends(get_geocoder),
+):
+    """Named database Places plus address/POI hits from Nominatim (SCRUM-52).
+
+    The UI calls this only when its search form is submitted; it is deliberately not an
+    autocomplete endpoint, in accordance with the public Nominatim usage policy.
+    """
+    query = q.strip()
+    if not query:
+        return []
+    places = session.exec(
+        select(
+            Place.id,
+            Place.name,
+            func.ST_Y(Place.location).label("lat"),
+            func.ST_X(Place.location).label("lon"),
+        )
+        .where(Place.name.icontains(query, autoescape=True), is_visible())
+        .order_by(Place.name, Place.id)
+        .limit(5)
+    ).all()
+    hits = [
+        PlaceSearchHit(kind="place", label=place.name, lat=place.lat, lon=place.lon, place_id=place.id)
+        for place in places
+    ]
+    try:
+        external = geocoding.search(query, limit=5)
+    except (OSError, TimeoutError, ValueError):
+        # Database Place search remains useful when the optional public service is unavailable.
+        external = []
+    hits.extend(
+        PlaceSearchHit(kind="address", label=hit.label, lat=hit.lat, lon=hit.lon)
+        for hit in external
+    )
+    return hits
+
+
 @api.get("/places/{place_id}", response_model=PlaceRead)
-def get_place(place_id: int, session: Session = Depends(get_session)):
+def get_place(
+    place_id: int,
+    session: Session = Depends(get_session),
+    geocoding: NominatimGeocoder = Depends(get_geocoder),
+):
     """One Place, for the Place detail page (SCRUM-24): its URL can be shared and reloaded."""
     if not 1 <= place_id <= MAX_DB_INT:
         raise HTTPException(status_code=404, detail="Place not found")
-    row = session.exec(select_place_reads().where(Place.id == place_id)).first()
+    row = session.exec(select_place_reads().where(Place.id == place_id, is_visible())).first()
     if row is None:
         raise HTTPException(status_code=404, detail="Place not found")
-    return PlaceRead.model_validate(row, from_attributes=True)
+    result = PlaceRead.model_validate(row, from_attributes=True)
+    if result.address is None:
+        try:
+            address = geocoding.reverse(result.lat, result.lon)
+        except (OSError, TimeoutError, ValueError):
+            address = None
+        if address:
+            place = session.get(Place, place_id)
+            place.address = address
+            session.add(place)
+            session.commit()
+            result.address = address
+    return result
 
 
 api.include_router(auth_router)
 api.include_router(meetups_router)
+api.include_router(suggestions_router)
 api.include_router(ratings_router)
+api.include_router(admin_places_router)
 app.include_router(api)

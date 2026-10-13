@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import { fetchPlace, fetchPlaces, type MapArea, type Place } from './api/places'
+import { fetchPlace, fetchPlaces, type MapArea, type Place, type PlaceSearchHit } from './api/places'
 import {
   clearToken,
   fetchMe,
@@ -11,17 +11,25 @@ import {
   type LoginResult,
   type User,
 } from './api/auth'
+import AccountDialog from './auth/AccountDialog'
 import AuthDialog from './auth/AuthDialog'
+import DeleteAccountDialog from './auth/DeleteAccountDialog'
+import LockedPlacesDialog from './auth/LockedPlacesDialog'
 import MfaDialog from './auth/MfaDialog'
 import RecoveryCodesDialog from './auth/RecoveryCodesDialog'
 import { AVATARS } from './auth/avatars'
+import { legalPageFromPath } from './legal/legal'
+import LegalLinks from './legal/LegalLinks'
+import LegalPage from './legal/LegalPage'
 import ActivityFilter from './places/ActivityFilter'
 import { ACTIVITY_TYPES, activityOf, type ActivityType } from './places/activities'
 import { filterPlaces } from './places/filter'
 import { placeIcon, spotIcon } from './places/markers'
 import PlaceDetail from './places/PlaceDetail'
 import PlaceMeetups from './places/PlaceMeetups'
+import SuggestPlaceDialog from './places/SuggestPlaceDialog'
 import PlaceRatings from './places/PlaceRatings'
+import PlaceSearch from './places/PlaceSearch'
 import { placeIdFromPath, placePath, usePath } from './places/route'
 import { groupBySpot } from './places/spots'
 
@@ -63,6 +71,16 @@ function CenterOn({ place }: { place: Place }) {
   return null
 }
 
+type SearchTarget = { lat: number; lon: number; request: number }
+
+function CenterOnSearch({ target }: { target: SearchTarget | null }) {
+  const map = useMap()
+  useEffect(() => {
+    if (target) map.setView([target.lat, target.lon], 17)
+  }, [map, target])
+  return null
+}
+
 export default function App() {
   const [places, setPlaces] = useState<Place[]>([])
   const [truncated, setTruncated] = useState(false)
@@ -74,15 +92,21 @@ export default function App() {
   const lastArea = useRef<MapArea | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [showAuth, setShowAuth] = useState(false)
+  const [showAccount, setShowAccount] = useState(false)
   const [showMfa, setShowMfa] = useState(false)
+  const [showSuggest, setShowSuggest] = useState(false)
+  const [showDelete, setShowDelete] = useState(false)
   const [showRecoveryCodes, setShowRecoveryCodes] = useState(false)
+  const [showLocked, setShowLocked] = useState(false)
   const [chosen, setChosen] = useState<Set<ActivityType>>(() => new Set(ACTIVITY_TYPES))
   const [path, navigate] = usePath()
   const selectedId = placeIdFromPath(path)
+  const legalPage = legalPageFromPath(path)
   // The answer for the Place in the detail URL. It keeps its id, so an old answer never shows.
   const [detail, setDetail] = useState<{ id: number; place?: Place; error?: string } | null>(null)
   // Counts the tries for the open Place, so "Nochmal versuchen" or a new tap loads it again.
   const [detailTry, setDetailTry] = useState(0)
+  const [searchTarget, setSearchTarget] = useState<SearchTarget | null>(null)
   const current = detail && detail.id === selectedId ? detail : null
   const selected = current?.place ?? null
 
@@ -130,6 +154,12 @@ export default function App() {
     if (lastArea.current) loadPlaces(lastArea.current)
   }
 
+  function pickSearchHit(hit: PlaceSearchHit) {
+    setSearchTarget({ lat: hit.lat, lon: hit.lon, request: Date.now() })
+    if (hit.kind === 'place' && hit.place_id !== null) navigate(placePath(hit.place_id))
+    else navigate('/')
+  }
+
   useEffect(() => {
     const timer = setInterval(() => {
       if (lastArea.current) loadPlaces(lastArea.current)
@@ -156,13 +186,38 @@ export default function App() {
     setShowAuth(false)
   }
 
+  function startSuggesting() {
+    if (user) setShowSuggest(true)
+    else setShowAuth(true)
+  }
+
+  function openFromSuggest(id: number) {
+    setShowSuggest(false)
+    reloadPlaces()
+    openPlace(id)
+  }
+
   async function handleLogout() {
     const token = loadToken()
     clearToken()
     setUser(null)
+    setShowAccount(false)
     setShowMfa(false)
+    setShowSuggest(false)
+    setShowDelete(false)
     setShowRecoveryCodes(false)
+    setShowLocked(false)
     if (token) await logout(token).catch(() => {})
+  }
+
+  // The server already ended all sessions of the account; only the browser is left.
+  function handleDeleted() {
+    clearToken()
+    setUser(null)
+    setShowAccount(false)
+    setShowSuggest(false)
+    setShowDelete(false)
+    reloadPlaces()
   }
 
   return (
@@ -175,8 +230,8 @@ export default function App() {
             <span>
               {AVATARS[user.avatar]?.emoji} {user.nickname}
             </span>
-            <button type="button" onClick={() => setShowMfa(true)}>
-              Zwei-Faktor
+            <button type="button" onClick={() => setShowAccount(true)}>
+              Konto
             </button>
             <button type="button" onClick={handleLogout}>
               Abmelden
@@ -189,6 +244,31 @@ export default function App() {
         )}
       </div>
       {showAuth && <AuthDialog onLoggedIn={handleLoggedIn} onClose={() => setShowAuth(false)} />}
+      {showAccount && user && (
+        <AccountDialog
+          user={user}
+          onMfa={() => {
+            setShowAccount(false)
+            setShowMfa(true)
+          }}
+          onDelete={() => {
+            setShowAccount(false)
+            setShowDelete(true)
+          }}
+          onLockedPlaces={() => {
+            setShowAccount(false)
+            setShowLocked(true)
+          }}
+          onClose={() => setShowAccount(false)}
+        />
+      )}
+      {showLocked && user && (
+        <LockedPlacesDialog
+          token={loadToken() ?? ''}
+          onUnlocked={reloadPlaces}
+          onClose={() => setShowLocked(false)}
+        />
+      )}
       {showMfa && user && (
         <MfaDialog
           token={loadToken() ?? ''}
@@ -201,6 +281,27 @@ export default function App() {
           onClose={() => setShowMfa(false)}
         />
       )}
+      {showSuggest && user && (
+        <SuggestPlaceDialog
+          token={loadToken() ?? ''}
+          onCreated={(place) => openFromSuggest(place.id)}
+          onOpenPlace={openFromSuggest}
+          onClose={() => setShowSuggest(false)}
+        />
+      )}
+      <button type="button" className="suggest-button" onClick={startSuggesting}>
+        ＋ Platz vorschlagen
+      </button>
+      {showDelete && user && (
+        <DeleteAccountDialog
+          token={loadToken() ?? ''}
+          user={user}
+          onDeleted={handleDeleted}
+          onClose={() => setShowDelete(false)}
+        />
+      )}
+      {legalPage && <LegalPage kind={legalPage} navigate={navigate} />}
+      <LegalLinks navigate={navigate} />
       {showRecoveryCodes && user && (
         <RecoveryCodesDialog
           token={loadToken() ?? ''}
@@ -208,6 +309,7 @@ export default function App() {
           onClose={() => setShowRecoveryCodes(false)}
         />
       )}
+      <PlaceSearch onPick={pickSearchHit} />
       <ActivityFilter chosen={chosen} onChange={setChosen} />
       {selectedId !== null && (
         <PlaceDetail
@@ -215,6 +317,16 @@ export default function App() {
           error={current?.error ?? null}
           onRetry={() => setDetailTry((n) => n + 1)}
           onClose={() => navigate('/')}
+          user={user}
+          onLoginNeeded={() => setShowAuth(true)}
+          onConfirmed={(updated) => {
+            setDetail({ id: updated.id, place: updated })
+            reloadPlaces()
+          }}
+          onRemoved={() => {
+            navigate('/')
+            reloadPlaces()
+          }}
         >
           <PlaceMeetups
             key={selectedId}
@@ -230,6 +342,7 @@ export default function App() {
             user={user}
             onLoginNeeded={() => setShowAuth(true)}
           />
+          <LegalLinks navigate={navigate} className="legal-links-inline" />
         </PlaceDetail>
       )}
       <MapContainer center={LEIPZIG} zoom={13} minZoom={MIN_ZOOM} style={{ height: '100%' }}>
@@ -238,6 +351,7 @@ export default function App() {
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapAreaWatcher onMove={loadPlaces} />
+        <CenterOnSearch target={searchTarget} />
         {selected && <CenterOn place={selected} />}
         {spots.map((spot) => {
           const isSelected = spot.places.some((place) => place.id === selectedId)
@@ -247,7 +361,7 @@ export default function App() {
               <Marker
                 key={place.id}
                 position={[spot.lat, spot.lon]}
-                icon={placeIcon(place.activity_type, isSelected, place.people_now)}
+                icon={placeIcon(place.activity_type, isSelected, place.people_now, place.is_suggestion)}
                 title={place.name}
                 eventHandlers={{ click: () => openPlace(place.id) }}
               />

@@ -9,6 +9,18 @@ body {
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .error {
   position: absolute;
   z-index: 1000;
@@ -155,7 +167,7 @@ body {
 .activity-filter {
   position: absolute;
   z-index: 1000;
-  top: 52px;
+  top: 104px;
   left: 56px;
   right: 8px;
   display: flex;
@@ -163,6 +175,99 @@ body {
   overflow-x: auto;
   padding-bottom: 4px;
   scrollbar-width: none;
+}
+
+/* SCRUM-52: submit-only search. Nominatim forbids client-side autocomplete. */
+
+.place-search {
+  position: absolute;
+  z-index: 1200;
+  top: 52px;
+  left: 8px;
+  right: 8px;
+}
+
+.place-search form {
+  display: flex;
+  max-width: 420px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgb(0 0 0 / 30%);
+  overflow: hidden;
+}
+
+.place-search input {
+  min-width: 0;
+  flex: 1;
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 1rem;
+  border: none;
+}
+
+.place-search form button {
+  width: 48px;
+  border: none;
+  background: #1a5fb4;
+  color: white;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.place-search form button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.search-results {
+  max-width: 420px;
+  max-height: min(360px, calc(100vh - 150px));
+  overflow-y: auto;
+  box-sizing: border-box;
+  margin: 4px auto 0;
+  padding: 8px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
+}
+
+.search-results p {
+  margin: 6px 8px;
+}
+
+.search-results ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.search-results li + li {
+  border-top: 1px solid #e4e6ea;
+}
+
+.search-results li button {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 8px;
+  text-align: left;
+  font-size: 0.95rem;
+  background: white;
+  border: none;
+  cursor: pointer;
+}
+
+.search-results li button small {
+  display: block;
+  margin-top: 2px;
+  color: #505663;
+}
+
+.search-attribution {
+  display: block;
+  padding: 6px 8px 2px;
+  color: #505663;
 }
 
 .activity-filter button {
@@ -251,6 +356,16 @@ body {
   color: #505663;
 }
 
+.place-detail-location strong,
+.place-detail-location span {
+  display: block;
+}
+
+.place-detail-location a {
+  display: inline-block;
+  margin-top: 3px;
+}
+
 .place-detail-back {
   align-self: flex-start;
   padding: 10px 0;
@@ -261,8 +376,19 @@ body {
 
 /* Laptop: the detail is a card on the left, so the map stays big. */
 @media (min-width: 768px) {
+  .place-search {
+    top: 8px;
+    left: 56px;
+    right: auto;
+    width: 420px;
+  }
+
+  .activity-filter {
+    top: 60px;
+  }
+
   .place-detail {
-    top: 104px;
+    top: 112px;
     left: 12px;
     right: auto;
     bottom: auto;
@@ -506,6 +632,85 @@ body {
   cursor: pointer;
 }
 
+/* SCRUM-35: later Meetups. Grey edge = not running yet, red = live. */
+
+.later-button {
+  min-height: 48px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #16181d;
+  background: white;
+  border: 2px solid #16181d;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.place-meetups .field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.place-meetups input[type='datetime-local'] {
+  min-height: 44px;
+  padding: 6px 10px;
+  font: inherit;
+  font-weight: 400;
+  border: 2px solid #d5d8de;
+  border-radius: 10px;
+}
+
+.meetup-card.later {
+  border-left-color: #8a909c;
+}
+
+.meetup-card .participants {
+  font-size: 0.9rem;
+  color: #505663;
+}
+
+/* SCRUM-37: a cancelled Meetup, and the question after the Host moved it. */
+
+.meetup-card.cancelled {
+  border-left-color: #8a909c;
+  opacity: 0.75;
+}
+
+.cancelled-tag {
+  padding: 1px 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: white;
+  background: #505663;
+  border-radius: 5px;
+}
+
+.move-offer {
+  display: flex;
+  flex-wrap: wrap;
+  flex-basis: 100%;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  background: #fff4d6;
+  border-radius: 8px;
+}
+
+.move-offer p {
+  flex-basis: 100%;
+  margin: 0;
+  font-weight: 600;
+}
+
+.move-form {
+  display: flex;
+  flex-wrap: wrap;
+  flex-basis: 100%;
+  gap: 8px;
+  align-items: flex-end;
+}
+
 /* SCRUM-31: Ratings. Gold = stars, green = a good Reason, orange = a Reason against. */
 
 .place-ratings {
@@ -682,4 +887,249 @@ body {
 /* The Turnstile widget is 65 px high; keep its place so the form does not jump (SCRUM-27). */
 .captcha {
   min-height: 65px;
+}
+
+/* SCRUM-30, SCRUM-36: Place suggestions. Dashed and pale until 3 Confirmations. */
+
+.place-pin.suggestion {
+  position: relative;
+  border-style: dashed;
+  background: rgb(255 255 255 / 75%);
+}
+
+.place-pin.suggestion .pin-badge {
+  color: #16181d;
+  background: #ffd43b;
+}
+
+.suggestion-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.suggestion-note {
+  margin: 0;
+  padding: 8px 10px;
+  background: #fff9db;
+  border-left: 4px solid #ffd43b;
+  border-radius: 6px;
+}
+
+.confirm-button {
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  background: #1a5fb4;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.confirm-button:disabled {
+  opacity: 0.6;
+}
+
+.user-added-note {
+  align-self: flex-start;
+  margin: 0;
+  padding: 3px 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a5fb4;
+  background: #eef4fc;
+  border-radius: 999px;
+}
+
+/* Above the Leaflet attribution; the Place detail (z-index 1100) covers it. */
+.suggest-button {
+  position: absolute;
+  z-index: 1000;
+  right: 12px;
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  min-height: 44px;
+  padding: 0 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  background: #1a5fb4;
+  border: none;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 35%);
+  cursor: pointer;
+}
+
+.activity-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.activity-choice legend {
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.dialog .activity-choice button {
+  min-height: 40px;
+  padding: 0 10px;
+  font-size: 0.95rem;
+  background: white;
+  border: 2px solid;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.dialog .activity-choice button.on {
+  color: white;
+  background: #16181d;
+}
+
+.duplicate-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dialog .duplicate-list button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  background: white;
+  border: 1px solid #d5d8de;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.duplicate-list span {
+  font-size: 0.9rem;
+  color: #505663;
+}
+
+/* SCRUM-28: privacy page, imprint and "Konto löschen". */
+
+.legal-links {
+  position: absolute;
+  z-index: 1000;
+  left: 8px;
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  background: rgb(255 255 255 / 85%);
+  border-radius: 4px;
+}
+
+.legal-links a,
+.legal-links-inline a {
+  color: #1a5fb4;
+}
+
+.legal-links-inline {
+  font-size: 0.8rem;
+  color: #505663;
+  text-align: center;
+}
+
+.legal-page {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  overflow-y: auto;
+  padding: 16px max(16px, calc((100% - 720px) / 2)) calc(32px + env(safe-area-inset-bottom));
+  background: white;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.legal-page h1 {
+  margin: 8px 0 16px;
+  font-size: 1.6rem;
+}
+
+.legal-page h2 {
+  margin: 24px 0 8px;
+  font-size: 1.15rem;
+}
+
+.legal-page ul {
+  padding-left: 20px;
+}
+
+.legal-page .legal-links-inline {
+  margin-top: 32px;
+}
+
+.dialog button.danger {
+  border: none;
+  border-radius: 4px;
+  background: #c01c28;
+  color: white;
+  font-weight: 600;
+}
+
+/* Admin part of the Place detail (SCRUM-39). */
+.admin-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #fff5f5;
+  border-left: 4px solid #e03131;
+  border-radius: 6px;
+}
+
+.admin-box p {
+  margin: 0;
+}
+
+.admin-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-buttons button {
+  min-height: 44px;
+  padding: 0 14px;
+  font-weight: 600;
+  border: 1px solid #ced4da;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+}
+
+.admin-buttons button.danger {
+  color: white;
+  background: #e03131;
+  border-color: #e03131;
+}
+
+.locked-places {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.locked-places li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.locked-places small {
+  display: block;
+  color: #555;
 }

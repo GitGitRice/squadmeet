@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   CaptchaRequiredError,
+  deleteAccount,
   fetchCaptchaSiteKey,
   fetchMe,
   login,
@@ -172,5 +173,26 @@ describe('newRecoveryCodes (SCRUM-33)', () => {
     expect(bodies[0]).toEqual({ password: 'geheim123' })
     expect(bodies[1]).toEqual({ password: 'geheim123', code: '123456' })
     expect(fetchMock.mock.calls[0][0]).toBe('/api/auth/recovery-codes')
+  })
+})
+
+describe('deleteAccount', () => {
+  it('sends the password, and the code only when there is one', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await deleteAccount('t', 'geheim123')
+    await deleteAccount('t', 'geheim123', '123456')
+
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ password: 'geheim123' })
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({ password: 'geheim123', code: '123456' })
+    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe('Bearer t')
+  })
+
+  it('throws the German message from the API', async () => {
+    const answer = Response.json({ detail: 'Passwort falsch' }, { status: 400 })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(answer))
+
+    await expect(deleteAccount('t', 'falsch')).rejects.toThrow('Passwort falsch')
   })
 })

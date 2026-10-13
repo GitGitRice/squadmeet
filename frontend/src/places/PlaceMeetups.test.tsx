@@ -7,14 +7,29 @@ import PlaceMeetups from './PlaceMeetups'
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
 const paula: User = { id: 1, nickname: 'Paula', avatar: 'fox', mfa_enabled: false, is_admin: false }
+const hoursFromNow = (h: number) => new Date(Date.now() + h * 3_600_000).toISOString()
+
+// Running now.
 const meetup = {
   id: 7,
   place_id: 3,
   host: { id: 1, nickname: 'Paula', avatar: 'fox' },
   party_size: 3,
-  starts_at: '2026-10-12T09:00:00Z',
-  ends_at: '2026-10-12T11:00:00Z',
+  people: 3,
+  participants: [] as { id: number; nickname: string; avatar: string; party_size: number }[],
+  cancelled: false,
+  move_offer: null as null | { meetup_id: number; host: { id: number; nickname: string; avatar: string }; starts_at: string; ends_at: string },
+  starts_at: hoursFromNow(-1),
+  ends_at: hoursFromNow(1),
 }
+
+// As a guest sees it (SCRUM-34): only the number of people.
+const guestView = { ...meetup, host: null, participants: null }
+
+const karl: User = { ...paula, id: 2, nickname: 'Korb_Karl', avatar: 'bear' }
+
+// Starts tomorrow (SCRUM-35).
+const laterMeetup = { ...meetup, id: 8, starts_at: hoursFromNow(24), ends_at: hoursFromNow(26) }
 
 afterEach(() => {
   document.body.innerHTML = ''
@@ -40,7 +55,7 @@ describe('PlaceMeetups', () => {
   it('lists the active Meetups with Host and people', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([meetup])))
 
-    const text = (await render(null)).textContent
+    const text = (await render(paula)).textContent
 
     expect(text).toContain('LIVE')
     expect(text).toContain('Paula')
@@ -80,5 +95,175 @@ describe('PlaceMeetups', () => {
     for (let i = 0; i < 12; i++) act(() => button(container, '+')!.click())
     expect(container.querySelector('output')!.textContent).toBe('10')
     expect(button(container, '+')!.disabled).toBe(true)
+  })
+
+  it('shows a later Meetup with its date and time, not as LIVE', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([laterMeetup])))
+
+    const text = (await render(null)).textContent
+
+    expect(text).not.toContain('LIVE')
+    expect(text).toMatch(/\d\d\.\d\d\., \d\d:\d\d–\d\d:\d\d Uhr/)
+  })
+
+  it('offers the Host "Zeit ändern" for a later Meetup, not "Jetzt beenden"', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([laterMeetup])))
+    const container = await render(paula)
+
+    expect(button(container, 'Zeit ändern')).toBeDefined()
+    expect(button(container, 'Jetzt beenden')).toBeUndefined()
+  })
+
+  it('plans a later Meetup with the chosen start time', async () => {
+    localStorage.setItem('squadmeet.token', 'tok')
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === 'POST' ? Response.json(laterMeetup, { status: 201 }) : Response.json([]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const container = await render(paula)
+
+    act(() => button(container, 'Später treffen')!.click())
+    const field = container.querySelector<HTMLInputElement>('input[type="datetime-local"]')!
+    expect(field.value).not.toBe('')
+    await act(async () => button(container, 'Treffen planen')!.click())
+
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')!
+    const body = JSON.parse(post[1]!.body as string)
+    expect(new Date(body.starts_at).getTime()).toBe(new Date(field.value).getTime())
+    expect(body).toMatchObject({ place_id: 3, hours: 2, party_size: 1 })
+  })
+
+  it('lets the Host move the start of a later Meetup', async () => {
+    localStorage.setItem('squadmeet.token', 'tok')
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === 'PATCH' ? Response.json(laterMeetup) : Response.json([laterMeetup]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const container = await render(paula)
+
+    act(() => button(container, 'Zeit ändern')!.click())
+    await act(async () => button(container, 'Speichern')!.click())
+
+    const patch = fetchMock.mock.calls.find(([, init]) => init?.method === 'PATCH')!
+    expect(patch[0]).toBe('/api/meetups/8')
+    expect(new Date(JSON.parse(patch[1]!.body as string).starts_at).getTime()).toBe(
+      new Date(laterMeetup.starts_at).setSeconds(0, 0),
+    )
+  })
+
+  it('shows a guest only the number of people, no Nicknames', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([guestView])))
+
+    const text = (await render(null)).textContent
+
+    expect(text).toContain('3 Personen')
+    expect(text).not.toContain('Paula')
+  })
+
+  it('lists who joined, with their Party size', async () => {
+    const withKarl = { ...meetup, people: 5, participants: [{ id: 2, nickname: 'Korb_Karl', avatar: 'bear', party_size: 2 }] }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([withKarl])))
+
+    const text = (await render(paula)).textContent
+
+    expect(text).toContain('Korb_Karl (2)')
+    expect(text).toContain('5 Personen')
+  })
+
+  it('asks a guest to log in before "Ich komme mit"', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([guestView])))
+    const onLoginNeeded = vi.fn()
+    const container = await render(null, onLoginNeeded)
+
+    act(() => button(container, 'Ich komme mit')!.click())
+
+    expect(onLoginNeeded).toHaveBeenCalledOnce()
+  })
+
+  it('lets another user join with a Party size', async () => {
+    localStorage.setItem('squadmeet.token', 'tok')
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === 'POST' ? Response.json(meetup, { status: 201 }) : Response.json([meetup]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const container = await render(karl)
+
+    expect(button(container, 'Jetzt beenden')).toBeUndefined()
+    act(() => button(container, 'Ich komme mit')!.click())
+    act(() => button(container, '+')!.click())
+    await act(async () => button(container, 'Beitreten')!.click())
+
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')!
+    expect(post[0]).toBe('/api/meetups/7/join')
+    expect(JSON.parse(post[1]!.body as string)).toEqual({ party_size: 2 })
+  })
+
+  it('shows "Verlassen" to a user who joined, and leaves', async () => {
+    localStorage.setItem('squadmeet.token', 'tok')
+    const withKarl = { ...meetup, participants: [{ id: 2, nickname: 'Korb_Karl', avatar: 'bear', party_size: 1 }] }
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === 'DELETE' ? new Response(null, { status: 204 }) : Response.json([withKarl]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const container = await render(karl)
+
+    expect(button(container, 'Ich komme mit')).toBeUndefined()
+    await act(async () => button(container, 'Verlassen')!.click())
+
+    expect(fetchMock.mock.calls.some(([url, init]) => url === '/api/meetups/7/join' && init?.method === 'DELETE')).toBe(true)
+  })
+
+  it('does not offer the Host "Ich komme mit"', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([meetup])))
+
+    expect(button(await render(paula), 'Ich komme mit')).toBeUndefined()
+  })
+
+  it('offers the Host of a later Meetup "Absagen", "Verlassen" and "Zeit ändern"', async () => {
+    const joinedLater = { ...laterMeetup, participants: [{ id: 2, nickname: 'Korb_Karl', avatar: 'bear', party_size: 1 }] }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([joinedLater])))
+    const container = await render(paula)
+
+    for (const text of ['Absagen', 'Verlassen', 'Zeit ändern']) expect(button(container, text)).toBeDefined()
+    act(() => button(container, 'Zeit ändern')!.click())
+    expect(container.textContent).toContain('Die anderen bleiben bei der alten Zeit')
+  })
+
+  it('offers the Host of a running Meetup "Jetzt beenden" and "Verlassen", not "Absagen"', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([meetup])))
+    const container = await render(paula)
+
+    expect(button(container, 'Jetzt beenden')).toBeDefined()
+    expect(button(container, 'Verlassen')).toBeDefined()
+    expect(button(container, 'Absagen')).toBeUndefined()
+  })
+
+  it('shows a cancelled Meetup as "Abgesagt", without actions', async () => {
+    const cancelled = { ...laterMeetup, cancelled: true }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([cancelled])))
+    const container = await render(karl)
+
+    expect(container.textContent).toContain('Abgesagt')
+    expect(button(container, 'Ich komme mit')).toBeUndefined()
+  })
+
+  it('asks a user who was in after the Host moved it, and sends the answer', async () => {
+    localStorage.setItem('squadmeet.token', 'tok')
+    const offered = {
+      ...laterMeetup,
+      move_offer: { meetup_id: 9, host: { id: 1, nickname: 'Paula', avatar: 'fox' }, starts_at: hoursFromNow(25), ends_at: hoursFromNow(27) },
+    }
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === 'POST' ? Response.json(laterMeetup) : Response.json([offered]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const container = await render(karl)
+
+    expect(container.textContent).toContain('Paula hat verschoben auf')
+    await act(async () => button(container, 'Hierbleiben')!.click())
+
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')!
+    expect(post[0]).toBe('/api/meetups/8/move-answer')
+    expect(JSON.parse(post[1]!.body as string)).toEqual({ answer: 'stay' })
   })
 })

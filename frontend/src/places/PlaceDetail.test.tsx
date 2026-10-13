@@ -1,12 +1,18 @@
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { saveToken } from '../api/auth'
 import PlaceDetail from './PlaceDetail'
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
+const here = { coords: { latitude: 51.3001, longitude: 12.3001, accuracy: 6 } }
+const user = { id: 1, nickname: 'Stefan', avatar: 'fox', is_admin: false, mfa_enabled: false }
+
 afterEach(() => {
   document.body.innerHTML = ''
+  localStorage.clear()
+  vi.unstubAllGlobals()
 })
 
 function render(props: Parameters<typeof PlaceDetail>[0]) {
@@ -16,15 +22,127 @@ function render(props: Parameters<typeof PlaceDetail>[0]) {
   return container
 }
 
-const place = { id: 7, name: 'Korbanlage', activity_type: 'basketball', lat: 51.3, lon: 12.3, people_now: 0 }
+const place = {
+  id: 7,
+  name: 'Korbanlage',
+  activity_type: 'basketball',
+  lat: 51.3,
+  lon: 12.3,
+  address: 'Anton-Bruckner-Allee 1, Leipzig',
+  people_now: 0,
+  is_suggestion: false,
+  confirmations: 0,
+}
 
 describe('PlaceDetail', () => {
-  it('shows name, Activity type and location', () => {
+  it('shows name, Activity type and the stored address', () => {
     const text = render({ place, error: null, onRetry: () => {}, onClose: () => {} }).textContent
 
     expect(text).toContain('Korbanlage')
     expect(text).toContain('Basketball')
-    expect(text).toContain('51.30000, 12.30000')
+    expect(text).toContain('Adresse')
+    expect(text).toContain('Anton-Bruckner-Allee 1, Leipzig')
+    expect(text).not.toContain('Von Nutzern hinzugefügt')
+  })
+
+  it('marks a Place that came from a suggestion with "Von Nutzern hinzugefügt"', () => {
+    const userAdded = { ...place, is_suggestion: false, confirmations: 3 }
+    const text = render({ place: userAdded, error: null, onRetry: () => {}, onClose: () => {} }).textContent
+
+    expect(text).toContain('Von Nutzern hinzugefügt')
+  })
+
+  it('marks a Place suggestion and hides Meetups and Ratings', () => {
+    const suggestion = { ...place, is_suggestion: true, confirmations: 1 }
+    const container = render({
+      place: suggestion,
+      error: null,
+      onRetry: () => {},
+      onClose: () => {},
+      children: (
+        <>
+          <p>Treffen hier</p>
+          <p>Bewertungen hier</p>
+        </>
+      ),
+    })
+
+    expect(container.textContent).toContain('1 von 3 Bestätigungen')
+    expect(container.textContent).not.toContain('Treffen hier')
+    expect(container.textContent).not.toContain('Bewertungen hier')
+  })
+
+  it('confirms a Place suggestion at the Place with the browser location', async () => {
+    saveToken('tok')
+    vi.stubGlobal('navigator', {
+      geolocation: { getCurrentPosition: (ok: (p: typeof here) => void) => ok(here) },
+    })
+    const confirmed = { ...place, is_suggestion: false, confirmations: 3 }
+    const fetchMock = vi.fn().mockResolvedValueOnce(Response.json(confirmed))
+    vi.stubGlobal('fetch', fetchMock)
+    const onConfirmed = vi.fn()
+    const suggestion = { ...place, is_suggestion: true, confirmations: 2 }
+    const container = render({
+      place: suggestion,
+      error: null,
+      onRetry: () => {},
+      onClose: () => {},
+      user,
+      onConfirmed,
+    })
+    const confirmBtn = [...container.querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('Vor Ort bestätigen'),
+    )!
+
+    await act(async () => confirmBtn.click())
+
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/place-suggestions/7/confirm')
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ lat: 51.3001, lon: 12.3001 })
+    expect(onConfirmed).toHaveBeenCalledWith(confirmed)
+  })
+
+  it('asks for a login when a guest taps confirm, and shows a server error when too far away', async () => {
+    const onLoginNeeded = vi.fn()
+    const suggestion = { ...place, is_suggestion: true, confirmations: 1 }
+    const guestContainer = render({
+      place: suggestion,
+      error: null,
+      onRetry: () => {},
+      onClose: () => {},
+      onLoginNeeded,
+    })
+    const guestBtn = [...guestContainer.querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('Vor Ort bestätigen'),
+    )!
+    act(() => guestBtn.click())
+    expect(onLoginNeeded).toHaveBeenCalledOnce()
+
+    saveToken('tok')
+    vi.stubGlobal('navigator', {
+      geolocation: { getCurrentPosition: (ok: (p: typeof here) => void) => ok(here) },
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValueOnce(
+        Response.json(
+          { detail: 'Du musst am Platz sein (höchstens 100 m entfernt), um ihn zu bestätigen.' },
+          { status: 400 },
+        ),
+      ),
+    )
+    const loggedInContainer = render({
+      place: suggestion,
+      error: null,
+      onRetry: () => {},
+      onClose: () => {},
+      user,
+    })
+    const btn = [...loggedInContainer.querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('Vor Ort bestätigen'),
+    )!
+    await act(async () => btn.click())
+
+    expect(loggedInContainer.textContent).toContain('höchstens 100 m entfernt')
   })
 
   it('offers to try again after an error', () => {
@@ -37,3 +155,4 @@ describe('PlaceDetail', () => {
     expect(onRetry).toHaveBeenCalledOnce()
   })
 })
+

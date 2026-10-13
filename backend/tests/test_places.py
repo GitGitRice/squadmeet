@@ -1,5 +1,7 @@
 import pytest
 
+from app.geocoding import GeocodingHit, format_address, get_geocoder
+from app.main import app
 from app.models import Place
 
 # Far away in the Atlantic, so imported OSM Places never fall into these areas.
@@ -84,3 +86,97 @@ def test_an_unknown_place_is_404(client):
 @pytest.mark.parametrize("place_id", ["0", "-1", "99999999999"])
 def test_an_id_outside_the_database_range_is_404(client, place_id):
     assert client.get(f"/api/places/{place_id}").status_code == 404
+
+
+class FakeGeocoder:
+    def __init__(self, search_hits=None, address=None):
+        self.search_hits = search_hits or []
+        self.address = address
+        self.reverse_calls = 0
+
+    def search(self, query, limit=5):
+        return self.search_hits
+
+    def reverse(self, lat, lon):
+        self.reverse_calls += 1
+        return self.address
+
+
+def test_search_finds_a_named_database_place(client, session):
+    place = Place(
+        name="Clara-Zetkin-Park",
+        activity_type="table_tennis",
+        location="SRID=4326;POINT(12.35 51.34)",
+    )
+    session.add(place)
+    session.commit()
+
+    response = client.get("/api/search", params={"q": "Zetkin"})
+
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "kind": "place",
+            "label": "Clara-Zetkin-Park",
+            "lat": pytest.approx(51.34),
+            "lon": pytest.approx(12.35),
+            "place_id": place.id,
+        }
+    ]
+
+
+def test_search_returns_no_hit_for_unknown_text(client):
+    response = client.get("/api/search", params={"q": "ganz-sicher-unbekannt"})
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_search_includes_an_address_hit(client):
+    fake = FakeGeocoder([GeocodingHit("KarLi 20, Leipzig", 51.33, 12.37)])
+    app.dependency_overrides[get_geocoder] = lambda: fake
+
+    response = client.get("/api/search", params={"q": "Karl-Liebknecht-Str. 20"})
+
+    assert response.json() == [
+        {
+            "kind": "address",
+            "label": "KarLi 20, Leipzig",
+            "lat": 51.33,
+            "lon": 12.37,
+            "place_id": None,
+        }
+    ]
+
+
+def test_place_detail_fetches_and_stores_the_address_once(client, session):
+    place = Place(name="Korb", activity_type="basketball", location="SRID=4326;POINT(12.3 51.3)")
+    session.add(place)
+    session.commit()
+    fake = FakeGeocoder(address="Parkstraße 1, Leipzig")
+    app.dependency_overrides[get_geocoder] = lambda: fake
+
+    first = client.get(f"/api/places/{place.id}")
+    second = client.get(f"/api/places/{place.id}")
+
+    assert first.json()["address"] == "Parkstraße 1, Leipzig"
+    assert second.json()["address"] == "Parkstraße 1, Leipzig"
+    assert session.get(Place, place.id).address == "Parkstraße 1, Leipzig"
+    assert fake.reverse_calls == 1
+
+
+def test_nominatim_address_is_reduced_to_the_agreed_fields():
+    answer = {
+        "display_name": "Straße der Einheit, Büßleben, Erfurt, Thüringen, 99098, Deutschland",
+        "address": {
+            "road": "Straße der Einheit",
+            "house_number": "12",
+            "postcode": "99098",
+            "city": "Erfurt",
+            "suburb": "Büßleben",
+            "state": "Thüringen",
+            "country": "Deutschland",
+        },
+    }
+
+    assert format_address(answer) == "Straße der Einheit 12, 99098 Erfurt, Ortsteil Büßleben"

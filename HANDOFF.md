@@ -1,13 +1,13 @@
 # Abschlussprojekt — Handoff (shared)
 
-The shared handoff for the team (2 people) and their coding agents. It is in git. It holds
+The shared handoff for the team (3 people) and their coding agents. It is in git. It holds
 what both people need: rules, project, team, Jira, open questions, decisions and the
 debugging case.
 
 Each person's own progress (*Now*, *In flight*, *Next*, *Log*) is in **`HANDOFF.local.md`**.
 That file is not in git (`.gitignore`), because each person's progress differs.
 
-**Last update:** 2026-10-09 · Steven · `SCRUM-47` deploy role decision
+**Last update:** 2026-10-13 · Steven · `SCRUM-39` Admin lock/unlock/delete decision (before: Stefan, `SCRUM-37` Host actions)
 
 ---
 
@@ -42,7 +42,7 @@ Rules. Keep them short so everybody follows them.
   [BRIEF.md](BRIEF.md). Timeline and must-haves: [NOTES.md](NOTES.md).
 - **Must-haves:** cloud deployment, Docker, CI/CD (test → build → deploy), one complete
   business workflow, tests, docs, one debugging case.
-- **Deadline:** presentation on **Wed 21.10.2026** (15–20 min, live demo).
+- **Deadline:** work ends **Fri 23.10.2026**; presentation on **Mon 26.10.2026** (15–20 min, live demo). Changed on 2026-10-12 (was Wed 21.10.).
 - **Live:** https://squadmeet.duckdns.org (since 2026-10-08, `SCRUM-20`). It runs on one EC2 host in the Syntax course AWS account (SSO role "Student", region `eu-central-1`). Setup, shell access and troubleshooting: [deploy/README.md](deploy/README.md).
 - **Repo:** https://github.com/GitGitRice/squadmeet (private). Who starts with which ticket:
   [TICKETS.md](TICKETS.md).
@@ -53,8 +53,9 @@ Rules. Keep them short so everybody follows them.
 
 | Person | Role / area | Jira name |
 |--------|-------------|-----------|
-| Steven | DevOps (Docker, CI/CD, AWS, HTTPS) + login + push notifications | Steven Tanu |
+| Steven | DevOps (Docker, CI/CD, AWS, HTTPS) + login + Admin + Place suggestions | Steven Tanu |
 | Stefan | Product owner (his idea) + frontend PWA (map, meetup screens, ratings) | Stefan Kallinich |
+| Dominik | Joined on 2026-10-12. All-round. Finding (search, Meetup list), Home area, Notifications, manual test | Dominik Fischer |
 | ~~David~~ | Left the project on 2026-10-08. His tickets are split in `SCRUM-46` | David Ludwig-Erbs |
 
 ---
@@ -79,7 +80,7 @@ Rules. Keep them short so everybody follows them.
 | `SCRUM-9` | Platzvorschläge & Bestätigungen | **Steven** | `SCRUM-2`, `SCRUM-7` |
 | `SCRUM-10` | Bewertungen & Fotos | **Stefan** | `SCRUM-2`, `SCRUM-7` |
 | `SCRUM-11` | Kontakte & Blockieren | **Stefan** | `SCRUM-2` |
-| `SCRUM-12` | Benachrichtigungen | **Steven** | `SCRUM-8` |
+| `SCRUM-12` | Benachrichtigungen | **Dominik** (since 2026-10-12) | `SCRUM-8` |
 | `SCRUM-13` | Admin & Moderation | **Steven** | `SCRUM-7`, `SCRUM-10` |
 | `SCRUM-14` | Datenschutz & Konto | **Steven** | `SCRUM-2` |
 | `SCRUM-15` | Präsentation & Doku | **Stefan** (product owner) + all | — |
@@ -89,8 +90,9 @@ Rules. Keep them short so everybody follows them.
 - **Sprint 1** ("SCRUM Sprint 1", sprint ID 1) — Wed 07.10. – Fri 09.10.: walking skeleton, `SCRUM-16` – `SCRUM-25`.
   **Done on 2026-10-08:** all tickets Done, the app deploys automatically from `main`. Sprint completed in Jira.
 - **Sprint 2** ("SCRUM Sprint 2", sprint ID 34) — created 2026-10-08 (Sprint 1 finished early), ends
-  Fri 16.10. (feature freeze). 21 tickets: `SCRUM-26` – `SCRUM-45` and `SCRUM-47`. An agent moves a
-  ticket in with `customfield_10020: 34`.
+  Wed 21.10. (feature freeze; extended from Fri 16.10. on 2026-10-12, `SCRUM-51` — **the end date
+  must still be changed in the Jira UI**). Tickets: `SCRUM-26` – `SCRUM-45`, `SCRUM-47`, `SCRUM-49` –
+  `SCRUM-57`. An agent moves a ticket in with `customfield_10020: 34`.
 - Sprints must be created in the Jira UI (the agent's Jira tools cannot create sprints). An agent
   reads a sprint ID from the `customfield_10020` (Sprint) field of an issue in that sprint.
 
@@ -109,14 +111,19 @@ Join/Leave (Stefan) → `SCRUM-37` Host Cancel/handover/Closed (Stefan) and `SCR
 (Stefan); `SCRUM-31` Ratings (Stefan); `SCRUM-39` Admin lock/unlock/delete (Steven).
 Should since 2026-10-08 (`SCRUM-46`): `SCRUM-38` Series (Stefan); `SCRUM-30` suggest Place →
 `SCRUM-36` confirm (Steven).
-Should: `SCRUM-40` in-app Notifications, `SCRUM-41` Favorites (Steven); `SCRUM-42` Photos,
-`SCRUM-32` Contacts + Block (Stefan). Could: `SCRUM-43` Contact notifications (Stefan), `SCRUM-44`
-web push, `SCRUM-45` Home area (Steven). Each ticket's "Blocked by" is a Jira link.
+Should: `SCRUM-40` in-app Notifications, `SCRUM-41` Favorites (Dominik since 2026-10-12); `SCRUM-42`
+Photos, `SCRUM-32` Contacts + Block (Stefan). Could: `SCRUM-43` Contact notifications (Stefan),
+`SCRUM-44` web push, `SCRUM-45` Home area (Dominik). Each ticket's "Blocked by" is a Jira link.
+New on 2026-10-12 (`SCRUM-51`, Dominik joins): `SCRUM-52` search + address, `SCRUM-53` Route link,
+`SCRUM-54` Meetup list + Time filter (Dominik); `SCRUM-55` City report (Stefan); `SCRUM-56` Admin
+approval of Place suggestions, `SCRUM-57` Place report (Steven). `SCRUM-50` manual test: Dominik.
 In Jira (since 2026-10-08), each ticket has the label `must`, `should` or `could` and the priority
 High, Medium or Low to match. Change both when a ticket changes category. `SCRUM-47` (deploy role
 permissions) is a Must.
+`SCRUM-49` (review the whole codebase) and `SCRUM-50` (manual test of the whole app): Musts on
+Thu 15.10. / Fri 16.10., several sessions possible, both in Sprint 2.
 `SCRUM-48` (handover: Stefan hosts and owns the repo, server, domain and Cloudflare) is the **last
-Must**: after the presentation on 21.10., blocked by all other Musts. It is in no sprint yet.
+Must**: after the presentation on 26.10., blocked by all other Musts. It is in no sprint yet.
 
 "Blocked by" on `SCRUM-6` means only the walking skeleton, not the whole Epic. Stories come
 next; each owner writes them (for example with `/mattpocock-skills:to-tickets`).
@@ -163,11 +170,31 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 
 | Date | Decision | Why | Where |
 |------|----------|-----|-------|
+| 2026-10-12 | Confirming a Place suggestion (`POST /api/place-suggestions/{id}/confirm`): checks `ST_DWithin` 100 m on PostGIS `Geography`, one row per user in `place_confirmation` (`ON CONFLICT DO NOTHING`), sets `is_suggestion = false` at 3 (`SCRUM-56` later adds Admin approval). Suggesting and confirming require `user.created_at <= now - 7 days` (403). `PlaceDetail` marks active Places with `confirmations > 0` as "Von Nutzern hinzugefügt" | No extra DB column or migration needed in `SCRUM-36`: OSM Places always have `confirmations = 0`, and confirmed user Places have `confirmations >= 3` | `SCRUM-36`, [backend/app/suggestions.py](backend/app/suggestions.py), [frontend/src/places/PlaceDetail.tsx](frontend/src/places/PlaceDetail.tsx) |
+| 2026-10-12 | Search and nearest Place addresses use Nominatim through the backend. Search runs only on form submit (no autocomplete), requests are cached and serialized to at most 1/s, and a successful nearest address is stored on the Place. The provider URL is runtime configuration. A displayed address contains only street/house number, postcode/city and district; state and country are omitted | The public Nominatim policy requires a valid app identity, attribution, at most 1 request/s, no autocomplete, caching where possible, and the ability to switch services; `SCRUM-52` requires no request on a plain map visit and no repeated address lookup. The team agreed the compact address fields on 2026-10-12 | `SCRUM-52`, [backend/app/geocoding.py](backend/app/geocoding.py), [frontend/src/places/PlaceSearch.tsx](frontend/src/places/PlaceSearch.tsx) |
+| 2026-10-12 | Dominik joins (all-round: frontend and backend). All open tickets are redistributed among the three; Steven agreed | A third person; work ends Fri 23.10., presentation Mon 26.10. | this file → *Team* |
+| 2026-10-12 | Feature freeze **Wed 21.10. evening**. Sprint 3 = Mon 19.10. – Wed 21.10. for the new features; Thu–Fri 22.–23.10. only fixes, `SCRUM-50` manual test, `SCRUM-49` review, docs and presentation. Replaces "freeze Fri 16.10." | The deadline moved to 23.10.; two days of fixes before the end, as before | this file → *Sprints* |
+| 2026-10-12 | New features (tickets follow): search (place or address → map jumps there, plus named Places) together with the address in the Place detail; "Route" link; City report link; protection against invented Places | Stefan (product owner) with the new person on the team | [CONTEXT.md](CONTEXT.md) |
+| 2026-10-12 | City report: a link in the Place detail to the city's official defect report, for all 5 cities. Always visible, highlighted when the Condition has an issue; after a Rating with a `condition_issue` Reason the app asks "Willst du das der Stadt melden?". The app sends nothing itself | ADR-0005 (no email); the city fixes what the Condition names | [CONTEXT.md](CONTEXT.md) |
+| 2026-10-12 | Ticket split by area. **Dominik:** finding (search + address, Route link, Meetup list with time filter), Home area `SCRUM-45`, Notifications `SCRUM-40`/`41`/`44`, manual test `SCRUM-50`. **Steven:** auth/DevOps (27, 48), Admin `SCRUM-39`, Place suggestions `SCRUM-30`/`36` with the whole protection package. **Stefan:** Meetup workflow (34, 35, 37, 38), privacy `SCRUM-28`, City report, Photos `SCRUM-42`, Contacts `SCRUM-32`/`43`. `SCRUM-49` review: all three | Each person owns whole features; Home area and Notifications belong together; Steven keeps the security parts | Jira assignees |
+| 2026-10-12 | Protection against invented Places: a Place suggestion with 3 Confirmations still needs an **Admin approval**; at least **24 h** between suggestion and approval; only accounts at least **7 days** old may confirm; the server checks in OSM whether the point lies in a building or on private/residential land and shows that **only as a hint to the Admin**, never as a block; user-added Places are marked "Von Nutzern hinzugefügt"; a Place report button | Stefan (product owner): a group could invent a Place, confirm it themselves and lure someone there. Overpass was unreliable (504s), so its answer may not block anything | `SCRUM-36`, [CONTEXT.md](CONTEXT.md) |
+| 2026-10-09 | "Konto löschen" (`POST /api/auth/delete-account`) needs the password again; with MFA on also a code from the app or a Recovery code. 5 tries per 15 min per user. One `DELETE` of the user row: the foreign keys to `app_user` cascade (sessions, Recovery codes, Meetups). There are no database backups, so the data is gone at once | Same rule as turning MFA off: a stolen session token alone must not delete the account. The cascade cannot forget a table that a later feature adds, as long as its foreign key cascades too | `SCRUM-28`, [backend/app/auth.py](backend/app/auth.py) |
+| 2026-10-09 | Until Join (`SCRUM-34`) exists, the Meetups of a deleted Host are deleted with the user (nobody else can be in them). `SCRUM-37` (Host handover) must run the handover in `delete_account` first | The ticket's rule "handover, or Cancel if nobody else joined" has only the second case today | `SCRUM-28`, comment on `SCRUM-37` |
+| 2026-10-09 | Production backend runs with `--no-access-log` | The uvicorn access log had the real client IP on each line, and Docker keeps logs without a time limit. Now the privacy page can say: no IP addresses in logs. Error logs stay | `SCRUM-28`, [deploy/compose.yml](deploy/compose.yml) |
+| 2026-10-09 | Privacy page `/datenschutz` and imprint `/impressum`: own URLs, a full page over the map, linked bottom left on the map, in the Place detail and in every dialog. The name and address of the responsible person are in one constant, [frontend/src/legal/legal.ts](frontend/src/legal/legal.ts) (Stefan since 2026-10-12, see below). A feature that stores new personal data or calls a new service must update the privacy text | Reachable without login and as a plain link; one place to change at the handover | `SCRUM-28`, [frontend/src/legal/LegalPage.tsx](frontend/src/legal/LegalPage.tsx) |
+| 2026-10-12 | Stefan is the responsible person in the imprint and on the privacy page **from now on**, not only after the handover (`SCRUM-48`). Supervisory authority: Saxony (Sächsische Datenschutz- und Transparenzbeauftragte) | Stefan is the product owner and runs the app after the presentation; one person less to change at the handover | `SCRUM-28`, [frontend/src/legal/legal.ts](frontend/src/legal/legal.ts) |
+| 2026-10-12 | Later Meetup = the same `POST /api/meetups` with `starts_at` (a time **with** time zone, else 422): in the future, at most 30 days ahead, 1–4 h like a Now-meetup. The Place detail lists active and later Meetups (`ends_at > now`, by start); the map counts only active ones. The Host moves the start with `PATCH /api/meetups/{id}` until the Meetup starts; the duration stays. "Jetzt beenden" before the start answers 409 (calling off early is Cancel, `SCRUM-37`). Whether joined users must agree to a new time is decided in `SCRUM-34` | Stefan (product owner): one rule for both kinds of Meetup; the map's time filter is `SCRUM-54`; Joins do not exist yet | `SCRUM-35`, [backend/app/meetups.py](backend/app/meetups.py) |
+| 2026-10-13 | Join = a row in `meetup_join` (one per user and Meetup, Party size 1–10, `joined_at`; migration 0011, renumbered after SCRUM-52 took 0010). `POST /api/meetups/{id}/join` (201; 409 for an ended Meetup, for the Host, and for a second Join via the unique key), `DELETE /api/meetups/{id}/join` = Leave (204). A Meetup answers `people` (Host's Party + all Joins) and `participants` (earliest first). The map's `people_now` counts Joins too (`joined_people` in [backend/app/meetups.py](backend/app/meetups.py), used by `place_reads.py`). **Guests** (no login) get `host` and `participants` = `null`: only the number of people. The Host cannot join or Leave (Leave is `SCRUM-37`); the Party size of a Join cannot change (Leave and join again); moving the start of a Meetup with Joins answers 409 until `SCRUM-37` builds "mitgehen / hierbleiben / absagen" | Stefan (product owner): nobody should see anonymously who is where when; Joins of the Host and handover belong to `SCRUM-37` | `SCRUM-34`, `SCRUM-37` |
+| 2026-10-13 | Host actions (`SCRUM-37`, migration 0012): **Cancel** `POST /api/meetups/{id}/cancel` only before the start (`cancelled_at`; listed as "Abgesagt" until its end, not on the map, no Joins); a running Meetup is ended with `/end`. **Host Leave** = the same `DELETE /api/meetups/{id}/join`: the earliest Join becomes Host (its Party size moves to the Meetup); with no Join the Meetup is **Closed** (`closed_at`, gone from list and map). Account delete runs the same handover first (`hand_over_meetups_of`, one call in `auth.delete_account`). **Move with Joins**: the old Meetup keeps its time and is handed over; the Host gets a new Meetup (`moved_to_id`); everyone who was in, the new Host too, gets `move_offer` until the old start and answers `POST /api/meetups/{id}/move-answer` go / stay / leave; until then they stay at the old time | Stefan (product owner), 2026-10-13: a running Meetup is ended, not cancelled; the new Host did not choose the role, so they choose like everyone else | `SCRUM-37`, [backend/app/meetups.py](backend/app/meetups.py), [CONTEXT.md](CONTEXT.md) |
+| 2026-10-13 | Admin lock / unlock / delete a Place (`SCRUM-39`, migration 0013): `POST /api/admin/places/{id}/lock`, `POST …/unlock` (204), `DELETE /api/admin/places/{id}` (204), `GET /api/admin/places/locked`; all need `require_admin` (Admin + MFA). Columns `place.locked_at`, `place.deleted_at`; delete is a **soft delete**, so the OSM import upsert cannot bring the Place back and its Ratings and past Meetups stay. A locked or deleted Place answers 404 everywhere for users (map, search, detail, Meetups, Ratings, suggestions; one helper, [backend/app/places.py](backend/app/places.py)). Lock and delete **Cancel** Meetups that have not started and **end** running ones now; unlock does not undo this. UI: "Platz sperren" / "Platz löschen" with a second step in the Place detail (also for a Place suggestion), "Gesperrte Plätze" in the Konto dialog to unlock | The ticket; a running Meetup is ended, not cancelled (`SCRUM-37`), and it would be invisible at a hidden Place anyway (**Stefan to confirm**). A hard delete would come back with the next import. Series Occurrences (`SCRUM-38`) do not exist yet | `SCRUM-39`, [backend/app/admin_places.py](backend/app/admin_places.py) |
 | 2026-10-09 | All manual tests (browser, phone, live site) move to `SCRUM-50`. A feature ticket is done with automated tests and a green pipeline. Each PR lists its manual checks; they go as a comment on `SCRUM-50` | Steven: browser checks cost time in every ticket and break on tool problems (a Chrome extension blocked the `SCRUM-33` check). One test round on the live site before the feature freeze tests the real setup once | this file → *Conventions*, `SCRUM-50` |
 | 2026-10-09 | Password reset (`POST /api/auth/password-reset`): Nickname + Recovery code (or the current MFA code, **only when MFA is on**) + new password + Turnstile on every try, 10 tries per hour per IP. It ends **all** old sessions and answers with a **new** session, so the user is logged in at once. Unknown Nickname and wrong code get the same 400 "Nickname oder Code falsch" | The ticket; ADR-0005 (no email). A new session saves a second MFA code: the one used for the reset works only once, so a login right after it would fail for up to 30 s. A set-up but unconfirmed MFA secret must not count | `SCRUM-33`, [backend/app/auth.py](backend/app/auth.py) |
 | 2026-10-09 | New Recovery codes (`POST /api/auth/recovery-codes`, logged in): need the password again, plus a code when MFA is on; 5 tries per 15 min per user. The old set is deleted, used or not. The button is in the "Zwei-Faktor" dialog for now; after `SCRUM-28` (privacy + delete account) is merged, it moves into its "Konto" dialog | A stolen session token alone must not get codes that reset the password or turn MFA off (same rule as turning MFA off). `SCRUM-28`'s branch is not in `dev` yet | `SCRUM-33`, [frontend/src/auth/RecoveryCodesDialog.tsx](frontend/src/auth/RecoveryCodesDialog.tsx) |
 | 2026-10-09 | An issue (a `condition_issue` Reason in a Rating) counts for 2 months (`RECENT_DAYS` = 60) after the last Rating that names it. Then it stays, marked "seit über 2 Monaten nicht bestätigt", and the Place detail asks logged-in users "Ist das noch so?". 3 different users "Ja, noch so" → it counts 2 more months. "Nein, behoben" can be said at any time, also in the first 2 months; 3 of them end the issue until a Rating names it again. Votes count from the last report or confirmation on; one vote per user per round, a later one replaces it. Condition `unknown` = no issue and no Rating or vote in 2 months. Average stars and the top 3 Reasons count all Ratings | Stefan (product owner): a Mangel should not vanish just because nobody rated for a while, and a repair should not wait 2 months; users who are there know best. Votes are only stored; the check state is worked out from Ratings and votes each time, so no race and no job | `SCRUM-31`, [backend/app/ratings.py](backend/app/ratings.py) (`issue_state`) |
 | 2026-10-09 | A Rating is saved with `PUT /api/places/{id}/ratings/mine`, one `INSERT … ON CONFLICT DO UPDATE` on (place, user). The Reasons are a `text[]` column, checked against the Place's Activity type | One Rating per user per Place without a race; a few Ratings per Place are counted in Python, so no extra table | `SCRUM-31` |
+| 2026-10-09 | A Place suggestion is a row in `place` with `is_suggestion = true`. Confirmations are rows in `place_confirmation` (one per user and Place); the suggester's row is the first. `GET /api/places` sends `is_suggestion` and `confirmations`. API: `GET /api/place-suggestions/nearby` (duplicate warning) and `POST /api/place-suggestions`. `SCRUM-36` adds the confirm call and sets `is_suggestion = false` at 3 | The map, the Place detail and `/platz/<id>` work for a suggestion with no extra code; nothing moves when it is confirmed. A path under `/api/places/` would clash with `/api/places/{id}` | `SCRUM-30`, [backend/app/suggestions.py](backend/app/suggestions.py) |
+| 2026-10-09 | No Meetups and no Ratings at a Place suggestion (both 409); the detail shows "1 von 3 Bestätigungen" and hides the Meetup and Rating parts. Confirmed by Stefan (product owner, 2026-10-12) | CONTEXT.md: a suggestion becomes an active Place only when confirmed; a Meetup at a fake Place is the harm the rule stops, and a Rating would make an invented Place look real | `SCRUM-30`, [backend/app/meetups.py](backend/app/meetups.py), [backend/app/ratings.py](backend/app/ratings.py) |
+| 2026-10-09 | Duplicate warning = Places of the same Activity type within 50 m, suggestions included, measured on the earth (PostGIS `geography`), nearest first. A user can save 5 suggestions per hour (429 after that). Deleting a user deletes their Confirmations, not the suggestion. The privacy page (`LegalPage.tsx`) names the Confirmations (who confirmed which Place, when) | An existing suggestion should be confirmed, not suggested again; the limit stops map spam; the delete follows the `SCRUM-28` cascade rule | `SCRUM-30`, [backend/tests/test_suggestions.py](backend/tests/test_suggestions.py) |
 | 2026-10-09 | Captcha = Cloudflare Turnstile. Registration always needs a valid token. Login needs one from the 3rd failed login of a Nickname on (counter `app_user.failed_logins`; wrong passwords **and** wrong MFA codes count; a login resets it). Without a valid token, login answers 401 `captcha_required`, before the password check | The ticket's rules; Stefan's review of `SCRUM-26` (a guesser who knows the password must not try MFA codes freely). The counter is in the database, so a restart does not reset it. The answer shows that the Nickname exists, but Nicknames are public anyway | `SCRUM-27`, [backend/app/auth.py](backend/app/auth.py) |
 | 2026-10-09 | Rate limits in the backend's memory: login 10 requests per minute per IP address; turning MFA off 5 tries per 15 min per user. Answer 429 with `Retry-After`. The client IP comes from Caddy's `X-Forwarded-For` (uvicorn `--forwarded-allow-ips '*'`) | One backend process on one host (ADR-0002, one EC2 host with Docker Compose), so no Redis is needed. 10/min is enough for a room of people behind one router | `SCRUM-27`, [backend/app/rate_limit.py](backend/app/rate_limit.py) |
 | 2026-10-09 | Turnstile keys: production reads both from SSM (`/squadmeet/turnstile-site-key`, `/squadmeet/turnstile-secret-key`); local and CI use Cloudflare's public test keys. The frontend gets the site key from `GET /api/auth/captcha`, not at build time. The Turnstile script loads only when a form shows the widget. Without an answer from Cloudflare, the check fails | One frontend image for test and real keys; a map visit sends nothing to Cloudflare (privacy); no unchecked path when Cloudflare is down | `SCRUM-27`, [backend/app/turnstile.py](backend/app/turnstile.py), [deploy/README.md](deploy/README.md) |
@@ -270,6 +297,19 @@ Format: symptom → wrong guesses → real cause → fix → lesson. Link the Ji
   sets `starts_at` ([backend/app/meetups.py](backend/app/meetups.py)). Lesson: `now()` in
   PostgreSQL is frozen per transaction (`clock_timestamp()` is not); compare times from one
   clock.
+- **Two migrations with the same number** (`SCRUM-30`, 2026-10-09). Symptom: PR #34 (Place
+  suggestions) and PR #33 (Ratings, `SCRUM-31`) were written at the same time. Each added a
+  migration with revision `0007` after `0006`. Git showed no conflict, because the two files have
+  different names (`…_0007_place_suggestion.py`, `…_0007_create_rating.py`). Found while merging
+  `dev` into PR #35 (`SCRUM-33`), before PR #34 was merged. A local database that had run the
+  branch's `0007` then ran `dev`'s `0008` without an error: the database stores only the ID `0007`, and `dev`'s `0008` follows `0007`. The
+  result: Alembic says `0008`, the `place_confirmation` table exists, the `rating` table does not.
+  Real cause: Alembic revisions are a chain of plain IDs, and each branch picked the "next" number
+  on its own. Fix: merge `dev` into the branch and renumber the suggestion migration to `0009`
+  (down_revision `0008`); checked with `alembic heads` (one head) and an upgrade/downgrade
+  round-trip on an empty database. The broken local database must be reset
+  (`docker compose down -v`). Lesson: a merge without Git conflicts can still break the
+  migration chain. Before a merge, run `alembic heads`; more than one head means a collision.
 
 ---
 

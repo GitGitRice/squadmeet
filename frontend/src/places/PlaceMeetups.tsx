@@ -1,14 +1,25 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { User } from '../api/auth'
 import { loadToken } from '../api/auth'
-import { createNowMeetup, endMeetup, fetchMeetups, type Meetup } from '../api/meetups'
+import {
+  answerMove,
+  cancelMeetup,
+  createMeetup,
+  endMeetup,
+  fetchMeetups,
+  joinMeetup,
+  leaveMeetup,
+  moveMeetupStart,
+  type Meetup,
+} from '../api/meetups'
 import { AVATARS } from '../auth/avatars'
+import { fromInputValue, inputBounds, isLive, slot, toInputValue } from './meetupTime'
 
 type Props = {
   placeId: number
   user: User | null
   onLoginNeeded: () => void
-  // Called after a Meetup was created or ended, so the map can show the new state.
+  // Called after a Meetup was created, moved or ended, so the map can show the new state.
   onChanged: () => void
 }
 
@@ -23,26 +34,68 @@ function people(n: number): string {
   return n === 1 ? '1 Person' : `${n} Personen`
 }
 
-// The Meetups part of the Place detail (SCRUM-29), as in the prototype (SCRUM-17): the list of
-// active Meetups and the "Ich bin jetzt hier" form. Joining is SCRUM-34.
+// The next full hour, the default start of a later Meetup.
+function nextFullHour(now: Date): Date {
+  const next = new Date(now)
+  next.setHours(next.getHours() + 1, 0, 0, 0)
+  return next
+}
+
+// The Party size, the user included (1–10), for a new Meetup and for a Join.
+function PartySizeStepper({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+  return (
+    <div className="stepper" role="group" aria-label="Personenzahl (mit dir)">
+      <span>Personenzahl (mit dir)</span>
+      <button type="button" aria-label="Eine Person weniger" disabled={value <= 1} onClick={() => onChange(value - 1)}>
+        −
+      </button>
+      <output>{value}</output>
+      <button
+        type="button"
+        aria-label="Eine Person mehr"
+        disabled={value >= MAX_PARTY_SIZE}
+        onClick={() => onChange(value + 1)}
+      >
+        +
+      </button>
+    </div>
+  )
+}
+
+// The Meetups part of the Place detail, as in the prototype (SCRUM-17): the active and later
+// Meetups, the "Ich bin jetzt hier" form (SCRUM-29), "Später treffen" (SCRUM-35), and
+// "Ich komme mit" / "Verlassen" (SCRUM-34). Guests see only the number of people.
+// The Host can cancel before the start, Leave (handover), and move a Meetup with Joins; the
+// users who were in then choose go along / stay / leave (SCRUM-37).
 export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }: Props) {
   const [meetups, setMeetups] = useState<Meetup[]>([])
   const [error, setError] = useState<string | null>(null)
-  const [creating, setCreating] = useState(false)
+  // Which form is open: "Ich bin jetzt hier", "Später treffen", or none.
+  const [creating, setCreating] = useState<'now' | 'later' | null>(null)
+  // The start of a later Meetup, as the value of the date and time field.
+  const [startsAt, setStartsAt] = useState('')
+  // The Meetup whose start the Host is moving, and its new start.
+  const [moving, setMoving] = useState<{ id: number; startsAt: string } | null>(null)
+  // The Meetup the user is joining, and their Party size.
+  const [joining, setJoining] = useState<{ id: number; partySize: number } | null>(null)
+  // The time of the last load; it decides which Meetups are live.
+  const [now, setNow] = useState(() => new Date())
   const [hours, setHours] = useState(2)
   const [partySize, setPartySize] = useState(1)
   const [busy, setBusy] = useState(false)
   // When the form was opened; the shown end time is counted from here.
   const [openedAt, setOpenedAt] = useState(0)
 
+  // A guest sends no token and gets no Nicknames; after a login or logout this loads again.
   const reload = useCallback(() => {
-    fetchMeetups(placeId)
+    fetchMeetups(placeId, user ? loadToken() : null)
       .then((found) => {
         setMeetups(found)
+        setNow(new Date())
         setError(null)
       })
       .catch((err: Error) => setError(err.message))
-  }, [placeId])
+  }, [placeId, user])
 
   useEffect(() => {
     reload()
@@ -60,7 +113,9 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
     setError(null)
     try {
       await action(token)
-      setCreating(false)
+      setCreating(null)
+      setMoving(null)
+      setJoining(null)
       reload()
       onChanged()
     } catch (err) {
@@ -70,7 +125,7 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
     }
   }
 
-  function startCreating() {
+  function startCreating(kind: 'now' | 'later') {
     if (!user) {
       onLoginNeeded()
       return
@@ -78,8 +133,11 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
     setHours(2)
     setPartySize(1)
     setOpenedAt(Date.now())
-    setCreating(true)
+    setStartsAt(toInputValue(nextFullHour(new Date())))
+    setCreating(kind)
   }
+
+  const bounds = inputBounds(new Date(openedAt))
 
   return (
     <div className="place-meetups">
@@ -88,10 +146,26 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
           className="now-form"
           onSubmit={(event) => {
             event.preventDefault()
-            run((token) => createNowMeetup(token, { place_id: placeId, hours, party_size: partySize }))
+            const input = { place_id: placeId, hours, party_size: partySize }
+            run((token) =>
+              createMeetup(token, creating === 'later' ? { ...input, starts_at: fromInputValue(startsAt) } : input),
+            )
           }}
         >
-          <h3>Ich bin jetzt hier</h3>
+          <h3>{creating === 'later' ? 'Später treffen' : 'Ich bin jetzt hier'}</h3>
+          {creating === 'later' && (
+            <label className="field">
+              Wann?
+              <input
+                type="datetime-local"
+                required
+                value={startsAt}
+                min={bounds.min}
+                max={bounds.max}
+                onChange={(event) => setStartsAt(event.target.value)}
+              />
+            </label>
+          )}
           <fieldset className="segments">
             <legend>Wie lange bist du da?</legend>
             {HOURS.map((h) => (
@@ -106,38 +180,28 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
               </button>
             ))}
           </fieldset>
-          <div className="stepper" role="group" aria-label="Personenzahl (mit dir)">
-            <span>Personenzahl (mit dir)</span>
-            <button
-              type="button"
-              aria-label="Eine Person weniger"
-              disabled={partySize <= 1}
-              onClick={() => setPartySize(partySize - 1)}
-            >
-              −
-            </button>
-            <output>{partySize}</output>
-            <button
-              type="button"
-              aria-label="Eine Person mehr"
-              disabled={partySize >= MAX_PARTY_SIZE}
-              onClick={() => setPartySize(partySize + 1)}
-            >
-              +
-            </button>
-          </div>
-          <p className="hint">Alle sehen dich auf der Karte bis {time.format(openedAt + hours * 3_600_000)} Uhr.</p>
+          <PartySizeStepper value={partySize} onChange={setPartySize} />
+          {creating === 'later' ? (
+            <p className="hint">Alle sehen dein Treffen hier am Platz. Zur Startzeit erscheint es auf der Karte.</p>
+          ) : (
+            <p className="hint">Alle sehen dich auf der Karte bis {time.format(openedAt + hours * 3_600_000)} Uhr.</p>
+          )}
           <button type="submit" className="now-button" disabled={busy}>
-            📍 Jetzt auf die Karte
+            {creating === 'later' ? '🗓 Treffen planen' : '📍 Jetzt auf die Karte'}
           </button>
-          <button type="button" className="link-button" onClick={() => setCreating(false)}>
+          <button type="button" className="link-button" onClick={() => setCreating(null)}>
             Abbrechen
           </button>
         </form>
       ) : (
-        <button type="button" className="now-button" onClick={startCreating}>
-          📍 Ich bin jetzt hier
-        </button>
+        <>
+          <button type="button" className="now-button" onClick={() => startCreating('now')}>
+            📍 Ich bin jetzt hier
+          </button>
+          <button type="button" className="later-button" onClick={() => startCreating('later')}>
+            🗓 Später treffen
+          </button>
+        </>
       )}
 
       {error && <p className="form-error">{error}</p>}
@@ -146,20 +210,156 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
       {meetups.length === 0 && <p className="hint">Gerade ist niemand hier.</p>}
       <ul className="meetup-list">
         {meetups.map((meetup) => {
-          const isHost = user?.id === meetup.host.id
+          const isHost = user !== null && user.id === meetup.host?.id
+          const joined = meetup.participants?.some((p) => p.id === user?.id) ?? false
+          const live = !meetup.cancelled && isLive(meetup, now)
+          const open = !meetup.cancelled
+          const offer = meetup.move_offer
           return (
-            <li key={meetup.id} className="meetup-card">
+            <li key={meetup.id} className={live ? 'meetup-card' : meetup.cancelled ? 'meetup-card cancelled' : 'meetup-card later'}>
               <div>
-                <span className="live">LIVE</span> bis {time.format(new Date(meetup.ends_at))} Uhr
-                <br />
-                {AVATARS[meetup.host.avatar]?.emoji} {meetup.host.nickname}
-                {isHost && ' (du, Gastgeber)'}
+                {meetup.cancelled && (
+                  <>
+                    <span className="cancelled-tag">Abgesagt</span>{' '}
+                  </>
+                )}
+                {live ? (
+                  <>
+                    <span className="live">LIVE</span> bis {time.format(new Date(meetup.ends_at))} Uhr
+                  </>
+                ) : (
+                  slot(meetup)
+                )}
+                {meetup.host && (
+                  <>
+                    <br />
+                    {AVATARS[meetup.host.avatar]?.emoji} {meetup.host.nickname}
+                    {isHost && ' (du, Gastgeber)'}
+                  </>
+                )}
+                {meetup.participants && meetup.participants.length > 0 && (
+                  <>
+                    <br />
+                    <span className="participants">
+                      Dabei:{' '}
+                      {meetup.participants
+                        .map(
+                          (p) =>
+                            `${AVATARS[p.avatar]?.emoji ?? ''} ${p.nickname}${p.party_size > 1 ? ` (${p.party_size})` : ''}`,
+                        )
+                        .join(', ')}
+                    </span>
+                  </>
+                )}
               </div>
-              <strong className="meetup-people">{people(meetup.party_size)}</strong>
-              {isHost && (
+              <strong className="meetup-people">{people(meetup.people)}</strong>
+              {offer && (
+                <div className="move-offer" role="group" aria-label="Neue Zeit">
+                  <p>
+                    {AVATARS[offer.host.avatar]?.emoji} {offer.host.nickname} hat verschoben auf {slot(offer)}.
+                  </p>
+                  {(
+                    [
+                      ['go', 'Mitgehen'],
+                      ['stay', 'Hierbleiben'],
+                      ['leave', 'Absagen'],
+                    ] as const
+                  ).map(([choice, label]) => (
+                    <button
+                      key={choice}
+                      type="button"
+                      disabled={busy}
+                      onClick={() => run((token) => answerMove(token, meetup.id, choice))}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {open && !isHost && !joined && joining?.id !== meetup.id && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => (user ? setJoining({ id: meetup.id, partySize: 1 }) : onLoginNeeded())}
+                >
+                  Ich komme mit
+                </button>
+              )}
+              {open && (joined || isHost) && (
+                <button type="button" disabled={busy} onClick={() => run((token) => leaveMeetup(token, meetup.id))}>
+                  Verlassen
+                </button>
+              )}
+              {joining?.id === meetup.id && (
+                <form
+                  className="move-form"
+                  onSubmit={(event) => {
+                    event.preventDefault()
+                    run((token) => joinMeetup(token, meetup.id, joining.partySize))
+                  }}
+                >
+                  <PartySizeStepper
+                    value={joining.partySize}
+                    onChange={(n) => setJoining({ id: meetup.id, partySize: n })}
+                  />
+                  <button type="submit" disabled={busy}>
+                    Beitreten
+                  </button>
+                  <button type="button" className="link-button" onClick={() => setJoining(null)}>
+                    Abbrechen
+                  </button>
+                </form>
+              )}
+              {isHost && live && (
                 <button type="button" disabled={busy} onClick={() => run((token) => endMeetup(token, meetup.id))}>
                   Jetzt beenden
                 </button>
+              )}
+              {isHost && open && !live && (
+                <button type="button" disabled={busy} onClick={() => run((token) => cancelMeetup(token, meetup.id))}>
+                  Absagen
+                </button>
+              )}
+              {isHost && open && !live && moving?.id !== meetup.id && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setMoving({ id: meetup.id, startsAt: toInputValue(new Date(meetup.starts_at)) })}
+                >
+                  Zeit ändern
+                </button>
+              )}
+              {moving?.id === meetup.id && (
+                <form
+                  className="move-form"
+                  onSubmit={(event) => {
+                    event.preventDefault()
+                    run((token) => moveMeetupStart(token, meetup.id, fromInputValue(moving.startsAt)))
+                  }}
+                >
+                  {(meetup.participants?.length ?? 0) > 0 && (
+                    <p className="hint">
+                      Die anderen bleiben bei der alten Zeit und werden gefragt, ob sie mitgehen.
+                    </p>
+                  )}
+                  <label className="field">
+                    Neuer Beginn
+                    <input
+                      type="datetime-local"
+                      required
+                      value={moving.startsAt}
+                      min={inputBounds(now).min}
+                      max={inputBounds(now).max}
+                      onChange={(event) => setMoving({ id: meetup.id, startsAt: event.target.value })}
+                    />
+                  </label>
+                  <button type="submit" disabled={busy}>
+                    Speichern
+                  </button>
+                  <button type="button" className="link-button" onClick={() => setMoving(null)}>
+                    Abbrechen
+                  </button>
+                </form>
               )}
             </li>
           )

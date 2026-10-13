@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { clampArea, fetchPlace, fetchPlaces, type MapArea, type Place } from './places'
+import { clampArea, fetchPlace, fetchPlaces, searchPlaces, type MapArea, type Place } from './places'
 
 const place: Place = {
   id: 1,
@@ -7,7 +7,10 @@ const place: Place = {
   activity_type: 'table_tennis',
   lat: 51.33,
   lon: 12.36,
+  address: null,
   people_now: 0,
+  is_suggestion: false,
+  confirmations: 0,
 }
 
 const leipzig: MapArea = { west: 12.3, south: 51.3, east: 12.4, north: 51.35 }
@@ -79,5 +82,16 @@ describe('fetchPlace', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 404 })))
 
     await expect(fetchPlace(9)).rejects.toThrow('Diesen Platz gibt es nicht')
+  })
+})
+
+describe('searchPlaces', () => {
+  it('encodes the submitted query', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json([]))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(searchPlaces('Karl-Liebknecht-Str. 20')).resolves.toEqual([])
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/search?q=Karl-Liebknecht-Str.%2020')
   })
 })

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from geoalchemy2 import Geometry
 from sqlalchemy import (
@@ -41,8 +41,42 @@ class Place(SQLModel, table=True):
     activity_type: str
     # "node/123" or "way/456" for a Place from OpenStreetMap, empty for a suggested Place.
     osm_id: str | None = None
+    # Nearest address from Nominatim. Filled once when the Place detail is first opened.
+    address: str | None = None
     # WGS 84 (lon/lat), the coordinate system of OpenStreetMap and Leaflet.
     location: Any = Field(sa_column=Column(Geometry("POINT", srid=4326), nullable=False))
+    # A Place suggestion (SCRUM-30): a user added it, and it has fewer than 3 Confirmations.
+    is_suggestion: bool = Field(
+        default=False, sa_column=Column(Boolean, nullable=False, server_default=false())
+    )
+    # SCRUM-39: an Admin locked it (not publicly accessible); it is hidden until unlocked.
+    locked_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
+    # SCRUM-39: an Admin deleted it. The row stays, so the OSM import cannot bring it back.
+    deleted_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
+
+
+class PlaceConfirmation(SQLModel, table=True):
+    """A user's Confirmation that a Place suggestion is real (see CONTEXT.md). The user who
+    suggested the Place has the first one (SCRUM-30); others confirm at the Place (SCRUM-36)."""
+
+    __tablename__ = "place_confirmation"
+    __table_args__ = (
+        UniqueConstraint("place_id", "user_id", name="uq_place_confirmation_place_user"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(
+        sa_column=Column(ForeignKey("place.id", ondelete="CASCADE"), nullable=False)
+    )
+    # Deleting the account deletes the user's Confirmations; the Place suggestion stays.
+    user_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
 
 
 class PlaceRead(SQLModel):
@@ -51,8 +85,20 @@ class PlaceRead(SQLModel):
     activity_type: str
     lat: float
     lon: float
+    address: str | None = None
     # Party sizes of the active Meetups at the Place; 0 = nobody is there now (SCRUM-29).
     people_now: int = 0
+    # A Place suggestion and its number of Confirmations so far (SCRUM-30); 0 for OSM Places.
+    is_suggestion: bool = False
+    confirmations: int = 0
+
+
+class PlaceSearchHit(SQLModel):
+    kind: Literal["place", "address"]
+    label: str
+    lat: float
+    lon: float
+    place_id: int | None = None
 
 
 class User(SQLModel, table=True):
@@ -118,8 +164,9 @@ class LoginSession(SQLModel, table=True):
 class Meetup(SQLModel, table=True):
     """A user's announcement to be at a Place from starts_at until ends_at (see CONTEXT.md).
 
-    SCRUM-29 builds the Now-meetup: it starts when it is created and ends after 1–4 hours.
-    It is active while starts_at <= now < ends_at; there is no job that deletes it.
+    A Now-meetup (SCRUM-29) starts when it is created, a later Meetup (SCRUM-35) at a start
+    time up to 30 days ahead; both end after 1–4 hours. It is active while
+    starts_at <= now < ends_at; there is no job that deletes it.
     """
 
     __tablename__ = "meetup"
@@ -136,11 +183,56 @@ class Meetup(SQLModel, table=True):
     host_id: int = Field(
         sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
     )
-    # The Host's own Party size, the Host included (1–10). Joins of others are SCRUM-34.
+    # The Host's own Party size, the Host included (1–10). Others come as MeetupJoin.
     party_size: int
     starts_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     # The Host ending the Meetup early sets this to the moment of the end.
     ends_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    # SCRUM-37: the Host called it off before the start; it stays listed as cancelled.
+    cancelled_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
+    # SCRUM-37: nobody is left; it is gone from the list and the map.
+    closed_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
+    # SCRUM-37: the Host moved to this new Meetup; the users who were in get an offer.
+    moved_to_id: int | None = Field(
+        default=None,
+        sa_column=Column(ForeignKey("meetup.id", ondelete="SET NULL"), nullable=True),
+    )
+    # True while the current Host (who got the role after the move) has not answered.
+    host_move_pending: bool = Field(
+        default=False, sa_column=Column(Boolean, nullable=False, server_default=false())
+    )
+
+
+class MeetupJoin(SQLModel, table=True):
+    """A user's Join of a Meetup with their Party size (SCRUM-34, see CONTEXT.md).
+
+    One per user per Meetup; Leave deletes it. The Host has no Join: their Party size is on
+    the Meetup. The earliest Join gets the Host role when the Host Leaves (SCRUM-37).
+    """
+
+    __tablename__ = "meetup_join"
+    __table_args__ = (
+        UniqueConstraint("meetup_id", "user_id", name="uq_meetup_join_meetup_user"),
+        CheckConstraint("party_size BETWEEN 1 AND 10", name="ck_meetup_join_party_size"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    meetup_id: int = Field(
+        sa_column=Column(ForeignKey("meetup.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    user_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    party_size: int
+    joined_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    # SCRUM-37: the Host moved the Meetup; this user has not yet chosen go / stay / leave.
+    move_pending: bool = Field(
+        default=False, sa_column=Column(Boolean, nullable=False, server_default=false())
+    )
 
 
 

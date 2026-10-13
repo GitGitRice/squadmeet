@@ -17,16 +17,25 @@ _Avoid_: sport, category
 
 **Place suggestion** (Platzvorschlag):
 A Place that a user added and that is not yet confirmed. It becomes an active Place when 3 different
-users confirm it at the Place; the user who suggested it counts as one of the 3.
+users confirm it at the Place and then an Admin approves it, at least 24 hours after the suggestion.
+The user who suggested it counts as one of the 3. Suggesting and confirming need an account that is
+at least 7 days old. A Place that came from a suggestion is marked as added by users.
 _Avoid_: draft, new place
 
 **Confirmation** (Bestätigung):
 A user's statement, made at the Place, that a Place suggestion is real.
 _Avoid_: vote, verification
 
+**Place report** (Platz melden):
+A user's statement that a Place does not exist, is not public, or is dangerous, chosen from fixed
+reasons. A reported Place shows that users reported it; after reports from 3 different users it
+leaves the map until an Admin dismisses the reports or locks the Place.
+_Avoid_: complaint, flag, City report
+
 **Locked place** (gesperrter Platz):
 A Place that an Admin marked as not publicly accessible. It is not on the map, and its future
-Meetups are cancelled. An Admin can unlock it.
+Meetups are cancelled (running ones end at once). An Admin can unlock it; cancelled Meetups stay
+cancelled. An Admin can also delete a Place: like locking, but it never comes back.
 _Avoid_: closed, hidden, disabled
 
 ## Meetups
@@ -42,12 +51,19 @@ passes to the user who joined earliest.
 _Avoid_: owner, organizer, creator
 
 **Cancel** (absagen):
-The Host ends a Meetup for everyone.
+The Host calls off a Meetup for everyone before it starts. It stays visible as cancelled until its
+end time. A running Meetup is ended early instead.
 _Avoid_: delete, close
 
 **Leave** (verlassen):
 A user takes back their own Join. A Host can Leave instead of Cancel when others have joined.
 _Avoid_: unjoin, cancel
+
+**Move** (verschieben):
+The Host changes the start of a Meetup that has not started. If others have joined, the Meetup
+stays at the old time for them (the Host Leaves it) and the Host gets a new Meetup at the new
+time; everyone who was in chooses to go along, stay or Leave.
+_Avoid_: reschedule, edit
 
 **Closed** (geschlossen):
 The state of a Meetup that has no users left after everyone Left.
@@ -57,6 +73,16 @@ _Avoid_: cancelled, ended
 A Meetup that starts at the moment it is created and ends automatically after 1–4 hours (the Host
 chooses; default 2). The Host can end it early.
 _Avoid_: check-in, presence
+
+**Meetup list** (Treffen-Liste):
+The Meetups at the Places in the visible part of the map that fall inside the Time filter. Zooming in
+makes it shorter.
+_Avoid_: feed, timeline, today list
+
+**Time filter** (Zeitfilter):
+The choice of a time span (now, next 3 hours, next 6 hours, today) that limits the map and the Meetup
+list to Places with Meetups in that span.
+_Avoid_: Time rule, schedule
 
 **Series** (Serie):
 A weekly repeating set of Meetups at one Place, on one or more weekdays, each with its own time.
@@ -91,6 +117,11 @@ Negative Reasons such as "Oft überfüllt" do not change it. An issue that nobod
 two months stays, and users are asked "Ist das noch so?"; three "still there" confirm it for two
 more months. Three "fixed", which users can say at any time, end it.
 _Avoid_: status, quality
+
+**City report** (Meldung an die Stadt):
+A link from a Place to the city's own defect report, so a user can tell the city about a problem
+in the Condition. The app sends nothing itself.
+_Avoid_: complaint, ticket, Place report
 
 **Photo** (Foto):
 A picture of a Place uploaded by a user. It is visible only after an Admin approves it.
