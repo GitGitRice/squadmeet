@@ -14,6 +14,7 @@ import {
 import AccountDialog from './auth/AccountDialog'
 import AuthDialog from './auth/AuthDialog'
 import DeleteAccountDialog from './auth/DeleteAccountDialog'
+import LockedPlacesDialog from './auth/LockedPlacesDialog'
 import MfaDialog from './auth/MfaDialog'
 import RecoveryCodesDialog from './auth/RecoveryCodesDialog'
 import { AVATARS } from './auth/avatars'
@@ -96,6 +97,7 @@ export default function App() {
   const [showSuggest, setShowSuggest] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [showRecoveryCodes, setShowRecoveryCodes] = useState(false)
+  const [showLocked, setShowLocked] = useState(false)
   const [chosen, setChosen] = useState<Set<ActivityType>>(() => new Set(ACTIVITY_TYPES))
   const [path, navigate] = usePath()
   const selectedId = placeIdFromPath(path)
@@ -204,6 +206,7 @@ export default function App() {
     setShowSuggest(false)
     setShowDelete(false)
     setShowRecoveryCodes(false)
+    setShowLocked(false)
     if (token) await logout(token).catch(() => {})
   }
 
@@ -252,7 +255,18 @@ export default function App() {
             setShowAccount(false)
             setShowDelete(true)
           }}
+          onLockedPlaces={() => {
+            setShowAccount(false)
+            setShowLocked(true)
+          }}
           onClose={() => setShowAccount(false)}
+        />
+      )}
+      {showLocked && user && (
+        <LockedPlacesDialog
+          token={loadToken() ?? ''}
+          onUnlocked={reloadPlaces}
+          onClose={() => setShowLocked(false)}
         />
       )}
       {showMfa && user && (
@@ -307,6 +321,10 @@ export default function App() {
           onLoginNeeded={() => setShowAuth(true)}
           onConfirmed={(updated) => {
             setDetail({ id: updated.id, place: updated })
+            reloadPlaces()
+          }}
+          onRemoved={() => {
+            navigate('/')
             reloadPlaces()
           }}
         >

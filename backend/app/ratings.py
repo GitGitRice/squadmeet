@@ -34,6 +34,7 @@ from sqlmodel import Session, select
 from app.auth import current_user
 from app.db import get_session
 from app.models import ConditionVote, Place, Rating, User
+from app.places import get_visible_place
 from app.reasons import Reason, reasons_for
 
 # Two months: how long a reported or confirmed issue counts before users are asked again.
@@ -95,10 +96,7 @@ class RatingRead(BaseModel):
 
 
 def get_place(session: Session, place_id: int) -> Place:
-    place = session.get(Place, place_id)
-    if place is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place not found")
-    return place
+    return get_visible_place(session, place_id)
 
 
 def to_read(reason: Reason) -> ReasonRead:

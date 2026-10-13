@@ -1076,3 +1076,60 @@ body {
   color: white;
   font-weight: 600;
 }
+
+/* Admin part of the Place detail (SCRUM-39). */
+.admin-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #fff5f5;
+  border-left: 4px solid #e03131;
+  border-radius: 6px;
+}
+
+.admin-box p {
+  margin: 0;
+}
+
+.admin-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-buttons button {
+  min-height: 44px;
+  padding: 0 14px;
+  font-weight: 600;
+  border: 1px solid #ced4da;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+}
+
+.admin-buttons button.danger {
+  color: white;
+  background: #e03131;
+  border-color: #e03131;
+}
+
+.locked-places {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.locked-places li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.locked-places small {
+  display: block;
+  color: #555;
+}

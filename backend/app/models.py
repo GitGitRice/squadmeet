@@ -49,6 +49,14 @@ class Place(SQLModel, table=True):
     is_suggestion: bool = Field(
         default=False, sa_column=Column(Boolean, nullable=False, server_default=false())
     )
+    # SCRUM-39: an Admin locked it (not publicly accessible); it is hidden until unlocked.
+    locked_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
+    # SCRUM-39: an Admin deleted it. The row stays, so the OSM import cannot bring it back.
+    deleted_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
 
 
 class PlaceConfirmation(SQLModel, table=True):

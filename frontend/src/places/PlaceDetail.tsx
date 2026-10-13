@@ -1,8 +1,10 @@
 import { useState, type ReactNode } from 'react'
+import { canModerate } from '../api/admin'
 import { loadToken, type User } from '../api/auth'
 import type { Place } from '../api/places'
 import { CONFIRMATIONS_NEEDED, confirmPlace, locate } from '../api/suggestions'
 import { activityOf } from './activities'
+import AdminPlaceActions from './AdminPlaceActions'
 
 type Props = {
   place: Place | null
@@ -12,6 +14,8 @@ type Props = {
   user?: User | null
   onLoginNeeded?: () => void
   onConfirmed?: (place: Place) => void
+  // An Admin locked or deleted the Place (SCRUM-39).
+  onRemoved?: () => void
   // The Meetups (SCRUM-29) and Ratings (SCRUM-31) parts, shown once the Place is loaded.
   // Not for a Place suggestion.
   children?: ReactNode
@@ -27,6 +31,7 @@ export default function PlaceDetail({
   user,
   onLoginNeeded,
   onConfirmed,
+  onRemoved,
   children,
 }: Props) {
   const activity = place && activityOf(place.activity_type)
@@ -99,6 +104,10 @@ export default function PlaceDetail({
         </p>
       )}
       {place && !place.is_suggestion && children}
+      {/* Also for a Place suggestion: an invented Place is a reason to lock it. */}
+      {place && canModerate(user) && (
+        <AdminPlaceActions key={place.id} placeId={place.id} onRemoved={() => onRemoved?.()} />
+      )}
       {error && (
         <>
           <p className="form-error">{error}</p>
