@@ -38,18 +38,24 @@ export function clampArea(area: MapArea): MapArea {
   }
 }
 
-export async function fetchPlaces(area: MapArea, signal?: AbortSignal): Promise<PlacesAnswer> {
+// With a login token, the count of people leaves out Meetups of users who blocked the user
+// (SCRUM-32).
+function withToken(token: string | null | undefined) {
+  return token ? { headers: { Authorization: `Bearer ${token}` } } : {}
+}
+
+export async function fetchPlaces(area: MapArea, signal?: AbortSignal, token?: string | null): Promise<PlacesAnswer> {
   const { west, south, east, north } = clampArea(area)
   const bbox = [west, south, east, north].map((v) => v.toFixed(5)).join(',')
-  const response = await fetch(`/api/places?bbox=${bbox}`, { signal })
+  const response = await fetch(`/api/places?bbox=${bbox}`, { signal, ...withToken(token) })
   if (!response.ok) {
     throw new Error(`GET /api/places failed: ${response.status}`)
   }
   return { places: await response.json(), truncated: response.headers.get('X-Places-Truncated') === 'true' }
 }
 
-export async function fetchPlace(id: number): Promise<Place> {
-  const response = await fetch(`/api/places/${id}`)
+export async function fetchPlace(id: number, token?: string | null): Promise<Place> {
+  const response = token ? await fetch(`/api/places/${id}`, withToken(token)) : await fetch(`/api/places/${id}`)
   if (response.status === 404) {
     throw new Error('Diesen Platz gibt es nicht (mehr).')
   }

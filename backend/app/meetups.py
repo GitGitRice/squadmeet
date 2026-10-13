@@ -9,7 +9,8 @@ cancelled), or Leave: the earliest Join becomes Host, and with nobody left it is
 Moving a Meetup that others joined keeps it at the old time for them (handover) and gives the
 Host a new Meetup at the new time; everyone who was in chooses go along / stay / leave.
 Only logged-in users see who comes (Nicknames); guests see the number of people.
-Hiding Meetups from blocked users waits for Block (SCRUM-32).
+Block (SCRUM-32): a blocked user does not see the Meetups their blocker hosts (list, map,
+Join) nor the blocker's Nickname in other Meetups; the blocker is warned when they are in.
 """
 
 from datetime import UTC, datetime, timedelta
@@ -19,11 +20,12 @@ from fastapi.security import HTTPAuthorizationCredentials
 from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, Field
-from sqlalchemy import and_, func
+from sqlalchemy import and_, func, or_
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.auth import bearer, current_login, current_user
+from app.contacts import blocked_by, blockers_of
 from app.db import get_session
 from app.models import Meetup, MeetupJoin, Place, User
 from app.place_status import PlaceUse, require
@@ -120,17 +122,21 @@ def viewer(
     return session.get(User, login.user_id)
 
 
-def joined_people(now: datetime):
+def joined_people(now: datetime, hidden_hosts: frozenset[int] = frozenset()):
     """SQL: the people of all active Meetups at a Place, the Host's Party and every Join.
-    For the map (places.py), in the same subquery style as the Place columns."""
+    For the map (places.py), in the same subquery style as the Place columns.
+    Meetups hosted by `hidden_hosts` (the viewer's blockers, SCRUM-32) do not count."""
     joins = (
         select(func.coalesce(func.sum(MeetupJoin.party_size), 0))
         .where(MeetupJoin.meetup_id == Meetup.id)
         .scalar_subquery()
     )
-    return select(func.coalesce(func.sum(Meetup.party_size + joins), 0)).where(
+    query = select(func.coalesce(func.sum(Meetup.party_size + joins), 0)).where(
         Meetup.place_id == Place.id, is_active(now)
     )
+    if hidden_hosts:
+        query = query.where(Meetup.host_id.not_in(hidden_hosts))
+    return query
 
 
 class HostRead(BaseModel):
@@ -159,6 +165,8 @@ class MeetupRead(BaseModel):
     cancelled: bool
     # For the viewer only: the Host moved this Meetup, and the viewer has not answered yet.
     move_offer: "MoveOfferRead | None"
+    # For the viewer only: they are in this Meetup, and so is someone they blocked (SCRUM-32).
+    blocked_user_in: bool = False
 
 
 class MoveOfferRead(BaseModel):
@@ -206,15 +214,19 @@ def to_reads(session: Session, meetups: list[Meetup], user: User | None) -> list
         ).all()
     }
     now = datetime.now(UTC)
+    # SCRUM-32: the viewer's blockers stay unnamed; the users the viewer blocked trigger a warning.
+    hidden = blockers_of(session, user.id) if user else set()
+    blocked = blocked_by(session, user.id) if user else set()
     reads = []
     for meetup in meetups:
         host = hosts[meetup.host_id]
+        members = {meetup.host_id} | {member.id for _, member in joins[meetup.id]}
         reads.append(
             MeetupRead(
                 id=meetup.id,
                 place_id=meetup.place_id,
                 host=None
-                if user is None
+                if user is None or host.id in hidden
                 else HostRead(id=host.id, nickname=host.nickname, avatar=host.avatar),
                 party_size=meetup.party_size,
                 people=meetup.party_size + sum(join.party_size for join, _ in joins[meetup.id]),
@@ -228,11 +240,15 @@ def to_reads(session: Session, meetups: list[Meetup], user: User | None) -> list
                         party_size=join.party_size,
                     )
                     for join, member in joins[meetup.id]
+                    if member.id not in hidden
                 ],
                 starts_at=meetup.starts_at,
                 ends_at=meetup.ends_at,
                 cancelled=meetup.cancelled_at is not None,
                 move_offer=move_offer(session, meetup, user, joins[meetup.id], now),
+                blocked_user_in=user is not None
+                and user.id in members
+                and bool(members & blocked),
             )
         )
     return reads
@@ -285,7 +301,7 @@ def list_meetups(
     """The active and the later Meetups at a Place, for the Place detail page. By start time,
     so the active ones come first."""
     require(session, place_id, PlaceUse.VIEW)
-    meetups = session.exec(
+    query = (
         select(Meetup)
         .where(
             Meetup.place_id == place_id,
@@ -293,8 +309,13 @@ def list_meetups(
             Meetup.closed_at.is_(None),
         )
         .order_by(Meetup.starts_at, Meetup.id)
-    ).all()
-    return to_reads(session, list(meetups), user)
+    )
+    hidden = blockers_of(session, user.id if user else None)
+    if hidden:
+        # Not the Meetups a blocker hosts, unless the user was in before (a handover, SCRUM-32).
+        mine = select(MeetupJoin.meetup_id).where(MeetupJoin.user_id == user.id)
+        query = query.where(or_(Meetup.host_id.not_in(hidden), Meetup.id.in_(mine)))
+    return to_reads(session, list(session.exec(query).all()), user)
 
 
 @router.post("/meetups/{meetup_id}/end", response_model=MeetupRead)
@@ -377,6 +398,9 @@ def join_meetup(
 ):
     """"Ich komme mit": the user joins an active or later Meetup with their Party size."""
     meetup = get_meetup(session, meetup_id)
+    if meetup.host_id in blockers_of(session, user.id):
+        # As if it did not exist: the blocked user does not see this Meetup (SCRUM-32).
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Meetup not found")
     now = datetime.now(UTC)
     check_open(meetup, now)
     if meetup.host_id == user.id:

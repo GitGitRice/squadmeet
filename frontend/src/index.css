@@ -703,6 +703,67 @@ body {
   font-weight: 600;
 }
 
+/* SCRUM-32: tap a Nickname to ask or Block; the warning when a blocked user is in. */
+
+.person-button {
+  padding: 0;
+  font: inherit;
+  color: #1a5fb4;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.meetup-card .person-button {
+  min-height: 0;
+  padding: 0;
+  border: none;
+}
+
+.person-actions {
+  display: flex;
+  flex-wrap: wrap;
+  flex-basis: 100%;
+  gap: 8px;
+  align-items: center;
+}
+
+.blocked-warning {
+  font-weight: 600;
+  color: #9a4a00;
+}
+
+.contacts section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.contacts h3 {
+  margin: 4px 0 0;
+  font-size: 1rem;
+}
+
+.contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contact-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.contact-list li span {
+  flex: 1;
+}
+
 .move-form {
   display: flex;
   flex-wrap: wrap;

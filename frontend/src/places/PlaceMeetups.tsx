@@ -12,6 +12,7 @@ import {
   moveMeetupStart,
   type Meetup,
 } from '../api/meetups'
+import { askForContact, blockUser } from '../api/contacts'
 import { AVATARS } from '../auth/avatars'
 import { fromInputValue, inputBounds, isLive, slot, toInputValue } from './meetupTime'
 
@@ -39,6 +40,15 @@ function nextFullHour(now: Date): Date {
   const next = new Date(now)
   next.setHours(next.getHours() + 1, 0, 0, 0)
   return next
+}
+
+// A Nickname in a Meetup; a tap offers "Als Kontakt anfragen" and "Blockieren" (SCRUM-32).
+function PersonButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button type="button" className="person-button" onClick={onClick}>
+      {label}
+    </button>
+  )
 }
 
 // The Party size, the user included (1–10), for a new Meetup and for a Join.
@@ -78,6 +88,9 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
   const [moving, setMoving] = useState<{ id: number; startsAt: string } | null>(null)
   // The Meetup the user is joining, and their Party size.
   const [joining, setJoining] = useState<{ id: number; partySize: number } | null>(null)
+  // The person whose Nickname was tapped: ask them as a Contact or Block them (SCRUM-32).
+  const [person, setPerson] = useState<{ meetupId: number; nickname: string } | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   // The time of the last load; it decides which Meetups are live.
   const [now, setNow] = useState(() => new Date())
   const [hours, setHours] = useState(2)
@@ -103,23 +116,28 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
     return () => clearInterval(timer)
   }, [reload])
 
-  async function run(action: (token: string) => Promise<unknown>) {
+  // True when the action worked, so a caller can show its own message.
+  async function run(action: (token: string) => Promise<unknown>): Promise<boolean> {
     const token = loadToken()
     if (!token) {
       onLoginNeeded()
-      return
+      return false
     }
     setBusy(true)
     setError(null)
+    setNotice(null)
     try {
       await action(token)
       setCreating(null)
       setMoving(null)
       setJoining(null)
+      setPerson(null)
       reload()
       onChanged()
+      return true
     } catch (err) {
       setError((err as Error).message)
+      return false
     } finally {
       setBusy(false)
     }
@@ -205,6 +223,7 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
       )}
 
       {error && <p className="form-error">{error}</p>}
+      {notice && !error && <p className="hint">{notice}</p>}
 
       <h3>Treffen hier</h3>
       {meetups.length === 0 && <p className="hint">Gerade ist niemand hier.</p>}
@@ -233,8 +252,14 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
                 {meetup.host && (
                   <>
                     <br />
-                    {AVATARS[meetup.host.avatar]?.emoji} {meetup.host.nickname}
-                    {isHost && ' (du, Gastgeber)'}
+                    {isHost ? (
+                      `${AVATARS[meetup.host.avatar]?.emoji ?? ''} ${meetup.host.nickname} (du, Gastgeber)`
+                    ) : (
+                      <PersonButton
+                        label={`${AVATARS[meetup.host.avatar]?.emoji ?? ''} ${meetup.host.nickname}`}
+                        onClick={() => setPerson({ meetupId: meetup.id, nickname: meetup.host!.nickname })}
+                      />
+                    )}
                   </>
                 )}
                 {meetup.participants && meetup.participants.length > 0 && (
@@ -242,16 +267,62 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
                     <br />
                     <span className="participants">
                       Dabei:{' '}
-                      {meetup.participants
-                        .map(
-                          (p) =>
-                            `${AVATARS[p.avatar]?.emoji ?? ''} ${p.nickname}${p.party_size > 1 ? ` (${p.party_size})` : ''}`,
+                      {meetup.participants.map((p, i) => {
+                        const label = `${AVATARS[p.avatar]?.emoji ?? ''} ${p.nickname}${p.party_size > 1 ? ` (${p.party_size})` : ''}`
+                        return (
+                          <span key={p.id}>
+                            {i > 0 && ', '}
+                            {p.id === user?.id ? (
+                              label
+                            ) : (
+                              <PersonButton
+                                label={label}
+                                onClick={() => setPerson({ meetupId: meetup.id, nickname: p.nickname })}
+                              />
+                            )}
+                          </span>
                         )
-                        .join(', ')}
+                      })}
                     </span>
                   </>
                 )}
+                {meetup.blocked_user_in && (
+                  <>
+                    <br />
+                    <span className="blocked-warning">⚠️ Jemand, den du blockiert hast, ist dabei</span>
+                  </>
+                )}
               </div>
+              {person?.meetupId === meetup.id && (
+                <div className="person-actions" role="group" aria-label={person.nickname}>
+                  <strong>{person.nickname}</strong>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() =>
+                      run((token) => askForContact(token, person.nickname)).then(
+                        (ok) => ok && setNotice(`Kontaktanfrage an ${person.nickname} gesendet`),
+                      )
+                    }
+                  >
+                    Als Kontakt anfragen
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() =>
+                      run((token) => blockUser(token, person.nickname)).then(
+                        (ok) => ok && setNotice(`${person.nickname} ist blockiert`),
+                      )
+                    }
+                  >
+                    Blockieren
+                  </button>
+                  <button type="button" className="link-button" onClick={() => setPerson(null)}>
+                    Abbrechen
+                  </button>
+                </div>
+              )}
               <strong className="meetup-people">{people(meetup.people)}</strong>
               {offer && (
                 <div className="move-offer" role="group" aria-label="Neue Zeit">

@@ -9,10 +9,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy import func
 from sqlmodel import Session, select
 
+from app.contacts import blockers_of
 from app.db import get_session
 from app.geocoding import NominatimGeocoder, get_geocoder
-from app.meetups import joined_people
-from app.models import Place, PlaceConfirmation, PlaceRead, PlaceSearchHit
+from app.meetups import joined_people, viewer
+from app.models import Place, PlaceConfirmation, PlaceRead, PlaceSearchHit, User
 from app.place_status import MAX_DB_INT, NOT_FOUND, PlaceUse, allowed_in
 
 router = APIRouter()
@@ -23,11 +24,12 @@ MAX_PLACES = 2000
 TRUNCATED_HEADER = "X-Places-Truncated"
 
 
-def select_place_reads():
+def select_place_reads(hidden_hosts: frozenset[int] = frozenset()):
     """The columns of a PlaceRead: the PostGIS point as lat and lon, the people there now, and
-    the Confirmations of a Place suggestion."""
+    the Confirmations of a Place suggestion. Meetups of `hidden_hosts` (the viewer's blockers,
+    SCRUM-32) do not count in people_now."""
     # The Host's Party and every Join of the active Meetups (SCRUM-34).
-    people_now = joined_people(datetime.now(UTC)).scalar_subquery()
+    people_now = joined_people(datetime.now(UTC), hidden_hosts).scalar_subquery()
     confirmations = (
         select(func.count())
         .where(PlaceConfirmation.place_id == Place.id)
@@ -61,13 +63,15 @@ def parse_bbox(bbox: str) -> tuple[float, float, float, float]:
 def list_places(
     response: Response,
     bbox: str = Query(description="The visible map area: west,south,east,north"),
+    user: User | None = Depends(viewer),
     session: Session = Depends(get_session),
 ):
-    """The Places inside the visible map area (SCRUM-21), at most MAX_PLACES."""
+    """The Places inside the visible map area (SCRUM-21), at most MAX_PLACES. A logged-in
+    user's count of people leaves out the Meetups of users who blocked them (SCRUM-32)."""
     west, south, east, north = parse_bbox(bbox)
     area = func.ST_MakeEnvelope(west, south, east, north, 4326)
     rows = session.exec(
-        select_place_reads()
+        select_place_reads(frozenset(blockers_of(session, user.id if user else None)))
         # && compares bounding boxes, so PostgreSQL can use the spatial index.
         .where(Place.location.op("&&")(area), allowed_in(PlaceUse.MAP))
         .order_by(Place.id)
@@ -123,6 +127,7 @@ def search_places(
 @router.get("/places/{place_id}", response_model=PlaceRead)
 def get_place(
     place_id: int,
+    user: User | None = Depends(viewer),
     session: Session = Depends(get_session),
     geocoding: NominatimGeocoder = Depends(get_geocoder),
 ):
@@ -130,7 +135,9 @@ def get_place(
     if not 1 <= place_id <= MAX_DB_INT:
         raise HTTPException(status_code=NOT_FOUND.status_code, detail=NOT_FOUND.detail)
     row = session.exec(
-        select_place_reads().where(Place.id == place_id, allowed_in(PlaceUse.VIEW))
+        select_place_reads(frozenset(blockers_of(session, user.id if user else None))).where(
+            Place.id == place_id, allowed_in(PlaceUse.VIEW)
+        )
     ).first()
     if row is None:
         raise HTTPException(status_code=NOT_FOUND.status_code, detail=NOT_FOUND.detail)

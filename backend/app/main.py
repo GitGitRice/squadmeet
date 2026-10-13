@@ -4,6 +4,7 @@ from fastapi import APIRouter, FastAPI
 
 from app.admin_places import router as admin_places_router
 from app.auth import router as auth_router
+from app.contacts import router as contacts_router
 from app.meetups import router as meetups_router
 from app.places import router as places_router
 from app.ratings import router as ratings_router
@@ -23,6 +24,7 @@ def health():
 api.include_router(places_router)
 api.include_router(auth_router)
 api.include_router(meetups_router)
+api.include_router(contacts_router)
 api.include_router(suggestions_router)
 api.include_router(ratings_router)
 api.include_router(admin_places_router)
