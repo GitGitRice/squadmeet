@@ -18,6 +18,7 @@ const meetup = {
   people: 3,
   participants: [] as { id: number; nickname: string; avatar: string; party_size: number }[],
   cancelled: false,
+  blocked_user_in: false,
   move_offer: null as null | { meetup_id: number; host: { id: number; nickname: string; avatar: string }; starts_at: string; ends_at: string },
   starts_at: hoursFromNow(-1),
   ends_at: hoursFromNow(1),
@@ -265,5 +266,30 @@ describe('PlaceMeetups', () => {
     const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')!
     expect(post[0]).toBe('/api/meetups/8/move-answer')
     expect(JSON.parse(post[1]!.body as string)).toEqual({ answer: 'stay' })
+  })
+
+  it('asks a participant as a Contact after a tap on the Nickname (SCRUM-32)', async () => {
+    localStorage.setItem('squadmeet.token', 'tok')
+    const withMia = { ...meetup, participants: [{ id: 3, nickname: 'Mia_Matte', avatar: 'fox', party_size: 1 }] }
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) =>
+      init?.method === 'POST' && url === '/api/contacts/requests'
+        ? Response.json({ id: 1, user: { id: 3, nickname: 'Mia_Matte', avatar: 'fox' }, status: 'pending' }, { status: 201 })
+        : Response.json([withMia]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const container = await render(karl)
+
+    act(() => button(container, 'Mia_Matte')!.click())
+    await act(async () => button(container, 'Als Kontakt anfragen')!.click())
+
+    const post = fetchMock.mock.calls.find(([url]) => url === '/api/contacts/requests')!
+    expect(JSON.parse(post[1]!.body as string)).toEqual({ nickname: 'Mia_Matte' })
+    expect(container.textContent).toContain('Kontaktanfrage an Mia_Matte gesendet')
+  })
+
+  it('warns when someone the user blocked is in the Meetup (SCRUM-32)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([{ ...meetup, blocked_user_in: true }])))
+
+    expect((await render(paula)).textContent).toContain('Jemand, den du blockiert hast, ist dabei')
   })
 })

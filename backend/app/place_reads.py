@@ -10,11 +10,12 @@ from app.meetups import joined_people
 from app.models import Place, PlaceConfirmation
 
 
-def select_place_reads():
+def select_place_reads(hidden_hosts: frozenset[int] = frozenset()):
     """The columns of a PlaceRead: the PostGIS point as lat and lon, the people there now, and
-    the Confirmations of a Place suggestion."""
+    the Confirmations of a Place suggestion. Meetups of `hidden_hosts` (the viewer's blockers,
+    SCRUM-32) do not count in people_now."""
     # The Host's Party and every Join of the active Meetups (SCRUM-34).
-    people_now = joined_people(datetime.now(UTC)).scalar_subquery()
+    people_now = joined_people(datetime.now(UTC), hidden_hosts).scalar_subquery()
     confirmations = (
         select(func.count())
         .where(PlaceConfirmation.place_id == Place.id)

@@ -122,6 +122,15 @@ function Privacy() {
           vorgeschlagene Platz bleibt auf der Karte.
         </li>
         <li>
+          <strong>Kontakte:</strong> wem du eine Kontaktanfrage geschickt hast, ob sie angenommen
+          oder abgelehnt wurde und wann. Deine Kontakte sehen deinen Nickname mit Avatar in ihrer
+          Liste.
+        </li>
+        <li>
+          <strong>Blockierungen:</strong> wen du blockiert hast und seit wann. Die blockierte Person
+          erfährt das nicht; sie sieht nur deine Treffen und deinen Nickname nicht mehr.
+        </li>
+        <li>
           <strong>Heimatgebiet und Fotos:</strong> nur, wenn du sie angibst oder hochlädst, sobald
           es diese Funktionen gibt.
         </li>
@@ -194,7 +203,7 @@ function Privacy() {
       <p>
         Angemeldet findest du oben rechts unter „Konto“ den Punkt „Konto löschen“. Wir fragen dein Passwort (und mit
         Zwei-Faktor-Anmeldung einen Code) ab. Dann löschen wir sofort dein Konto mit allen oben
-        genannten Daten, auch deine Treffen, Teilnahmen, Bewertungen und Antworten. Danach ist dein Nickname wieder frei.
+        genannten Daten, auch deine Treffen, Teilnahmen, Kontakte, Blockierungen, Bewertungen und Antworten. Danach ist dein Nickname wieder frei.
       </p>
 
       <h2>Deine Rechte</h2>

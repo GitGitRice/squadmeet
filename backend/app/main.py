@@ -6,11 +6,12 @@ from sqlmodel import Session, select
 
 from app.admin_places import router as admin_places_router
 from app.auth import router as auth_router
-from app.meetups import router as meetups_router
+from app.contacts import blockers_of, router as contacts_router
+from app.meetups import router as meetups_router, viewer
 from app.ratings import router as ratings_router
 from app.db import get_session
 from app.geocoding import NominatimGeocoder, get_geocoder
-from app.models import Place, PlaceRead, PlaceSearchHit
+from app.models import Place, PlaceRead, PlaceSearchHit, User
 from app.place_reads import select_place_reads
 from app.places import is_visible
 from app.suggestions import router as suggestions_router
@@ -47,13 +48,15 @@ def parse_bbox(bbox: str) -> tuple[float, float, float, float]:
 def list_places(
     response: Response,
     bbox: str = Query(description="The visible map area: west,south,east,north"),
+    user: User | None = Depends(viewer),
     session: Session = Depends(get_session),
 ):
-    """The Places inside the visible map area (SCRUM-21), at most MAX_PLACES."""
+    """The Places inside the visible map area (SCRUM-21), at most MAX_PLACES. A logged-in
+    user's count of people leaves out the Meetups of users who blocked them (SCRUM-32)."""
     west, south, east, north = parse_bbox(bbox)
     area = func.ST_MakeEnvelope(west, south, east, north, 4326)
     rows = session.exec(
-        select_place_reads()
+        select_place_reads(frozenset(blockers_of(session, user.id if user else None)))
         # && compares bounding boxes, so PostgreSQL can use the spatial index.
         .where(Place.location.op("&&")(area), is_visible())
         .order_by(Place.id)
@@ -113,13 +116,17 @@ def search_places(
 @api.get("/places/{place_id}", response_model=PlaceRead)
 def get_place(
     place_id: int,
+    user: User | None = Depends(viewer),
     session: Session = Depends(get_session),
     geocoding: NominatimGeocoder = Depends(get_geocoder),
 ):
     """One Place, for the Place detail page (SCRUM-24): its URL can be shared and reloaded."""
     if not 1 <= place_id <= MAX_DB_INT:
         raise HTTPException(status_code=404, detail="Place not found")
-    row = session.exec(select_place_reads().where(Place.id == place_id, is_visible())).first()
+    hidden = frozenset(blockers_of(session, user.id if user else None))
+    row = session.exec(
+        select_place_reads(hidden).where(Place.id == place_id, is_visible())
+    ).first()
     if row is None:
         raise HTTPException(status_code=404, detail="Place not found")
     result = PlaceRead.model_validate(row, from_attributes=True)
@@ -139,6 +146,7 @@ def get_place(
 
 api.include_router(auth_router)
 api.include_router(meetups_router)
+api.include_router(contacts_router)
 api.include_router(suggestions_router)
 api.include_router(ratings_router)
 api.include_router(admin_places_router)

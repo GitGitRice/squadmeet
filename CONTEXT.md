@@ -147,11 +147,14 @@ Another user that both sides agreed to connect with.
 _Avoid_: friend, follower, connection
 
 **Contact request** (Kontaktanfrage):
-A request to become a Contact. The other user must accept it.
+A request to become a Contact, sent by the exact Nickname. The other user must accept it. If they
+decline, the asker sees that and may ask again.
 _Avoid_: friend request, invite
 
 **Block** (Blockieren):
-A user's choice to stop all requests from another user and hide their own Meetups from them.
+A user's choice that works in one direction: the blocked user can no longer send them requests,
+does not see the Meetups they host, and does not see their Nickname in other Meetups. The
+blocking user still sees the blocked user and is warned when they are in the same Meetup.
 _Avoid_: mute, report
 
 **Admin**:
