@@ -4,6 +4,8 @@ export type Place = {
   activity_type: string
   lat: number
   lon: number
+  // Nearest address, loaded once from the address provider and then stored by the backend.
+  address?: string | null
   // Party sizes of the Meetups at the Place right now; 0 = nobody is there (SCRUM-29).
   people_now: number
   // A Place suggestion and its Confirmations so far (SCRUM-30); it needs 3 to become a Place.
@@ -16,6 +18,14 @@ export type MapArea = { west: number; south: number; east: number; north: number
 
 // `truncated`: the area has more Places than the API sends; the map asks the user to zoom in.
 export type PlacesAnswer = { places: Place[]; truncated: boolean }
+
+export type PlaceSearchHit = {
+  kind: 'place' | 'address'
+  label: string
+  lat: number
+  lon: number
+  place_id: number | null
+}
 
 // Leaflet reports longitudes beyond ±180 when the map shows the world more than once; the API
 // accepts only real coordinates.
@@ -45,6 +55,14 @@ export async function fetchPlace(id: number): Promise<Place> {
   }
   if (!response.ok) {
     throw new Error(`GET /api/places/${id} failed: ${response.status}`)
+  }
+  return response.json()
+}
+
+export async function searchPlaces(query: string): Promise<PlaceSearchHit[]> {
+  const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
+  if (!response.ok) {
+    throw new Error(`GET /api/search failed: ${response.status}`)
   }
   return response.json()
 }

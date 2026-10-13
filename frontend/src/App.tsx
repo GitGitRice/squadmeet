@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import { fetchPlace, fetchPlaces, type MapArea, type Place } from './api/places'
+import { fetchPlace, fetchPlaces, type MapArea, type Place, type PlaceSearchHit } from './api/places'
 import {
   clearToken,
   fetchMe,
@@ -28,6 +28,7 @@ import PlaceDetail from './places/PlaceDetail'
 import PlaceMeetups from './places/PlaceMeetups'
 import SuggestPlaceDialog from './places/SuggestPlaceDialog'
 import PlaceRatings from './places/PlaceRatings'
+import PlaceSearch from './places/PlaceSearch'
 import { placeIdFromPath, placePath, usePath } from './places/route'
 import { groupBySpot } from './places/spots'
 
@@ -69,6 +70,16 @@ function CenterOn({ place }: { place: Place }) {
   return null
 }
 
+type SearchTarget = { lat: number; lon: number; request: number }
+
+function CenterOnSearch({ target }: { target: SearchTarget | null }) {
+  const map = useMap()
+  useEffect(() => {
+    if (target) map.setView([target.lat, target.lon], 17)
+  }, [map, target])
+  return null
+}
+
 export default function App() {
   const [places, setPlaces] = useState<Place[]>([])
   const [truncated, setTruncated] = useState(false)
@@ -93,6 +104,7 @@ export default function App() {
   const [detail, setDetail] = useState<{ id: number; place?: Place; error?: string } | null>(null)
   // Counts the tries for the open Place, so "Nochmal versuchen" or a new tap loads it again.
   const [detailTry, setDetailTry] = useState(0)
+  const [searchTarget, setSearchTarget] = useState<SearchTarget | null>(null)
   const current = detail && detail.id === selectedId ? detail : null
   const selected = current?.place ?? null
 
@@ -138,6 +150,12 @@ export default function App() {
 
   function reloadPlaces() {
     if (lastArea.current) loadPlaces(lastArea.current)
+  }
+
+  function pickSearchHit(hit: PlaceSearchHit) {
+    setSearchTarget({ lat: hit.lat, lon: hit.lon, request: Date.now() })
+    if (hit.kind === 'place' && hit.place_id !== null) navigate(placePath(hit.place_id))
+    else navigate('/')
   }
 
   useEffect(() => {
@@ -277,6 +295,7 @@ export default function App() {
           onClose={() => setShowRecoveryCodes(false)}
         />
       )}
+      <PlaceSearch onPick={pickSearchHit} />
       <ActivityFilter chosen={chosen} onChange={setChosen} />
       {selectedId !== null && (
         <PlaceDetail
@@ -314,6 +333,7 @@ export default function App() {
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapAreaWatcher onMove={loadPlaces} />
+        <CenterOnSearch target={searchTarget} />
         {selected && <CenterOn place={selected} />}
         {spots.map((spot) => {
           const isSelected = spot.places.some((place) => place.id === selectedId)

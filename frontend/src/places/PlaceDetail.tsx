@@ -87,13 +87,14 @@ export default function PlaceDetail({
       )}
       {place && (
         <p className="place-detail-location">
-          Lage: {coordinates}{' '}
+          <strong>{place.address ? 'Adresse' : 'Lage'}</strong>
+          <span>{place.address ?? coordinates}</span>
           <a
             href={`https://www.openstreetmap.org/?mlat=${place.lat}&mlon=${place.lon}#map=18/${place.lat}/${place.lon}`}
             target="_blank"
             rel="noreferrer"
           >
-            in OpenStreetMap ansehen
+            In OpenStreetMap ansehen
           </a>
         </p>
       )}

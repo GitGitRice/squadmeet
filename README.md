@@ -90,6 +90,12 @@ id and Activity type) get the new name and location and keep their database id, 
 ever deleted, because it may already have Ratings or Meetups. The log says how many were new,
 refreshed and kept. A city name must match exactly one German municipality.
 
+Place/address search uses Nominatim only after the user submits the search form (never as
+autocomplete). The backend caches repeated searches, serializes all provider calls to at most one
+request per second, and stores a Place's nearest address after the first successful lookup. Set
+`NOMINATIM_URL` to switch the provider without changing the application image. Results are
+attributed to OpenStreetMap in the search panel.
+
 Private, paid and indoor places are skipped ([backend/app/osm_import.py](backend/app/osm_import.py)).
 Map data © OpenStreetMap contributors (ODbL); the map shows the attribution.
 

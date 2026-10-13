@@ -29,6 +29,7 @@ def select_place_reads():
         Place.activity_type,
         func.ST_Y(Place.location).label("lat"),
         func.ST_X(Place.location).label("lon"),
+        Place.address,
         people_now.label("people_now"),
         Place.is_suggestion,
         confirmations.label("confirmations"),
