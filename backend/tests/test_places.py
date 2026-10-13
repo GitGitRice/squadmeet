@@ -39,7 +39,7 @@ def test_the_database_rejects_an_unknown_activity_type(session):
 
 
 def test_places_says_when_it_left_places_out(client, session, monkeypatch):
-    monkeypatch.setattr("app.main.MAX_PLACES", 1)
+    monkeypatch.setattr("app.places.MAX_PLACES", 1)
     session.add_all(
         [
             Place(name="A", activity_type="football", location="SRID=4326;POINT(-30.5 0.5)"),
