@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from geoalchemy2 import Geometry
 from sqlalchemy import (
@@ -41,6 +41,8 @@ class Place(SQLModel, table=True):
     activity_type: str
     # "node/123" or "way/456" for a Place from OpenStreetMap, empty for a suggested Place.
     osm_id: str | None = None
+    # Nearest address from Nominatim. Filled once when the Place detail is first opened.
+    address: str | None = None
     # WGS 84 (lon/lat), the coordinate system of OpenStreetMap and Leaflet.
     location: Any = Field(sa_column=Column(Geometry("POINT", srid=4326), nullable=False))
     # A Place suggestion (SCRUM-30): a user added it, and it has fewer than 3 Confirmations.
@@ -75,11 +77,20 @@ class PlaceRead(SQLModel):
     activity_type: str
     lat: float
     lon: float
+    address: str | None = None
     # Party sizes of the active Meetups at the Place; 0 = nobody is there now (SCRUM-29).
     people_now: int = 0
     # A Place suggestion and its number of Confirmations so far (SCRUM-30); 0 for OSM Places.
     is_suggestion: bool = False
     confirmations: int = 0
+
+
+class PlaceSearchHit(SQLModel):
+    kind: Literal["place", "address"]
+    label: str
+    lat: float
+    lon: float
+    place_id: int | None = None
 
 
 class User(SQLModel, table=True):
