@@ -22,8 +22,8 @@ from app.activities import LABELS, ActivityType
 from app.auth import current_user
 from app.db import get_session
 from app.models import Place, PlaceConfirmation, PlaceRead, User
-from app.places import get_visible_place, is_visible
-from app.place_reads import select_place_reads
+from app.place_status import PlaceUse, allowed_in, require
+from app.places import select_place_reads
 from app.rate_limit import RateLimit
 
 DUPLICATE_RADIUS_M = 50
@@ -31,7 +31,6 @@ CONFIRM_RADIUS_M = 100
 CONFIRMATIONS_NEEDED = 3
 MIN_ACCOUNT_AGE = timedelta(days=7)
 MAX_NAME_LENGTH = 60
-MAX_DB_INT = 2_147_483_647
 
 router = APIRouter(prefix="/place-suggestions", tags=["place suggestions"])
 
@@ -88,8 +87,8 @@ def nearby_places(
             Place.activity_type == activity_type,
             # Geography: the distance is in metres on the earth, not in degrees.
             func.ST_DWithin(there, here, DUPLICATE_RADIUS_M),
-            # A locked or deleted Place cannot be opened, so it is no duplicate to offer.
-            is_visible(),
+            # A Place the map does not show cannot be opened, so it is no duplicate to offer.
+            allowed_in(PlaceUse.MAP),
         )
         .order_by(distance, Place.id)
     ).all()
@@ -128,13 +127,7 @@ def confirm_place(
     session: Session = Depends(get_session),
 ):
     """Confirm a Place suggestion while standing within CONFIRM_RADIUS_M of it (SCRUM-36)."""
-    if not 1 <= place_id <= MAX_DB_INT:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place not found")
-    place = get_visible_place(session, place_id)
-    if not place.is_suggestion:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Dieser Platz ist schon bestätigt."
-        )
+    place = require(session, place_id, PlaceUse.CONFIRM)
     now = datetime.now(UTC)
     require_account_age(user, now)
     already = session.exec(

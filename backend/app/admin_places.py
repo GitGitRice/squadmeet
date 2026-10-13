@@ -19,6 +19,7 @@ from app.auth import require_admin
 from app.db import get_session
 from app.meetups import is_open
 from app.models import Meetup, Place, User
+from app.place_status import STATUS, PlaceStatus, PlaceUse, get_status, require
 
 router = APIRouter(prefix="/admin/places", tags=["admin"])
 
@@ -29,15 +30,6 @@ class LockedPlaceRead(BaseModel):
     activity_type: str
     address: str | None
     locked_at: datetime
-
-
-def get_place(session: Session, place_id: int) -> Place:
-    """The Place, or 404 when it does not exist or is deleted (a deleted Place cannot come
-    back)."""
-    place = session.get(Place, place_id)
-    if place is None or place.deleted_at is not None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place not found")
-    return place
 
 
 def call_off_meetups(session: Session, place: Place, now: datetime) -> None:
@@ -59,7 +51,7 @@ def list_locked_places(
     """The locked Places, the latest first, so an Admin can unlock one."""
     places = session.exec(
         select(Place)
-        .where(Place.locked_at.is_not(None), Place.deleted_at.is_(None))
+        .where(STATUS == PlaceStatus.LOCKED.value)
         .order_by(Place.locked_at.desc(), Place.id)
     ).all()
     return [LockedPlaceRead.model_validate(place, from_attributes=True) for place in places]
@@ -72,8 +64,8 @@ def lock_place(
     session: Session = Depends(get_session),
 ):
     """Sperren: the Place leaves the map and search; its Meetups are called off."""
-    place = get_place(session, place_id)
-    if place.locked_at is not None:
+    place = require(session, place_id, PlaceUse.ADMIN)
+    if get_status(session, place_id) is PlaceStatus.LOCKED:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Der Platz ist schon gesperrt")
     now = datetime.now(UTC)
     place.locked_at = now
@@ -90,8 +82,8 @@ def unlock_place(
     session: Session = Depends(get_session),
 ):
     """Entsperren: the Place is visible again. Cancelled Meetups stay cancelled."""
-    place = get_place(session, place_id)
-    if place.locked_at is None:
+    place = require(session, place_id, PlaceUse.ADMIN)
+    if get_status(session, place_id) is not PlaceStatus.LOCKED:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Der Platz ist nicht gesperrt")
     place.locked_at = None
     session.commit()
@@ -105,7 +97,7 @@ def delete_place(
     session: Session = Depends(get_session),
 ):
     """Löschen: like lock, but for good. A locked Place can be deleted too."""
-    place = get_place(session, place_id)
+    place = require(session, place_id, PlaceUse.ADMIN)
     now = datetime.now(UTC)
     place.deleted_at = now
     call_off_meetups(session, place, now)

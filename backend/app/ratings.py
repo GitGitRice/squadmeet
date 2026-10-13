@@ -34,7 +34,7 @@ from sqlmodel import Session, select
 from app.auth import current_user
 from app.db import get_session
 from app.models import ConditionVote, Place, Rating, User
-from app.places import get_visible_place
+from app.place_status import PlaceUse, require
 from app.reasons import Reason, reasons_for
 
 # Two months: how long a reported or confirmed issue counts before users are asked again.
@@ -93,10 +93,6 @@ class RatingRead(BaseModel):
     stars: int
     reasons: list[str]
     updated_at: datetime
-
-
-def get_place(session: Session, place_id: int) -> Place:
-    return get_visible_place(session, place_id)
 
 
 def to_read(reason: Reason) -> ReasonRead:
@@ -196,13 +192,13 @@ def load_summary(session: Session, place: Place) -> RatingSummary:
 @router.get("/places/{place_id}/reasons", response_model=list[ReasonRead])
 def list_reasons(place_id: int, session: Session = Depends(get_session)):
     """The Reasons the rating form offers for this Place (SCRUM-18)."""
-    place = get_place(session, place_id)
+    place = require(session, place_id, PlaceUse.VIEW)
     return [to_read(reason) for reason in reasons_for(place.activity_type)]
 
 
 @router.get("/places/{place_id}/ratings", response_model=RatingSummary)
 def rating_summary(place_id: int, session: Session = Depends(get_session)):
-    return load_summary(session, get_place(session, place_id))
+    return load_summary(session, require(session, place_id, PlaceUse.VIEW))
 
 
 @router.get("/places/{place_id}/ratings/mine", response_model=RatingRead | None)
@@ -212,7 +208,7 @@ def my_rating(
     session: Session = Depends(get_session),
 ):
     """The user's own Rating of the Place, or null, so the form can show it for a change."""
-    get_place(session, place_id)
+    require(session, place_id, PlaceUse.VIEW)
     rating = session.exec(
         select(Rating).where(Rating.place_id == place_id, Rating.user_id == user.id)
     ).first()
@@ -227,12 +223,7 @@ def rate_place(
     session: Session = Depends(get_session),
 ):
     """Rate the Place, or replace the user's earlier Rating of it."""
-    place = get_place(session, place_id)
-    if place.is_suggestion:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Dieser Platz ist noch nicht bestätigt",
-        )
+    place = require(session, place_id, PlaceUse.RATE)
     allowed = {reason.key for reason in reasons_for(place.activity_type)}
     unknown = [key for key in body.reasons if key not in allowed]
     if unknown:
@@ -277,7 +268,7 @@ def vote_on_issue(
     """"Fixed" for an issue at any time, "still there" while its check is open.
 
     Returns the new summary."""
-    place = get_place(session, place_id)
+    place = require(session, place_id, PlaceUse.RATE)
     summary = load_summary(session, place)
     issue = next((i for i in summary.condition.issues if i.key == reason_key), None)
     if issue is None:
