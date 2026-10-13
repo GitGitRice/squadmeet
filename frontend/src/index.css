@@ -670,6 +670,39 @@ body {
   color: #505663;
 }
 
+/* SCRUM-37: a cancelled Meetup, and the question after the Host moved it. */
+
+.meetup-card.cancelled {
+  border-left-color: #8a909c;
+  opacity: 0.75;
+}
+
+.cancelled-tag {
+  padding: 1px 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: white;
+  background: #505663;
+  border-radius: 5px;
+}
+
+.move-offer {
+  display: flex;
+  flex-wrap: wrap;
+  flex-basis: 100%;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  background: #fff4d6;
+  border-radius: 8px;
+}
+
+.move-offer p {
+  flex-basis: 100%;
+  margin: 0;
+  font-weight: 600;
+}
+
 .move-form {
   display: flex;
   flex-wrap: wrap;

@@ -3,8 +3,11 @@ SCRUM-29) starts at once, a later Meetup (SCRUM-35) at a start time up to 30 day
 
 A Meetup is active while starts_at <= now < ends_at, so it disappears from the map by itself
 when its time is over; nothing has to delete it. The Host can end it early, or move the start
-of a Meetup that nobody joined and that has not started yet. Other users Join with their
-Party size and Leave (SCRUM-34). Cancel, handover and moving with Joins are SCRUM-37.
+of a Meetup that has not started yet. Other users Join with their Party size and Leave
+(SCRUM-34). SCRUM-37: the Host can Cancel a Meetup before it starts (it stays listed as
+cancelled), or Leave: the earliest Join becomes Host, and with nobody left it is Closed.
+Moving a Meetup that others joined keeps it at the old time for them (handover) and gives the
+Host a new Meetup at the new time; everyone who was in chooses go along / stay / leave.
 Only logged-in users see who comes (Nicknames); guests see the number of people.
 Hiding Meetups from blocked users waits for Block (SCRUM-32).
 """
@@ -13,6 +16,8 @@ from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import HTTPAuthorizationCredentials
+from typing import Literal
+
 from pydantic import AwareDatetime, BaseModel, Field
 from sqlalchemy import and_, func
 from sqlalchemy.exc import IntegrityError
@@ -38,7 +43,33 @@ def is_active(now: datetime):
     start of the transaction, so a Meetup created later in the same transaction would not
     count as active yet.
     """
-    return and_(Meetup.starts_at <= now, Meetup.ends_at > now)
+    return and_(
+        Meetup.starts_at <= now,
+        Meetup.ends_at > now,
+        Meetup.cancelled_at.is_(None),
+        Meetup.closed_at.is_(None),
+    )
+
+
+def is_open(meetup: Meetup, now: datetime) -> bool:
+    """Not over, not cancelled, not closed: users can still join it."""
+    return meetup.ends_at > now and meetup.cancelled_at is None and meetup.closed_at is None
+
+
+def check_open(meetup: Meetup, now: datetime) -> None:
+    if meetup.cancelled_at is not None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Das Treffen ist abgesagt")
+    if meetup.closed_at is not None or meetup.ends_at <= now:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Das Treffen ist schon vorbei"
+        )
+
+
+def check_host(meetup: Meetup, user: User, action: str) -> None:
+    if meetup.host_id != user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail=f"Nur der Gastgeber kann {action}"
+        )
 
 
 def check_start(starts_at: datetime, now: datetime) -> None:
@@ -69,6 +100,11 @@ class MeetupTimeChange(BaseModel):
 
 class JoinCreate(BaseModel):
     party_size: int = Field(default=1, ge=1, le=MAX_PARTY_SIZE)
+
+
+class MoveAnswer(BaseModel):
+    # go = mitgehen, stay = hierbleiben, leave = absagen
+    answer: Literal["go", "stay", "leave"]
 
 
 def viewer(
@@ -119,6 +155,36 @@ class MeetupRead(BaseModel):
     participants: list[ParticipantRead] | None
     starts_at: datetime
     ends_at: datetime
+    cancelled: bool
+    # For the viewer only: the Host moved this Meetup, and the viewer has not answered yet.
+    move_offer: "MoveOfferRead | None"
+
+
+class MoveOfferRead(BaseModel):
+    meetup_id: int
+    host: HostRead
+    starts_at: datetime
+    ends_at: datetime
+
+
+def move_offer(session: Session, meetup: Meetup, user: User | None, joins, now: datetime):
+    """The offer "go along / stay / leave" for `user`, while the old time has not started."""
+    if user is None or meetup.moved_to_id is None or meetup.starts_at <= now:
+        return None
+    if meetup.host_id == user.id:
+        pending = meetup.host_move_pending
+    else:
+        pending = any(join.move_pending for join, member in joins if member.id == user.id)
+    target = session.get(Meetup, meetup.moved_to_id) if pending else None
+    if target is None or not is_open(target, now):
+        return None
+    host = session.get(User, target.host_id)
+    return MoveOfferRead(
+        meetup_id=target.id,
+        host=HostRead(id=host.id, nickname=host.nickname, avatar=host.avatar),
+        starts_at=target.starts_at,
+        ends_at=target.ends_at,
+    )
 
 
 def to_reads(session: Session, meetups: list[Meetup], user: User | None) -> list[MeetupRead]:
@@ -138,6 +204,7 @@ def to_reads(session: Session, meetups: list[Meetup], user: User | None) -> list
             select(User).where(User.id.in_({meetup.host_id for meetup in meetups}))
         ).all()
     }
+    now = datetime.now(UTC)
     reads = []
     for meetup in meetups:
         host = hosts[meetup.host_id]
@@ -163,6 +230,8 @@ def to_reads(session: Session, meetups: list[Meetup], user: User | None) -> list
                 ],
                 starts_at=meetup.starts_at,
                 ends_at=meetup.ends_at,
+                cancelled=meetup.cancelled_at is not None,
+                move_offer=move_offer(session, meetup, user, joins[meetup.id], now),
             )
         )
     return reads
@@ -226,7 +295,11 @@ def list_meetups(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place not found")
     meetups = session.exec(
         select(Meetup)
-        .where(Meetup.place_id == place_id, Meetup.ends_at > datetime.now(UTC))
+        .where(
+            Meetup.place_id == place_id,
+            Meetup.ends_at > datetime.now(UTC),
+            Meetup.closed_at.is_(None),
+        )
         .order_by(Meetup.starts_at, Meetup.id)
     ).all()
     return to_reads(session, list(meetups), user)
@@ -240,16 +313,9 @@ def end_meetup_early(
 ):
     """The Host ends the Meetup now; it leaves the map at once."""
     meetup = get_meetup(session, meetup_id)
-    if meetup.host_id != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Nur der Gastgeber kann das Treffen beenden",
-        )
+    check_host(meetup, user, "das Treffen beenden")
     now = datetime.now(UTC)
-    if meetup.ends_at <= now:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Das Treffen ist schon vorbei"
-        )
+    check_open(meetup, now)
     if meetup.starts_at > now:
         # Calling off a Meetup before it starts is Cancel (SCRUM-37).
         raise HTTPException(
@@ -268,31 +334,44 @@ def move_meetup_start(
     user: User = Depends(current_user),
     session: Session = Depends(get_session),
 ):
-    """The Host moves the start of a Meetup that has not started yet; the duration stays."""
+    """The Host moves the start of a Meetup that has not started yet; the duration stays.
+
+    With Joins the Meetup stays at the old time for the others: the Host Leaves it (handover)
+    and gets a new Meetup at the new time. The answer is the Host's Meetup.
+    """
     meetup = get_meetup(session, meetup_id)
-    if meetup.host_id != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Nur der Gastgeber kann die Zeit ändern",
-        )
+    check_host(meetup, user, "die Zeit ändern")
     now = datetime.now(UTC)
+    check_open(meetup, now)
     if meetup.starts_at <= now:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Das Treffen hat schon begonnen"
         )
-    if session.exec(select(MeetupJoin.id).where(MeetupJoin.meetup_id == meetup.id)).first():
-        # Moving with Joins (go along / stay / leave) is SCRUM-37.
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Andere sind schon dabei, die Zeit kann noch nicht geändert werden",
-        )
     check_start(body.starts_at, now)
     duration = meetup.ends_at - meetup.starts_at
-    meetup.starts_at = body.starts_at
-    meetup.ends_at = body.starts_at + duration
+    joins = session.exec(select(MeetupJoin).where(MeetupJoin.meetup_id == meetup.id)).all()
+    if not joins:
+        meetup.starts_at = body.starts_at
+        meetup.ends_at = body.starts_at + duration
+        session.commit()
+        session.refresh(meetup)
+        return to_read(session, meetup, user)
+    moved = Meetup(
+        place_id=meetup.place_id,
+        host_id=user.id,
+        party_size=meetup.party_size,
+        starts_at=body.starts_at,
+        ends_at=body.starts_at + duration,
+    )
+    session.add(moved)
+    session.flush()
+    meetup.moved_to_id = moved.id
+    for join in joins:
+        join.move_pending = True
+    host_leaves(session, meetup, now)
     session.commit()
-    session.refresh(meetup)
-    return to_read(session, meetup, user)
+    session.refresh(moved)
+    return to_read(session, moved, user)
 
 
 @router.post(
@@ -307,10 +386,7 @@ def join_meetup(
     """"Ich komme mit": the user joins an active or later Meetup with their Party size."""
     meetup = get_meetup(session, meetup_id)
     now = datetime.now(UTC)
-    if meetup.ends_at <= now:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Das Treffen ist schon vorbei"
-        )
+    check_open(meetup, now)
     if meetup.host_id == user.id:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Du bist der Gastgeber dieses Treffens"
@@ -335,13 +411,125 @@ def leave_meetup(
     user: User = Depends(current_user),
     session: Session = Depends(get_session),
 ):
-    """Leave: the user takes back their Join. The Host Leaving is SCRUM-37."""
-    get_meetup(session, meetup_id)
+    """Leave: the user takes back their Join. The Host Leaving hands the Meetup over to the
+    earliest Join, or Closes it when nobody is left (SCRUM-37)."""
+    meetup = get_meetup(session, meetup_id)
+    leave(session, meetup, user, datetime.now(UTC))
+    session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+def host_leaves(session: Session, meetup: Meetup, now: datetime) -> None:
+    """The earliest Join becomes Host, with their Party size and their open move answer.
+    With no Join the Meetup is Closed. The caller commits."""
+    first = session.exec(
+        select(MeetupJoin)
+        .where(MeetupJoin.meetup_id == meetup.id)
+        .order_by(MeetupJoin.joined_at, MeetupJoin.id)
+    ).first()
+    if first is None:
+        meetup.closed_at = now
+        meetup.host_move_pending = False
+        return
+    meetup.host_id = first.user_id
+    meetup.party_size = first.party_size
+    meetup.host_move_pending = first.move_pending
+    session.delete(first)
+
+
+def leave(session: Session, meetup: Meetup, user: User, now: datetime) -> None:
+    """The user Leaves the Meetup, as Host or with a Join. The caller commits."""
+    if meetup.host_id == user.id:
+        if meetup.closed_at is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail="Das Treffen ist schon vorbei"
+            )
+        host_leaves(session, meetup, now)
+        return
     join = session.exec(
-        select(MeetupJoin).where(MeetupJoin.meetup_id == meetup_id, MeetupJoin.user_id == user.id)
+        select(MeetupJoin).where(MeetupJoin.meetup_id == meetup.id, MeetupJoin.user_id == user.id)
     ).first()
     if join is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Du bist nicht dabei")
     session.delete(join)
+    session.flush()
+
+
+def hand_over_meetups_of(session: Session, user: User) -> None:
+    """Before an account is deleted: each open Meetup the user hosts goes to the earliest Join
+    (one without Joins is deleted with the user). The caller commits."""
+    now = datetime.now(UTC)
+    for meetup in session.exec(select(Meetup).where(Meetup.host_id == user.id)).all():
+        if is_open(meetup, now):
+            host_leaves(session, meetup, now)
+    session.flush()
+
+
+@router.post("/meetups/{meetup_id}/cancel", response_model=MeetupRead)
+def cancel_meetup(
+    meetup_id: int,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    """Absagen: the Host calls off a Meetup before it starts, for everyone. It stays listed as
+    cancelled until its end time, so the users who joined see it. A running Meetup is ended
+    with /end instead."""
+    meetup = get_meetup(session, meetup_id)
+    check_host(meetup, user, "das Treffen absagen")
+    now = datetime.now(UTC)
+    check_open(meetup, now)
+    if meetup.starts_at <= now:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Das Treffen läuft schon, beende es stattdessen",
+        )
+    meetup.cancelled_at = now
     session.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    session.refresh(meetup)
+    return to_read(session, meetup, user)
+
+
+@router.post("/meetups/{meetup_id}/move-answer", response_model=MeetupRead)
+def answer_move(
+    meetup_id: int,
+    body: MoveAnswer,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    """The answer of a user who was in when the Host moved the Meetup: go along to the new
+    Meetup, stay at the old time, or leave. The answer is the old Meetup."""
+    meetup = get_meetup(session, meetup_id)
+    now = datetime.now(UTC)
+    join = session.exec(
+        select(MeetupJoin).where(MeetupJoin.meetup_id == meetup.id, MeetupJoin.user_id == user.id)
+    ).first()
+    is_host = meetup.host_id == user.id
+    pending = meetup.host_move_pending if is_host else join is not None and join.move_pending
+    target = session.get(Meetup, meetup.moved_to_id) if meetup.moved_to_id else None
+    if not pending or target is None or meetup.starts_at <= now:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Hier gibt es nichts zu beantworten"
+        )
+    party_size = meetup.party_size if is_host else join.party_size
+    if body.answer == "stay":
+        if is_host:
+            meetup.host_move_pending = False
+        else:
+            join.move_pending = False
+    else:
+        if body.answer == "go":
+            check_open(target, now)
+            if target.host_id != user.id and not session.exec(
+                select(MeetupJoin.id).where(
+                    MeetupJoin.meetup_id == target.id, MeetupJoin.user_id == user.id
+                )
+            ).first():
+                session.add(
+                    MeetupJoin(
+                        meetup_id=target.id, user_id=user.id, party_size=party_size, joined_at=now
+                    )
+                )
+        leave(session, meetup, user, now)
+    session.commit()
+    session.refresh(meetup)
+    return to_read(session, meetup, user)

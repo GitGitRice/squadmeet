@@ -1,11 +1,16 @@
-// Meetups: Now-meetups (SCRUM-29), later Meetups (SCRUM-35) and Joins (SCRUM-34), the API of
-// backend/app/meetups.py.
+// Meetups: Now-meetups (SCRUM-29), later Meetups (SCRUM-35), Joins (SCRUM-34), and the Host's
+// Cancel, Leave and move with Joins (SCRUM-37): the API of backend/app/meetups.py.
 
 import { answer } from './http'
 
 export type MeetupHost = { id: number; nickname: string; avatar: string }
 
 export type Participant = MeetupHost & { party_size: number }
+
+// The Host moved the Meetup; the viewer has not chosen go along / stay / leave yet.
+export type MoveOffer = { meetup_id: number; host: MeetupHost; starts_at: string; ends_at: string }
+
+export type MoveAnswer = 'go' | 'stay' | 'leave'
 
 export type Meetup = {
   id: number
@@ -21,6 +26,9 @@ export type Meetup = {
   // ISO 8601 with time zone, e.g. "2026-10-12T09:00:00Z".
   starts_at: string
   ends_at: string
+  // The Host called it off before the start; it stays listed until its end time.
+  cancelled: boolean
+  move_offer: MoveOffer | null
 }
 
 // Without starts_at a Now-meetup; with it a later Meetup (ISO 8601 with time zone).
@@ -76,4 +84,22 @@ export async function leaveMeetup(token: string, meetupId: number): Promise<void
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!response.ok) await answer(response, 'DELETE join')
+}
+
+// Absagen: the Host calls off a Meetup before it starts.
+export async function cancelMeetup(token: string, meetupId: number): Promise<Meetup> {
+  const response = await fetch(`/api/meetups/${meetupId}/cancel`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return answer(response, 'POST cancel')
+}
+
+export async function answerMove(token: string, meetupId: number, choice: MoveAnswer): Promise<Meetup> {
+  const response = await fetch(`/api/meetups/${meetupId}/move-answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ answer: choice }),
+  })
+  return answer(response, 'POST move answer')
 }

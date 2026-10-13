@@ -1,5 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createMeetup, endMeetup, fetchMeetups, joinMeetup, leaveMeetup, moveMeetupStart, type Meetup } from './meetups'
+import {
+  answerMove,
+  cancelMeetup,
+  createMeetup,
+  endMeetup,
+  fetchMeetups,
+  joinMeetup,
+  leaveMeetup,
+  moveMeetupStart,
+  type Meetup,
+} from './meetups'
 
 const meetup: Meetup = {
   id: 7,
@@ -8,6 +18,8 @@ const meetup: Meetup = {
   party_size: 2,
   people: 2,
   participants: [],
+  cancelled: false,
+  move_offer: null,
   starts_at: '2026-10-12T09:00:00Z',
   ends_at: '2026-10-12T11:00:00Z',
 }
@@ -90,6 +102,19 @@ describe('meetups API', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(answer))
 
     await expect(joinMeetup('tok', 7, 1)).rejects.toThrow('Du bist schon dabei')
+  })
+
+  it('cancels and answers a move (SCRUM-37)', async () => {
+    const fetchMock = vi.fn(async () => Response.json(meetup))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await cancelMeetup('tok', 7)
+    await answerMove('tok', 7, 'go')
+
+    const calls = fetchMock.mock.calls as unknown as [string, RequestInit][]
+    expect([calls[0][0], calls[0][1].method]).toEqual(['/api/meetups/7/cancel', 'POST'])
+    expect(calls[1][0]).toBe('/api/meetups/7/move-answer')
+    expect(JSON.parse(calls[1][1].body as string)).toEqual({ answer: 'go' })
   })
 
   it("shows the server's message when the Host may not end it", async () => {

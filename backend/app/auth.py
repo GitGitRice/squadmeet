@@ -536,9 +536,8 @@ def delete_account(
     """Deletes the user and all their personal data. The foreign keys to app_user cascade, so
     their sessions, Recovery codes and Meetups go in the same statement.
 
-    The Meetups of the Host go with the user: nobody else can be in them, because Join
-    (SCRUM-34) does not exist yet. When it does, the Host handover (SCRUM-37) must run here
-    first, so a Meetup with others in it keeps going.
+    Before that, each open Meetup the user hosts goes to its earliest Join (SCRUM-37), so a
+    Meetup with others in it keeps going; one without Joins goes with the user.
     """
     delete_account_per_user.hit(user.id)
     if not password_hash.verify(body.password, user.password_hash):
@@ -548,6 +547,11 @@ def delete_account(
         and (check_totp(session, user, body.code) or use_recovery_code(session, user, body.code))
     ):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Code falsch")
+    # SCRUM-37: a Meetup with others in it gets a new Host first. Imported here, because
+    # app.meetups imports this module.
+    from app.meetups import hand_over_meetups_of
+
+    hand_over_meetups_of(session, user)
     session.delete(user)
     session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
