@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response
 from sqlalchemy import func
 from sqlmodel import Session, select
 
+from app.admin_places import router as admin_places_router
 from app.auth import router as auth_router
 from app.meetups import router as meetups_router
 from app.ratings import router as ratings_router
@@ -11,6 +12,7 @@ from app.db import get_session
 from app.geocoding import NominatimGeocoder, get_geocoder
 from app.models import Place, PlaceRead, PlaceSearchHit
 from app.place_reads import select_place_reads
+from app.places import is_visible
 from app.suggestions import router as suggestions_router
 
 app = FastAPI(title="SquadMeet API")
@@ -53,7 +55,7 @@ def list_places(
     rows = session.exec(
         select_place_reads()
         # && compares bounding boxes, so PostgreSQL can use the spatial index.
-        .where(Place.location.op("&&")(area))
+        .where(Place.location.op("&&")(area), is_visible())
         .order_by(Place.id)
         .limit(MAX_PLACES + 1)
     ).all()
@@ -88,7 +90,7 @@ def search_places(
             func.ST_Y(Place.location).label("lat"),
             func.ST_X(Place.location).label("lon"),
         )
-        .where(Place.name.icontains(query, autoescape=True))
+        .where(Place.name.icontains(query, autoescape=True), is_visible())
         .order_by(Place.name, Place.id)
         .limit(5)
     ).all()
@@ -117,7 +119,7 @@ def get_place(
     """One Place, for the Place detail page (SCRUM-24): its URL can be shared and reloaded."""
     if not 1 <= place_id <= MAX_DB_INT:
         raise HTTPException(status_code=404, detail="Place not found")
-    row = session.exec(select_place_reads().where(Place.id == place_id)).first()
+    row = session.exec(select_place_reads().where(Place.id == place_id, is_visible())).first()
     if row is None:
         raise HTTPException(status_code=404, detail="Place not found")
     result = PlaceRead.model_validate(row, from_attributes=True)
@@ -139,4 +141,5 @@ api.include_router(auth_router)
 api.include_router(meetups_router)
 api.include_router(suggestions_router)
 api.include_router(ratings_router)
+api.include_router(admin_places_router)
 app.include_router(api)

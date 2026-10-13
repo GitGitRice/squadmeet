@@ -26,6 +26,7 @@ from sqlmodel import Session, select
 from app.auth import bearer, current_login, current_user
 from app.db import get_session
 from app.models import Meetup, MeetupJoin, Place, User
+from app.places import get_visible_place
 
 MIN_HOURS = 1
 MAX_HOURS = 4
@@ -256,9 +257,7 @@ def create_meetup(
 ):
     """A Meetup that starts now or at `starts_at` and ends after `hours`. The creator is the
     Host."""
-    place = session.get(Place, body.place_id)
-    if place is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place not found")
+    place = get_visible_place(session, body.place_id)
     # A Place suggestion may not be real; it becomes a Place with 3 Confirmations (SCRUM-36).
     if place.is_suggestion:
         raise HTTPException(
@@ -291,8 +290,7 @@ def list_meetups(
 ):
     """The active and the later Meetups at a Place, for the Place detail page. By start time,
     so the active ones come first."""
-    if session.get(Place, place_id) is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place not found")
+    get_visible_place(session, place_id)
     meetups = session.exec(
         select(Meetup)
         .where(

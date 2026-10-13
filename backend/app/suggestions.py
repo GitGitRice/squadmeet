@@ -22,6 +22,7 @@ from app.activities import LABELS, ActivityType
 from app.auth import current_user
 from app.db import get_session
 from app.models import Place, PlaceConfirmation, PlaceRead, User
+from app.places import get_visible_place, is_visible
 from app.place_reads import select_place_reads
 from app.rate_limit import RateLimit
 
@@ -87,6 +88,8 @@ def nearby_places(
             Place.activity_type == activity_type,
             # Geography: the distance is in metres on the earth, not in degrees.
             func.ST_DWithin(there, here, DUPLICATE_RADIUS_M),
+            # A locked or deleted Place cannot be opened, so it is no duplicate to offer.
+            is_visible(),
         )
         .order_by(distance, Place.id)
     ).all()
@@ -127,9 +130,7 @@ def confirm_place(
     """Confirm a Place suggestion while standing within CONFIRM_RADIUS_M of it (SCRUM-36)."""
     if not 1 <= place_id <= MAX_DB_INT:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place not found")
-    place = session.get(Place, place_id)
-    if place is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place not found")
+    place = get_visible_place(session, place_id)
     if not place.is_suggestion:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Dieser Platz ist schon bestätigt."

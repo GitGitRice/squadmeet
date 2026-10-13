@@ -34,7 +34,8 @@ _Avoid_: complaint, flag, City report
 
 **Locked place** (gesperrter Platz):
 A Place that an Admin marked as not publicly accessible. It is not on the map, and its future
-Meetups are cancelled. An Admin can unlock it.
+Meetups are cancelled (running ones end at once). An Admin can unlock it; cancelled Meetups stay
+cancelled. An Admin can also delete a Place: like locking, but it never comes back.
 _Avoid_: closed, hidden, disabled
 
 ## Meetups
