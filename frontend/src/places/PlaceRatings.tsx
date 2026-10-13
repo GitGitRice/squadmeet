@@ -13,11 +13,56 @@ import {
   type Reason,
   type ReasonCount,
 } from '../api/ratings'
+import type { Place } from '../api/places'
+import { findCityReport, placeText } from './cityReport'
 
 type Props = {
   placeId: number
+  // For the City report (SCRUM-55): where the Place is; null while it loads.
+  place?: Pick<Place, 'name' | 'lat' | 'lon' | 'address'> | null
   user: User | null
   onLoginNeeded: () => void
+}
+
+type CityReportProps = {
+  place: Pick<Place, 'name' | 'lat' | 'lon' | 'address'>
+  // The Condition names something the city must fix: the box stands out.
+  highlighted: boolean
+  // Right after the user saved a Rating that names such an issue.
+  asked: boolean
+}
+
+// "Meldung an die Stadt" (SCRUM-55): a link to the city's own defect report, its phone number
+// when it has one, and the place's address and coordinates to copy. The app sends nothing.
+function CityReportBox({ place, highlighted, asked }: CityReportProps) {
+  const [copied, setCopied] = useState(false)
+  const report = findCityReport(place.lat, place.lon)
+  if (!report) return null
+  return (
+    <div className={highlighted ? 'city-report highlighted' : 'city-report'}>
+      {asked && <p className="city-report-question">Willst du das der Stadt melden?</p>}
+      <a href={report.url} target="_blank" rel="noreferrer">
+        📣 Meldung an die Stadt: {report.name}
+      </a>
+      {report.phone && (
+        <span>
+          ☎️ <a href={`tel:${report.phone.replace(/\s/g, '')}`}>{report.phone}</a> ({report.phoneNote})
+        </span>
+      )}
+      <button
+        type="button"
+        className="link-button"
+        onClick={() =>
+          navigator.clipboard
+            ?.writeText(placeText(place.name, place.lat, place.lon, place.address ?? null))
+            .then(() => setCopied(true))
+            .catch(() => setCopied(false))
+        }
+      >
+        {copied ? 'Ort kopiert ✓' : 'Ort für die Meldung kopieren'}
+      </button>
+    </div>
+  )
 }
 
 const STARS = [1, 2, 3, 4, 5]
@@ -127,7 +172,7 @@ function ConditionLine({ summary, voted, busy, onVote }: ConditionProps) {
 
 // The Ratings part of the Place detail (SCRUM-31): average stars, the most chosen Reasons, the
 // Condition, and the form to rate the Place or change the own Rating.
-export default function PlaceRatings({ placeId, user, onLoginNeeded }: Props) {
+export default function PlaceRatings({ placeId, place, user, onLoginNeeded }: Props) {
   const [summary, setSummary] = useState<RatingSummary | null>(null)
   const [mine, setMine] = useState<Rating | null>(null)
   const [reasons, setReasons] = useState<Reason[] | null>(null)
@@ -138,6 +183,8 @@ export default function PlaceRatings({ placeId, user, onLoginNeeded }: Props) {
   const [busy, setBusy] = useState(false)
   // The issues this user answered "Ist das noch so?" for while the panel is open.
   const [voted, setVoted] = useState<Set<string>>(new Set())
+  // The user just saved a Rating that names a Condition issue: ask about the City report.
+  const [askReport, setAskReport] = useState(false)
 
   const reload = useCallback(() => {
     fetchRatingSummary(placeId)
@@ -192,7 +239,10 @@ export default function PlaceRatings({ placeId, user, onLoginNeeded }: Props) {
       const keys = (reasons ?? []).map((r) => r.key).filter((key) => chosen.has(key))
       setMine(await saveRating(token, placeId, { stars, reasons: keys }))
       setRating(false)
-      reload()
+      const fresh = await fetchRatingSummary(placeId)
+      setSummary(fresh)
+      // A chosen Reason that now shows as a Condition issue is something the city must fix.
+      setAskReport(fresh.condition.issues.some((issue) => keys.includes(issue.key)))
     } catch (err) {
       setError((err as Error).message)
     } finally {
@@ -256,6 +306,9 @@ export default function PlaceRatings({ placeId, user, onLoginNeeded }: Props) {
         ))}
       {summary && summary.top_reasons.length > 0 && <ReasonChips reasons={summary.top_reasons} />}
       {summary && <ConditionLine summary={summary} voted={voted} busy={busy} onVote={vote} />}
+      {place && (
+        <CityReportBox place={place} highlighted={summary?.condition.state === 'issues'} asked={askReport} />
+      )}
 
       {rating ? (
         <form

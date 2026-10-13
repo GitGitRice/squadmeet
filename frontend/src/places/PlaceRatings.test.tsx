@@ -74,11 +74,16 @@ function api(summary: RatingSummary, mine: unknown = null) {
   return fetchMock
 }
 
-async function render(user: User | null, onLoginNeeded = () => {}) {
+// A table tennis table in the Clara-Zetkin-Park, Leipzig (SCRUM-55).
+const leipzigPlace = { name: 'Tischtennis', lat: 51.33261, lon: 12.35673, address: 'Karl-Tauchnitz-Straße' }
+
+async function render(user: User | null, onLoginNeeded = () => {}, place: typeof leipzigPlace | null = null) {
   const container = document.createElement('div')
   document.body.append(container)
   await act(async () =>
-    createRoot(container).render(<PlaceRatings placeId={3} user={user} onLoginNeeded={onLoginNeeded} />),
+    createRoot(container).render(
+      <PlaceRatings placeId={3} place={place} user={user} onLoginNeeded={onLoginNeeded} />,
+    ),
   )
   return container
 }
@@ -192,5 +197,57 @@ describe('PlaceRatings', () => {
     await click(button(container, 'Nein, behoben'))
 
     expect(onLoginNeeded).toHaveBeenCalledOnce()
+  })
+
+  it('links to the city report of the Place and highlights it with a Condition issue (SCRUM-55)', async () => {
+    api(rated)
+    const container = await render(null, () => {}, leipzigPlace)
+
+    const box = container.querySelector('.city-report')!
+    expect(box.className).toContain('highlighted')
+    const link = box.querySelector<HTMLAnchorElement>('a[target="_blank"]')!
+    expect(link.href).toBe('https://mitdenken.sachsen.de/maengelmelder-L')
+    expect(link.textContent).toContain('Mängelmelder der Stadt Leipzig')
+    expect(box.querySelector<HTMLAnchorElement>('a[href^="tel:"]')!.getAttribute('href')).toBe('tel:0341115')
+  })
+
+  it('shows the link without highlight when nothing is to fix', async () => {
+    api(empty)
+    const container = await render(null, () => {}, leipzigPlace)
+
+    expect(container.querySelector('.city-report')!.className).not.toContain('highlighted')
+  })
+
+  it('shows no city report for a Place outside the five cities', async () => {
+    api(rated)
+    const container = await render(null, () => {}, { ...leipzigPlace, lat: 51.05, lon: 13.74 })
+
+    expect(container.querySelector('.city-report')).toBeNull()
+  })
+
+  it('asks "Willst du das der Stadt melden?" after a Rating that names an issue', async () => {
+    saveToken('tok')
+    let saved = false
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url.endsWith('/reasons')) return Response.json(reasons)
+        if (url.endsWith('/ratings/mine') && init?.method === 'PUT') {
+          saved = true
+          return Response.json({ place_id: 3, ...JSON.parse(String(init.body)), updated_at: 'now' })
+        }
+        if (url.endsWith('/ratings/mine')) return Response.json(null)
+        return Response.json(saved ? rated : empty)
+      }),
+    )
+    const container = await render(paula, () => {}, leipzigPlace)
+    expect(container.textContent).not.toContain('Willst du das der Stadt melden?')
+
+    await click(button(container, 'Platz bewerten'))
+    await click(container.querySelector<HTMLButtonElement>('[aria-label="2 Sterne"]')!)
+    await click(button(container, 'Netz fehlt'))
+    await click(button(container, 'Bewertung speichern'))
+
+    expect(container.textContent).toContain('Willst du das der Stadt melden?')
   })
 })
