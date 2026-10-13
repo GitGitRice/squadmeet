@@ -97,7 +97,13 @@ function Privacy() {
         <li>
           <strong>Treffen:</strong> an welchem Platz, Beginn, Ende und wie viele ihr seid. Solange
           ein Treffen läuft, zeigt die Karte am Platz die Zahl der Personen. Wer den Platz öffnet,
-          sieht die Zeit, die Gruppengröße und deinen Nickname mit Avatar.
+          sieht die Zeit und die Personenzahl. Deinen Nickname mit Avatar sehen nur angemeldete
+          Nutzer.
+        </li>
+        <li>
+          <strong>Teilnahmen</strong> („Ich komme mit“): an welchem Treffen, mit wie vielen Personen
+          und wann du beigetreten bist. Angemeldete Nutzer sehen bei dem Treffen deinen Nickname mit
+          Avatar und deine Personenzahl. Mit „Verlassen“ löschen wir die Teilnahme.
         </li>
         <li>
           <strong>Bewertungen:</strong> pro Platz deine Sterne, deine Gründe und wann du bewertet
@@ -188,7 +194,7 @@ function Privacy() {
       <p>
         Angemeldet findest du oben rechts unter „Konto“ den Punkt „Konto löschen“. Wir fragen dein Passwort (und mit
         Zwei-Faktor-Anmeldung einen Code) ab. Dann löschen wir sofort dein Konto mit allen oben
-        genannten Daten, auch deine Treffen, Bewertungen und Antworten. Danach ist dein Nickname wieder frei.
+        genannten Daten, auch deine Treffen, Teilnahmen, Bewertungen und Antworten. Danach ist dein Nickname wieder frei.
       </p>
 
       <h2>Deine Rechte</h2>

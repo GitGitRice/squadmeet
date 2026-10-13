@@ -665,6 +665,11 @@ body {
   border-left-color: #8a909c;
 }
 
+.meetup-card .participants {
+  font-size: 0.9rem;
+  color: #505663;
+}
+
 .move-form {
   display: flex;
   flex-wrap: wrap;

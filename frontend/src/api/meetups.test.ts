@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createMeetup, endMeetup, fetchMeetups, moveMeetupStart, type Meetup } from './meetups'
+import { createMeetup, endMeetup, fetchMeetups, joinMeetup, leaveMeetup, moveMeetupStart, type Meetup } from './meetups'
 
 const meetup: Meetup = {
   id: 7,
   place_id: 3,
   host: { id: 1, nickname: 'Paula', avatar: 'fox' },
   party_size: 2,
+  people: 2,
+  participants: [],
   starts_at: '2026-10-12T09:00:00Z',
   ends_at: '2026-10-12T11:00:00Z',
 }
@@ -56,6 +58,38 @@ describe('meetups API', () => {
     expect(init.method).toBe('PATCH')
     expect(init.headers.Authorization).toBe('Bearer tok')
     expect(JSON.parse(init.body)).toEqual({ starts_at: '2026-10-18T16:00:00.000Z' })
+  })
+
+  it('sends the login token when there is one, so the answer names who comes', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json([meetup]))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await fetchMeetups(3, 'tok')
+
+    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe('Bearer tok')
+  })
+
+  it('joins with a Party size and leaves', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(Response.json(meetup, { status: 201 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await joinMeetup('tok', 7, 3)
+    await leaveMeetup('tok', 7)
+
+    const [joinUrl, joinInit] = fetchMock.mock.calls[0]
+    expect([joinUrl, joinInit.method, JSON.parse(joinInit.body)]).toEqual(['/api/meetups/7/join', 'POST', { party_size: 3 }])
+    const [leaveUrl, leaveInit] = fetchMock.mock.calls[1]
+    expect([leaveUrl, leaveInit.method]).toEqual(['/api/meetups/7/join', 'DELETE'])
+  })
+
+  it("shows the server's message when a Join is refused", async () => {
+    const answer = Response.json({ detail: 'Du bist schon dabei' }, { status: 409 })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(answer))
+
+    await expect(joinMeetup('tok', 7, 1)).rejects.toThrow('Du bist schon dabei')
   })
 
   it("shows the server's message when the Host may not end it", async () => {
