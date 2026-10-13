@@ -3,22 +3,24 @@
 A map of free public activity places, such as table tennis tables and basketball courts. Adults
 announce a Meetup at a Place, and other people join it.
 
-Final project of the Syntax course, Modul 4 (Fullstack, Backend & DevOps). Team of 2 (since 2026-10-08).
-Presentation with live demo: **Wed 21.10.2026**.
+Final project of the Syntax course, Modul 4 (Fullstack, Backend & DevOps). Team of 3 (since 2026-10-12).
+Work ends **Fri 23.10.2026**; presentation with live demo: **Mon 26.10.2026**.
 
 > **State:** live at https://squadmeet.duckdns.org (`SCRUM-20`, AWS host). A merge into `main`
-> deploys automatically (`SCRUM-23`, first run green on 2026-10-08). Sprint 1 (walking skeleton)
-> is done; Sprint 2 (features, until the feature freeze on Fri 16.10.) starts now.
+> deploys automatically (`SCRUM-23`). Sprint 1 (walking skeleton) is done. Sprint 2 (features)
+> runs until the feature freeze on **Wed 21.10.** evening; Thu–Fri 22.–23.10. are for fixes,
+> the manual test (`SCRUM-50`), the review (`SCRUM-49`), docs and the presentation.
 
 ## Team
 
 | Person | Area |
 |--------|------|
-| Steven Tanu | DevOps (Docker, CI/CD, AWS, HTTPS), login, notifications |
-| Stefan Kallinich | Product owner, frontend PWA (map, Meetup screens, ratings) |
+| Steven Tanu | DevOps (Docker, CI/CD, AWS, HTTPS), login and MFA, Admin, Place suggestions |
+| Stefan Kallinich | Product owner, Meetup workflow, privacy, ratings, photos, contacts |
+| Dominik Fischer | Finding (search, addresses, Meetup list), Home area, notifications, manual test |
 
-David Ludwig-Erbs left the project on 2026-10-08. His tickets are split between Steven and
-Stefan (`SCRUM-46`); who does what is in [TICKETS.md](TICKETS.md).
+Dominik joined on 2026-10-12 (`SCRUM-51`). David Ludwig-Erbs left the project on 2026-10-08
+(`SCRUM-46`). Who does what is in [TICKETS.md](TICKETS.md).
 
 ## Stack
 
@@ -46,7 +48,7 @@ Tasks are in Jira (project `SCRUM`, https://socmediaapp.atlassian.net).
 
 ## How we work
 
-- **Branches (Gitflow):** `feature/SCRUM-<n>-<short-name>` → `dev` → `main`.
+- **Branches (Gitflow):** `SCRUM-<n>-<short-name>` → `dev` → `main`.
 - **Release:** a PR from `dev` into `main`. Merge it with **Create a merge commit**, not with
   squash. A squash commit is not in `dev`, so the next release PR shows the old commits again.
   A merge into `main` deploys to AWS.
@@ -110,7 +112,16 @@ docker compose exec backend python -m app.admin revoke <Nickname>
 ```
 
 The Admin functions work only after the Admin turns on two-factor login (MFA) in the app
-("Zwei-Faktor" next to the Nickname).
+("Konto" → "Zwei-Faktor-Anmeldung").
+
+What an Admin can do (`SCRUM-39`):
+
+- **Lock a Place** ("Platz sperren" in the Place detail): it leaves the map and the search.
+  Meetups that have not started are cancelled; running ones end at once.
+- **Unlock it** ("Konto" → "Gesperrte Plätze" → "Entsperren"): it is back on the map.
+  Cancelled Meetups stay cancelled.
+- **Delete a Place** ("Platz löschen"): like lock, but for good. The row stays in the database
+  (soft delete), so the next OSM import does not bring it back.
 
 ### Tests
 

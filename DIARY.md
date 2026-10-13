@@ -13,6 +13,12 @@ Die Details stehen in Jira. Nenne also den Ticket-Key und kopiere nicht den Tick
 
 ---
 
+## Di 13.10.2026 — Tag 5
+
+- **Steven:** `SCRUM-39` Admin: Platz sperren, entsperren und löschen gebaut (Sperren/Löschen sagt kommende Treffen ab und beendet laufende; gelöschter Platz kommt beim OSM-Import nicht zurück) und gemergt (PR #45). Release-PR `dev` → `main` geöffnet (PR #46). Frage an Stefan zu laufenden Treffen an gesperrten Plätzen in `SCRUM-39`.
+- **Stefan:** _bitte ausfüllen_
+- **Dominik:** _bitte ausfüllen_
+
 ## Mo 12.10.2026 — Tag 4
 
 - **Team:** Dominik ist neu im Team; offene Tickets und neue Features aufgeteilt (`SCRUM-51`).
