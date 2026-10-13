@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { CITY_REPORTS, findCityReport, placeText } from './cityReport'
+import { CITY_REPORTS, findCityReport, mailtoLink, placeText, telLink } from './cityReport'
 
 describe('City report (SCRUM-55)', () => {
   it('has an official https target with a name for each of the five cities', () => {
     expect(CITY_REPORTS.map((r) => r.city).sort()).toEqual(['Erfurt', 'Hannover', 'Leipzig', 'Potsdam', 'Stuttgart'])
     for (const report of CITY_REPORTS) {
-      expect(report.url).toMatch(/^https:\/\//)
-      expect(report.name).not.toBe('')
-      expect(report.phone === null).toBe(report.phoneNote === null)
+      expect(report.portal.url).toMatch(/^https:\/\//)
+      expect(report.portal.name).not.toBe('')
+      expect(report.office.name).not.toBe('')
+      expect(report.office.email).toMatch(/^[\w.-]+@[\w.-]+\.de$/)
+      // Every city can be called: its general line or the green-spaces office.
+      expect(report.phone ?? report.office.phone).not.toBeNull()
     }
   })
 
@@ -35,5 +38,15 @@ describe('City report (SCRUM-55)', () => {
       'https://www.openstreetmap.org/?mlat=51.33261&mlon=12.35673#map=19/51.33261/12.35673',
     ])
     expect(placeText('Basketball', 1, 2, null).split('\n')).toHaveLength(3)
+  })
+
+  it('makes a mail with subject and the Place, and a tel link', () => {
+    const link = mailtoLink('stadtgruen.gewaesser@leipzig.de', 'Tischtennis', 51.33261, 12.35673, null)
+
+    expect(link.startsWith('mailto:stadtgruen.gewaesser@leipzig.de?subject=')).toBe(true)
+    const params = new URLSearchParams(link.split('?')[1])
+    expect(params.get('subject')).toBe('Mangel an einem öffentlichen Platz: Tischtennis')
+    expect(params.get('body')).toContain('51.33261, 12.35673')
+    expect(telLink('0511 168-44353')).toBe('tel:051116844353')
   })
 })

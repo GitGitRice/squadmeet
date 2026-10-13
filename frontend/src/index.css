@@ -789,6 +789,11 @@ body {
   border-left-width: 6px;
 }
 
+.city-report-office {
+  margin-top: 4px;
+  font-weight: 600;
+}
+
 .city-report-question {
   margin: 0;
   font-weight: 700;

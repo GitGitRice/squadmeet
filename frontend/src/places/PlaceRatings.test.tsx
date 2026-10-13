@@ -209,6 +209,8 @@ describe('PlaceRatings', () => {
     expect(link.href).toBe('https://mitdenken.sachsen.de/maengelmelder-L')
     expect(link.textContent).toContain('Mängelmelder der Stadt Leipzig')
     expect(box.querySelector<HTMLAnchorElement>('a[href^="tel:"]')!.getAttribute('href')).toBe('tel:0341115')
+    expect(box.textContent).toContain('Amt für Stadtgrün und Gewässer')
+    expect(box.querySelector<HTMLAnchorElement>('a[href^="mailto:"]')!.href).toContain('stadtgruen.gewaesser@leipzig.de')
   })
 
   it('shows the link without highlight when nothing is to fix', async () => {

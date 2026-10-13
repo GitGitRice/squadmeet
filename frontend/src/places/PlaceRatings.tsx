@@ -14,7 +14,7 @@ import {
   type ReasonCount,
 } from '../api/ratings'
 import type { Place } from '../api/places'
-import { findCityReport, placeText } from './cityReport'
+import { findCityReport, mailtoLink, placeText, telLink } from './cityReport'
 
 type Props = {
   placeId: number
@@ -32,21 +32,33 @@ type CityReportProps = {
   asked: boolean
 }
 
-// "Meldung an die Stadt" (SCRUM-55): a link to the city's own defect report, its phone number
-// when it has one, and the place's address and coordinates to copy. The app sends nothing.
+// "Meldung an die Stadt" (SCRUM-55): the city's online defect report, its phone line, and the
+// office for green spaces and playgrounds with e-mail and phone, plus the place to copy.
+// The app sends nothing; the links open the user's browser, mail or phone app.
 function CityReportBox({ place, highlighted, asked }: CityReportProps) {
   const [copied, setCopied] = useState(false)
   const report = findCityReport(place.lat, place.lon)
   if (!report) return null
+  const { office } = report
   return (
     <div className={highlighted ? 'city-report highlighted' : 'city-report'}>
       {asked && <p className="city-report-question">Willst du das der Stadt melden?</p>}
-      <a href={report.url} target="_blank" rel="noreferrer">
-        📣 Meldung an die Stadt: {report.name}
+      <a href={report.portal.url} target="_blank" rel="noreferrer">
+        📣 Meldung an die Stadt: {report.portal.name}
       </a>
       {report.phone && (
         <span>
-          ☎️ <a href={`tel:${report.phone.replace(/\s/g, '')}`}>{report.phone}</a> ({report.phoneNote})
+          ☎️ <a href={telLink(report.phone.number)}>{report.phone.number}</a> ({report.phone.note})
+        </span>
+      )}
+      <span className="city-report-office">Zuständig für Grünanlagen und Spielplätze: {office.name}</span>
+      <span>
+        ✉️{' '}
+        <a href={mailtoLink(office.email, place.name, place.lat, place.lon, place.address ?? null)}>{office.email}</a>
+      </span>
+      {office.phone && (
+        <span>
+          ☎️ <a href={telLink(office.phone.number)}>{office.phone.number}</a> ({office.phone.note})
         </span>
       )}
       <button

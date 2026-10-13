@@ -201,8 +201,9 @@ function Privacy() {
 
       <h2>Meldung an die Stadt</h2>
       <p>
-        Bei einem Platz verlinken wir den offiziellen Mängelmelder der Stadt. Wir senden dabei
-        nichts an die Stadt. Erst wenn du den Link öffnest und dort etwas meldest, gilt die
+        Bei einem Platz verlinken wir den offiziellen Mängelmelder der Stadt und die zuständige
+        Stelle mit E-Mail und Telefon. Wir senden dabei nichts an die Stadt. Erst wenn du den Link
+        öffnest, eine E-Mail aus deinem Mailprogramm schickst oder anrufst, gilt die
         Datenschutzerklärung der Stadt. „Ort kopieren“ legt Adresse und Koordinaten nur in die
         Zwischenablage deines Geräts.
       </p>
