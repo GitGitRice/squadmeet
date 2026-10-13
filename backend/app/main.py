@@ -1,19 +1,13 @@
 import os
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response
-from sqlalchemy import func
-from sqlmodel import Session, select
+from fastapi import APIRouter, FastAPI
 
 from app.admin_places import router as admin_places_router
 from app.auth import router as auth_router
-from app.contacts import blockers_of, router as contacts_router
-from app.meetups import router as meetups_router, viewer
+from app.contacts import router as contacts_router
+from app.meetups import router as meetups_router
+from app.places import router as places_router
 from app.ratings import router as ratings_router
-from app.db import get_session
-from app.geocoding import NominatimGeocoder, get_geocoder
-from app.models import Place, PlaceRead, PlaceSearchHit, User
-from app.place_reads import select_place_reads
-from app.places import is_visible
 from app.suggestions import router as suggestions_router
 
 app = FastAPI(title="SquadMeet API")
@@ -27,123 +21,7 @@ def health():
     return {"status": "ok", "version": os.environ.get("APP_VERSION", "local")}
 
 
-# A whole city is about 700 Places; more than this only happens when the map is zoomed far out.
-MAX_PLACES = 2000
-# Set on the answer when there were more Places than MAX_PLACES, so the map can ask to zoom in.
-TRUNCATED_HEADER = "X-Places-Truncated"
-
-
-def parse_bbox(bbox: str) -> tuple[float, float, float, float]:
-    """"west,south,east,north" in degrees (WGS 84), the order of Leaflet's toBBoxString()."""
-    try:
-        west, south, east, north = (float(value) for value in bbox.split(","))
-    except ValueError:
-        raise HTTPException(status_code=422, detail="bbox must be west,south,east,north") from None
-    if not (-180 <= west < east <= 180 and -90 <= south < north <= 90):
-        raise HTTPException(status_code=422, detail="bbox is not a valid area")
-    return west, south, east, north
-
-
-@api.get("/places", response_model=list[PlaceRead])
-def list_places(
-    response: Response,
-    bbox: str = Query(description="The visible map area: west,south,east,north"),
-    user: User | None = Depends(viewer),
-    session: Session = Depends(get_session),
-):
-    """The Places inside the visible map area (SCRUM-21), at most MAX_PLACES. A logged-in
-    user's count of people leaves out the Meetups of users who blocked them (SCRUM-32)."""
-    west, south, east, north = parse_bbox(bbox)
-    area = func.ST_MakeEnvelope(west, south, east, north, 4326)
-    rows = session.exec(
-        select_place_reads(frozenset(blockers_of(session, user.id if user else None)))
-        # && compares bounding boxes, so PostgreSQL can use the spatial index.
-        .where(Place.location.op("&&")(area), is_visible())
-        .order_by(Place.id)
-        .limit(MAX_PLACES + 1)
-    ).all()
-    if len(rows) > MAX_PLACES:
-        rows = rows[:MAX_PLACES]
-        response.headers[TRUNCATED_HEADER] = "true"
-    return [PlaceRead.model_validate(row, from_attributes=True) for row in rows]
-
-
-# place.id is a PostgreSQL integer; a bigger number in the URL would make the query fail.
-MAX_DB_INT = 2_147_483_647
-
-
-@api.get("/search", response_model=list[PlaceSearchHit])
-def search_places(
-    q: str = Query(min_length=1, max_length=200),
-    session: Session = Depends(get_session),
-    geocoding: NominatimGeocoder = Depends(get_geocoder),
-):
-    """Named database Places plus address/POI hits from Nominatim (SCRUM-52).
-
-    The UI calls this only when its search form is submitted; it is deliberately not an
-    autocomplete endpoint, in accordance with the public Nominatim usage policy.
-    """
-    query = q.strip()
-    if not query:
-        return []
-    places = session.exec(
-        select(
-            Place.id,
-            Place.name,
-            func.ST_Y(Place.location).label("lat"),
-            func.ST_X(Place.location).label("lon"),
-        )
-        .where(Place.name.icontains(query, autoescape=True), is_visible())
-        .order_by(Place.name, Place.id)
-        .limit(5)
-    ).all()
-    hits = [
-        PlaceSearchHit(kind="place", label=place.name, lat=place.lat, lon=place.lon, place_id=place.id)
-        for place in places
-    ]
-    try:
-        external = geocoding.search(query, limit=5)
-    except (OSError, TimeoutError, ValueError):
-        # Database Place search remains useful when the optional public service is unavailable.
-        external = []
-    hits.extend(
-        PlaceSearchHit(kind="address", label=hit.label, lat=hit.lat, lon=hit.lon)
-        for hit in external
-    )
-    return hits
-
-
-@api.get("/places/{place_id}", response_model=PlaceRead)
-def get_place(
-    place_id: int,
-    user: User | None = Depends(viewer),
-    session: Session = Depends(get_session),
-    geocoding: NominatimGeocoder = Depends(get_geocoder),
-):
-    """One Place, for the Place detail page (SCRUM-24): its URL can be shared and reloaded."""
-    if not 1 <= place_id <= MAX_DB_INT:
-        raise HTTPException(status_code=404, detail="Place not found")
-    hidden = frozenset(blockers_of(session, user.id if user else None))
-    row = session.exec(
-        select_place_reads(hidden).where(Place.id == place_id, is_visible())
-    ).first()
-    if row is None:
-        raise HTTPException(status_code=404, detail="Place not found")
-    result = PlaceRead.model_validate(row, from_attributes=True)
-    if result.address is None:
-        try:
-            address = geocoding.reverse(result.lat, result.lon)
-        except (OSError, TimeoutError, ValueError):
-            address = None
-        if address:
-            place = session.get(Place, place_id)
-            place.address = address
-            session.add(place)
-            session.commit()
-            result.address = address
-    return result
-
-
+api.include_router(places_router)
 api.include_router(auth_router)
 api.include_router(meetups_router)
 api.include_router(contacts_router)

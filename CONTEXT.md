@@ -38,6 +38,17 @@ Meetups are cancelled (running ones end at once). An Admin can unlock it; cancel
 cancelled. An Admin can also delete a Place: like locking, but it never comes back.
 _Avoid_: closed, hidden, disabled
 
+**Deleted place** (gelöschter Platz):
+A Place that an Admin removed for good. Users and Admins cannot see it any more. The record stays,
+so the next OSM import does not bring the Place back.
+_Avoid_: removed, archived
+
+**Place status** (Platzstatus):
+The one status of a Place: active, Place suggestion, Locked place or Deleted place. When two apply,
+the stronger one counts (deleted, then locked, then suggestion). The status decides what users and
+Admins may do at the Place.
+_Avoid_: state, visibility
+
 ## Meetups
 
 **Meetup** (Treffen):

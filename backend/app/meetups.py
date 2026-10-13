@@ -28,7 +28,7 @@ from app.auth import bearer, current_login, current_user
 from app.contacts import blocked_by, blockers_of
 from app.db import get_session
 from app.models import Meetup, MeetupJoin, Place, User
-from app.places import get_visible_place
+from app.place_status import PlaceUse, require
 
 MIN_HOURS = 1
 MAX_HOURS = 4
@@ -124,7 +124,7 @@ def viewer(
 
 def joined_people(now: datetime, hidden_hosts: frozenset[int] = frozenset()):
     """SQL: the people of all active Meetups at a Place, the Host's Party and every Join.
-    For the map (place_reads.py), in the same subquery style as the Place columns.
+    For the map (places.py), in the same subquery style as the Place columns.
     Meetups hosted by `hidden_hosts` (the viewer's blockers, SCRUM-32) do not count."""
     joins = (
         select(func.coalesce(func.sum(MeetupJoin.party_size), 0))
@@ -273,13 +273,7 @@ def create_meetup(
 ):
     """A Meetup that starts now or at `starts_at` and ends after `hours`. The creator is the
     Host."""
-    place = get_visible_place(session, body.place_id)
-    # A Place suggestion may not be real; it becomes a Place with 3 Confirmations (SCRUM-36).
-    if place.is_suggestion:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Dieser Platz ist noch nicht bestätigt",
-        )
+    require(session, body.place_id, PlaceUse.MEETUP)
     now = datetime.now(UTC)
     starts_at = now
     if body.starts_at is not None:
@@ -306,7 +300,7 @@ def list_meetups(
 ):
     """The active and the later Meetups at a Place, for the Place detail page. By start time,
     so the active ones come first."""
-    get_visible_place(session, place_id)
+    require(session, place_id, PlaceUse.VIEW)
     query = (
         select(Meetup)
         .where(
