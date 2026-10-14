@@ -16,6 +16,7 @@ Die Details stehen in Jira. Nenne also den Ticket-Key und kopiere nicht den Tick
 ## Mi 14.10.2026 — Tag 6
 
 - **Steven:** CI für PRs #48, #50, #51, #52 geprüft; `SCRUM-60`, `SCRUM-53`, `SCRUM-55`, `SCRUM-65` auf Done gesetzt, `TICKETS.md` aktualisiert. `SCRUM-56` Admin-Freigabe für Platzvorschläge gebaut (wartet nach 3 Bestätigungen auf Admin, Freigabe frühestens nach 24 h, OSM-Hinweis Gebäude/privat/Wohngebiet ohne Sperre; PR im Review). Fallow-Hook vergleicht jetzt mit `dev` statt `main`.
+- **Dominik:** `SCRUM-53` gemergt; `SCRUM-54` Treffen-Liste und Zeitfilter für den sichtbaren Kartenausschnitt test-first implementiert und automatisiert getestet.
 
 ## Di 13.10.2026 — Tag 5
 

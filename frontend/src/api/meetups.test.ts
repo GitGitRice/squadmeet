@@ -4,6 +4,7 @@ import {
   cancelMeetup,
   createMeetup,
   endMeetup,
+  fetchMapMeetups,
   fetchMeetups,
   joinMeetup,
   leaveMeetup,
@@ -32,6 +33,20 @@ afterEach(() => {
 })
 
 describe('meetups API', () => {
+  it('asks for one Time filter in the visible map area', async () => {
+    const answer = { places: [], meetups: [meetup], truncated: false }
+    const fetchMock = vi.fn().mockResolvedValue(Response.json(answer))
+    vi.stubGlobal('fetch', fetchMock)
+    const area = { west: 12.3, south: 51.3, east: 12.4, north: 51.35 }
+
+    await expect(fetchMapMeetups(area, '3h')).resolves.toEqual(answer)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/meetups?bbox=12.30000%2C51.30000%2C12.40000%2C51.35000&time=3h',
+      { signal: undefined },
+    )
+  })
+
   it('lists the Meetups of a Place', async () => {
     const fetchMock = vi.fn().mockResolvedValue(Response.json([meetup]))
     vi.stubGlobal('fetch', fetchMock)

@@ -13,14 +13,15 @@ Block (SCRUM-32): a blocked user does not see the Meetups their blocker hosts (l
 Join) nor the blocker's Nickname in other Meetups; the blocker is warned when they are in.
 """
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import HTTPAuthorizationCredentials
 from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, Field
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_, func, or_, true
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
@@ -36,6 +37,8 @@ MAX_HOURS = 4
 DEFAULT_HOURS = 2
 MAX_PARTY_SIZE = 10
 MAX_DAYS_AHEAD = 30
+BERLIN = ZoneInfo("Europe/Berlin")
+TimeSpan = Literal["now", "3h", "6h", "today"]
 
 router = APIRouter(tags=["meetups"])
 
@@ -53,6 +56,39 @@ def is_active(now: datetime):
         Meetup.cancelled_at.is_(None),
         Meetup.closed_at.is_(None),
     )
+
+
+def time_span_end(span: TimeSpan, now: datetime) -> datetime | None:
+    """Exclusive end of a Time filter. "Today" always means Berlin's next midnight."""
+    if span == "now":
+        return None
+    if span == "3h":
+        return now + timedelta(hours=3)
+    if span == "6h":
+        return now + timedelta(hours=6)
+    berlin_now = now.astimezone(BERLIN)
+    tomorrow = berlin_now.date() + timedelta(days=1)
+    return datetime.combine(tomorrow, time.min, tzinfo=BERLIN).astimezone(UTC)
+
+
+def in_time_span(span: TimeSpan, now: datetime):
+    """SQL condition for running Meetups and those starting before the span's end."""
+    end = time_span_end(span, now)
+    return and_(
+        Meetup.ends_at > now,
+        Meetup.starts_at <= now if end is None else Meetup.starts_at < end,
+        Meetup.cancelled_at.is_(None),
+        Meetup.closed_at.is_(None),
+    )
+
+
+def visible_to(session: Session, user: User | None):
+    """SQL condition for Meetups this viewer may see, including a prior Join after handover."""
+    hidden = blockers_of(session, user.id if user else None)
+    if not hidden:
+        return true()
+    mine = select(MeetupJoin.meetup_id).where(MeetupJoin.user_id == user.id)
+    return or_(Meetup.host_id.not_in(hidden), Meetup.id.in_(mine))
 
 
 def is_open(meetup: Meetup, now: datetime) -> bool:
@@ -327,11 +363,8 @@ def list_meetups(
         )
         .order_by(Meetup.starts_at, Meetup.id)
     )
-    hidden = blockers_of(session, user.id if user else None)
-    if hidden:
-        # Not the Meetups a blocker hosts, unless the user was in before (a handover, SCRUM-32).
-        mine = select(MeetupJoin.meetup_id).where(MeetupJoin.user_id == user.id)
-        query = query.where(or_(Meetup.host_id.not_in(hidden), Meetup.id.in_(mine)))
+    # Not the Meetups a blocker hosts, unless the user was in before (a handover, SCRUM-32).
+    query = query.where(visible_to(session, user))
     return to_reads(session, list(session.exec(query).all()), user)
 
 
