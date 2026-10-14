@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import type { User } from '../api/auth'
 import { loadToken } from '../api/auth'
 import {
   answerMove,
+  cancelSeries,
+  createSeries,
   cancelMeetup,
   createMeetup,
   endMeetup,
@@ -15,6 +17,7 @@ import {
 import { askForContact, blockUser } from '../api/contacts'
 import { AVATARS } from '../auth/avatars'
 import { fromInputValue, inputBounds, isLive, slot, toInputValue } from './meetupTime'
+import { WEEKDAYS, emptySlots, groupSeries, slotsInput, type SlotFields } from './seriesGroups'
 
 type Props = {
   placeId: number
@@ -91,6 +94,11 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
   // The person whose Nickname was tapped: ask them as a Contact or Block them (SCRUM-32).
   const [person, setPerson] = useState<{ meetupId: number; nickname: string } | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  // Weekly Series (SCRUM-38): "Jede Woche wiederholen" in the form, and the open overviews.
+  const [repeat, setRepeat] = useState(false)
+  const [slotFields, setSlotFields] = useState<SlotFields[]>(emptySlots)
+  const [until, setUntil] = useState('')
+  const [expanded, setExpanded] = useState<Set<number>>(new Set())
   // The time of the last load; it decides which Meetups are live.
   const [now, setNow] = useState(() => new Date())
   const [hours, setHours] = useState(2)
@@ -152,10 +160,257 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
     setPartySize(1)
     setOpenedAt(Date.now())
     setStartsAt(toInputValue(nextFullHour(new Date())))
+    setRepeat(false)
+    setSlotFields(emptySlots())
+    setUntil('')
     setCreating(kind)
   }
 
   const bounds = inputBounds(new Date(openedAt))
+  // The form makes a weekly Series; at least one weekday must be on.
+  const series = creating === 'later' && repeat
+  const noWeekday = series && slotFields.every((f) => !f.on)
+
+  // One Meetup in the list. `laterCount` > 0: the next Occurrence of a Series, with the
+  // overview of its other dates (SCRUM-38).
+  function renderCard(meetup: Meetup, laterCount: number) {
+    const isHost = user !== null && user.id === meetup.host?.id
+    const joined = meetup.participants?.some((p) => p.id === user?.id) ?? false
+    const live = !meetup.cancelled && isLive(meetup, now)
+    const open = !meetup.cancelled
+    const offer = meetup.move_offer
+    return (
+      <li key={meetup.id} className={live ? 'meetup-card' : meetup.cancelled ? 'meetup-card cancelled' : 'meetup-card later'}>
+        <div>
+          {meetup.cancelled && (
+            <>
+              <span className="cancelled-tag">Abgesagt</span>{' '}
+            </>
+          )}
+          {meetup.series_id !== null && (
+            <>
+              <span className="series-tag" title="Termin einer wöchentlichen Serie">
+                🔁
+              </span>{' '}
+            </>
+          )}
+          {live ? (
+            <>
+              <span className="live">LIVE</span> bis {time.format(new Date(meetup.ends_at))} Uhr
+            </>
+          ) : (
+            slot(meetup)
+          )}
+          {meetup.host && (
+            <>
+              <br />
+              {isHost ? (
+                `${AVATARS[meetup.host.avatar]?.emoji ?? ''} ${meetup.host.nickname} (du, Gastgeber)`
+              ) : (
+                <PersonButton
+                  label={`${AVATARS[meetup.host.avatar]?.emoji ?? ''} ${meetup.host.nickname}`}
+                  onClick={() => setPerson({ meetupId: meetup.id, nickname: meetup.host!.nickname })}
+                />
+              )}
+            </>
+          )}
+          {meetup.participants && meetup.participants.length > 0 && (
+            <>
+              <br />
+              <span className="participants">
+                Dabei:{' '}
+                {meetup.participants.map((p, i) => {
+                  const label = `${AVATARS[p.avatar]?.emoji ?? ''} ${p.nickname}${p.party_size > 1 ? ` (${p.party_size})` : ''}`
+                  return (
+                    <span key={p.id}>
+                      {i > 0 && ', '}
+                      {p.id === user?.id ? (
+                        label
+                      ) : (
+                        <PersonButton
+                          label={label}
+                          onClick={() => setPerson({ meetupId: meetup.id, nickname: p.nickname })}
+                        />
+                      )}
+                    </span>
+                  )
+                })}
+              </span>
+            </>
+          )}
+          {meetup.blocked_user_in && (
+            <>
+              <br />
+              <span className="blocked-warning">⚠️ Jemand, den du blockiert hast, ist dabei</span>
+            </>
+          )}
+        </div>
+        {person?.meetupId === meetup.id && (
+          <div className="person-actions" role="group" aria-label={person.nickname}>
+            <strong>{person.nickname}</strong>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() =>
+                run((token) => askForContact(token, person.nickname)).then(
+                  (ok) => ok && setNotice(`Kontaktanfrage an ${person.nickname} gesendet`),
+                )
+              }
+            >
+              Als Kontakt anfragen
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() =>
+                run((token) => blockUser(token, person.nickname)).then(
+                  (ok) => ok && setNotice(`${person.nickname} ist blockiert`),
+                )
+              }
+            >
+              Blockieren
+            </button>
+            <button type="button" className="link-button" onClick={() => setPerson(null)}>
+              Abbrechen
+            </button>
+          </div>
+        )}
+        <strong className="meetup-people">{people(meetup.people)}</strong>
+        {offer && (
+          <div className="move-offer" role="group" aria-label="Neue Zeit">
+            <p>
+              {AVATARS[offer.host.avatar]?.emoji} {offer.host.nickname} hat verschoben auf {slot(offer)}.
+            </p>
+            {(
+              [
+                ['go', 'Mitgehen'],
+                ['stay', 'Hierbleiben'],
+                ['leave', 'Absagen'],
+              ] as const
+            ).map(([choice, label]) => (
+              <button
+                key={choice}
+                type="button"
+                disabled={busy}
+                onClick={() => run((token) => answerMove(token, meetup.id, choice))}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+        {open && !isHost && !joined && joining?.id !== meetup.id && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => (user ? setJoining({ id: meetup.id, partySize: 1 }) : onLoginNeeded())}
+          >
+            Ich komme mit
+          </button>
+        )}
+        {open && (joined || isHost) && (
+          <button type="button" disabled={busy} onClick={() => run((token) => leaveMeetup(token, meetup.id))}>
+            Verlassen
+          </button>
+        )}
+        {joining?.id === meetup.id && (
+          <form
+            className="move-form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              run((token) => joinMeetup(token, meetup.id, joining.partySize))
+            }}
+          >
+            <PartySizeStepper
+              value={joining.partySize}
+              onChange={(n) => setJoining({ id: meetup.id, partySize: n })}
+            />
+            <button type="submit" disabled={busy}>
+              Beitreten
+            </button>
+            <button type="button" className="link-button" onClick={() => setJoining(null)}>
+              Abbrechen
+            </button>
+          </form>
+        )}
+        {laterCount > 0 && meetup.series_id !== null && (
+          <button
+            type="button"
+            className="link-button"
+            aria-expanded={expanded.has(meetup.series_id)}
+            onClick={() => {
+              const next = new Set(expanded)
+              if (next.has(meetup.series_id!)) next.delete(meetup.series_id!)
+              else next.add(meetup.series_id!)
+              setExpanded(next)
+            }}
+          >
+            Alle Termine ({laterCount + 1}) {expanded.has(meetup.series_id) ? '▴' : '▾'}
+          </button>
+        )}
+        {meetup.can_cancel_series && laterCount > 0 && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => run((token) => cancelSeries(token, meetup.series_id!))}
+          >
+            Serie absagen
+          </button>
+        )}
+        {isHost && live && (
+          <button type="button" disabled={busy} onClick={() => run((token) => endMeetup(token, meetup.id))}>
+            Jetzt beenden
+          </button>
+        )}
+        {isHost && open && !live && (
+          <button type="button" disabled={busy} onClick={() => run((token) => cancelMeetup(token, meetup.id))}>
+            Absagen
+          </button>
+        )}
+        {isHost && open && !live && moving?.id !== meetup.id && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => setMoving({ id: meetup.id, startsAt: toInputValue(new Date(meetup.starts_at)) })}
+          >
+            Zeit ändern
+          </button>
+        )}
+        {moving?.id === meetup.id && (
+          <form
+            className="move-form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              run((token) => moveMeetupStart(token, meetup.id, fromInputValue(moving.startsAt)))
+            }}
+          >
+            {(meetup.participants?.length ?? 0) > 0 && (
+              <p className="hint">
+                Die anderen bleiben bei der alten Zeit und werden gefragt, ob sie mitgehen.
+              </p>
+            )}
+            <label className="field">
+              Neuer Beginn
+              <input
+                type="datetime-local"
+                required
+                value={moving.startsAt}
+                min={inputBounds(now).min}
+                max={inputBounds(now).max}
+                onChange={(event) => setMoving({ id: meetup.id, startsAt: event.target.value })}
+              />
+            </label>
+            <button type="submit" disabled={busy}>
+              Speichern
+            </button>
+            <button type="button" className="link-button" onClick={() => setMoving(null)}>
+              Abbrechen
+            </button>
+          </form>
+        )}
+      </li>
+    )
+  }
 
   return (
     <div className="place-meetups">
@@ -164,6 +419,17 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
           className="now-form"
           onSubmit={(event) => {
             event.preventDefault()
+            if (series) {
+              run((token) =>
+                createSeries(token, {
+                  place_id: placeId,
+                  slots: slotsInput(slotFields),
+                  party_size: partySize,
+                  until: until || null,
+                }),
+              )
+              return
+            }
             const input = { place_id: placeId, hours, party_size: partySize }
             run((token) =>
               createMeetup(token, creating === 'later' ? { ...input, starts_at: fromInputValue(startsAt) } : input),
@@ -172,6 +438,56 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
         >
           <h3>{creating === 'later' ? 'Später treffen' : 'Ich bin jetzt hier'}</h3>
           {creating === 'later' && (
+            <label className="checkbox">
+              <input type="checkbox" checked={repeat} onChange={(event) => setRepeat(event.target.checked)} /> 🔁
+              Jede Woche wiederholen
+            </label>
+          )}
+          {series && (
+            <fieldset className="series-slots">
+              <legend>An welchen Tagen?</legend>
+              {WEEKDAYS.map((name, weekday) => {
+                const f = slotFields[weekday]
+                const change = (patch: Partial<SlotFields>) =>
+                  setSlotFields(slotFields.map((old, i) => (i === weekday ? { ...old, ...patch } : old)))
+                return (
+                  <div key={name} className="series-slot">
+                    <label>
+                      <input type="checkbox" checked={f.on} onChange={(event) => change({ on: event.target.checked })} />{' '}
+                      {name}
+                    </label>
+                    {f.on && (
+                      <>
+                        <input
+                          type="time"
+                          aria-label={`Beginn ${name}`}
+                          required
+                          value={f.time}
+                          onChange={(event) => change({ time: event.target.value })}
+                        />
+                        <select
+                          aria-label={`Dauer ${name}`}
+                          value={f.hours}
+                          onChange={(event) => change({ hours: Number(event.target.value) })}
+                        >
+                          {HOURS.map((h) => (
+                            <option key={h} value={h}>
+                              {h} h
+                            </option>
+                          ))}
+                        </select>
+                      </>
+                    )}
+                  </div>
+                )
+              })}
+              <label className="field">
+                Bis (optional)
+                <input type="date" value={until} min={bounds.min.slice(0, 10)} onChange={(event) => setUntil(event.target.value)} />
+              </label>
+            </fieldset>
+          )}
+          {creating === 'later' && !series && (
             <label className="field">
               Wann?
               <input
@@ -184,28 +500,33 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
               />
             </label>
           )}
-          <fieldset className="segments">
-            <legend>Wie lange bist du da?</legend>
-            {HOURS.map((h) => (
-              <button
-                key={h}
-                type="button"
-                aria-pressed={h === hours}
-                className={h === hours ? 'on' : ''}
-                onClick={() => setHours(h)}
-              >
-                {h} h
-              </button>
-            ))}
-          </fieldset>
+          {!series && (
+            <fieldset className="segments">
+              <legend>Wie lange bist du da?</legend>
+              {HOURS.map((h) => (
+                <button
+                  key={h}
+                  type="button"
+                  aria-pressed={h === hours}
+                  className={h === hours ? 'on' : ''}
+                  onClick={() => setHours(h)}
+                >
+                  {h} h
+                </button>
+              ))}
+            </fieldset>
+          )}
           <PartySizeStepper value={partySize} onChange={setPartySize} />
-          {creating === 'later' ? (
+          {series ? (
+            <p className="hint">Jede Woche, die nächsten 30 Tage sind schon geplant. Andere treten jedem Termin einzeln bei.</p>
+          ) : creating === 'later' ? (
             <p className="hint">Alle sehen dein Treffen hier am Platz. Zur Startzeit erscheint es auf der Karte.</p>
           ) : (
             <p className="hint">Alle sehen dich auf der Karte bis {time.format(openedAt + hours * 3_600_000)} Uhr.</p>
           )}
-          <button type="submit" className="now-button" disabled={busy}>
-            {creating === 'later' ? '🗓 Treffen planen' : '📍 Jetzt auf die Karte'}
+          {noWeekday && <p className="hint">Wähle mindestens einen Wochentag.</p>}
+          <button type="submit" className="now-button" disabled={busy || noWeekday}>
+            {series ? '🔁 Serie anlegen' : creating === 'later' ? '🗓 Treffen planen' : '📍 Jetzt auf die Karte'}
           </button>
           <button type="button" className="link-button" onClick={() => setCreating(null)}>
             Abbrechen
@@ -228,213 +549,12 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
       <h3>Treffen hier</h3>
       {meetups.length === 0 && <p className="hint">Gerade ist niemand hier.</p>}
       <ul className="meetup-list">
-        {meetups.map((meetup) => {
-          const isHost = user !== null && user.id === meetup.host?.id
-          const joined = meetup.participants?.some((p) => p.id === user?.id) ?? false
-          const live = !meetup.cancelled && isLive(meetup, now)
-          const open = !meetup.cancelled
-          const offer = meetup.move_offer
-          return (
-            <li key={meetup.id} className={live ? 'meetup-card' : meetup.cancelled ? 'meetup-card cancelled' : 'meetup-card later'}>
-              <div>
-                {meetup.cancelled && (
-                  <>
-                    <span className="cancelled-tag">Abgesagt</span>{' '}
-                  </>
-                )}
-                {live ? (
-                  <>
-                    <span className="live">LIVE</span> bis {time.format(new Date(meetup.ends_at))} Uhr
-                  </>
-                ) : (
-                  slot(meetup)
-                )}
-                {meetup.host && (
-                  <>
-                    <br />
-                    {isHost ? (
-                      `${AVATARS[meetup.host.avatar]?.emoji ?? ''} ${meetup.host.nickname} (du, Gastgeber)`
-                    ) : (
-                      <PersonButton
-                        label={`${AVATARS[meetup.host.avatar]?.emoji ?? ''} ${meetup.host.nickname}`}
-                        onClick={() => setPerson({ meetupId: meetup.id, nickname: meetup.host!.nickname })}
-                      />
-                    )}
-                  </>
-                )}
-                {meetup.participants && meetup.participants.length > 0 && (
-                  <>
-                    <br />
-                    <span className="participants">
-                      Dabei:{' '}
-                      {meetup.participants.map((p, i) => {
-                        const label = `${AVATARS[p.avatar]?.emoji ?? ''} ${p.nickname}${p.party_size > 1 ? ` (${p.party_size})` : ''}`
-                        return (
-                          <span key={p.id}>
-                            {i > 0 && ', '}
-                            {p.id === user?.id ? (
-                              label
-                            ) : (
-                              <PersonButton
-                                label={label}
-                                onClick={() => setPerson({ meetupId: meetup.id, nickname: p.nickname })}
-                              />
-                            )}
-                          </span>
-                        )
-                      })}
-                    </span>
-                  </>
-                )}
-                {meetup.blocked_user_in && (
-                  <>
-                    <br />
-                    <span className="blocked-warning">⚠️ Jemand, den du blockiert hast, ist dabei</span>
-                  </>
-                )}
-              </div>
-              {person?.meetupId === meetup.id && (
-                <div className="person-actions" role="group" aria-label={person.nickname}>
-                  <strong>{person.nickname}</strong>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() =>
-                      run((token) => askForContact(token, person.nickname)).then(
-                        (ok) => ok && setNotice(`Kontaktanfrage an ${person.nickname} gesendet`),
-                      )
-                    }
-                  >
-                    Als Kontakt anfragen
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() =>
-                      run((token) => blockUser(token, person.nickname)).then(
-                        (ok) => ok && setNotice(`${person.nickname} ist blockiert`),
-                      )
-                    }
-                  >
-                    Blockieren
-                  </button>
-                  <button type="button" className="link-button" onClick={() => setPerson(null)}>
-                    Abbrechen
-                  </button>
-                </div>
-              )}
-              <strong className="meetup-people">{people(meetup.people)}</strong>
-              {offer && (
-                <div className="move-offer" role="group" aria-label="Neue Zeit">
-                  <p>
-                    {AVATARS[offer.host.avatar]?.emoji} {offer.host.nickname} hat verschoben auf {slot(offer)}.
-                  </p>
-                  {(
-                    [
-                      ['go', 'Mitgehen'],
-                      ['stay', 'Hierbleiben'],
-                      ['leave', 'Absagen'],
-                    ] as const
-                  ).map(([choice, label]) => (
-                    <button
-                      key={choice}
-                      type="button"
-                      disabled={busy}
-                      onClick={() => run((token) => answerMove(token, meetup.id, choice))}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              )}
-              {open && !isHost && !joined && joining?.id !== meetup.id && (
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => (user ? setJoining({ id: meetup.id, partySize: 1 }) : onLoginNeeded())}
-                >
-                  Ich komme mit
-                </button>
-              )}
-              {open && (joined || isHost) && (
-                <button type="button" disabled={busy} onClick={() => run((token) => leaveMeetup(token, meetup.id))}>
-                  Verlassen
-                </button>
-              )}
-              {joining?.id === meetup.id && (
-                <form
-                  className="move-form"
-                  onSubmit={(event) => {
-                    event.preventDefault()
-                    run((token) => joinMeetup(token, meetup.id, joining.partySize))
-                  }}
-                >
-                  <PartySizeStepper
-                    value={joining.partySize}
-                    onChange={(n) => setJoining({ id: meetup.id, partySize: n })}
-                  />
-                  <button type="submit" disabled={busy}>
-                    Beitreten
-                  </button>
-                  <button type="button" className="link-button" onClick={() => setJoining(null)}>
-                    Abbrechen
-                  </button>
-                </form>
-              )}
-              {isHost && live && (
-                <button type="button" disabled={busy} onClick={() => run((token) => endMeetup(token, meetup.id))}>
-                  Jetzt beenden
-                </button>
-              )}
-              {isHost && open && !live && (
-                <button type="button" disabled={busy} onClick={() => run((token) => cancelMeetup(token, meetup.id))}>
-                  Absagen
-                </button>
-              )}
-              {isHost && open && !live && moving?.id !== meetup.id && (
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => setMoving({ id: meetup.id, startsAt: toInputValue(new Date(meetup.starts_at)) })}
-                >
-                  Zeit ändern
-                </button>
-              )}
-              {moving?.id === meetup.id && (
-                <form
-                  className="move-form"
-                  onSubmit={(event) => {
-                    event.preventDefault()
-                    run((token) => moveMeetupStart(token, meetup.id, fromInputValue(moving.startsAt)))
-                  }}
-                >
-                  {(meetup.participants?.length ?? 0) > 0 && (
-                    <p className="hint">
-                      Die anderen bleiben bei der alten Zeit und werden gefragt, ob sie mitgehen.
-                    </p>
-                  )}
-                  <label className="field">
-                    Neuer Beginn
-                    <input
-                      type="datetime-local"
-                      required
-                      value={moving.startsAt}
-                      min={inputBounds(now).min}
-                      max={inputBounds(now).max}
-                      onChange={(event) => setMoving({ id: meetup.id, startsAt: event.target.value })}
-                    />
-                  </label>
-                  <button type="submit" disabled={busy}>
-                    Speichern
-                  </button>
-                  <button type="button" className="link-button" onClick={() => setMoving(null)}>
-                    Abbrechen
-                  </button>
-                </form>
-              )}
-            </li>
-          )
-        })}
+        {groupSeries(meetups).map(({ meetup, laterOfSeries }) => (
+          <Fragment key={meetup.id}>
+            {renderCard(meetup, laterOfSeries.length)}
+            {expanded.has(meetup.series_id ?? -1) && laterOfSeries.map((later) => renderCard(later, 0))}
+          </Fragment>
+        ))}
       </ul>
     </div>
   )

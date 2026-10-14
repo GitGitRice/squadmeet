@@ -104,6 +104,10 @@ function Privacy() {
           Nutzer.
         </li>
         <li>
+          <strong>Serien:</strong> an welchem Platz, an welchen Wochentagen und Uhrzeiten, bis
+          wann und wie viele ihr seid. Jeder Termin einer Serie ist ein Treffen wie oben.
+        </li>
+        <li>
           <strong>Teilnahmen</strong> („Ich komme mit“): an welchem Treffen, mit wie vielen Personen
           und wann du beigetreten bist. Angemeldete Nutzer sehen bei dem Treffen deinen Nickname mit
           Avatar und deine Personenzahl. Mit „Verlassen“ löschen wir die Teilnahme.
@@ -242,7 +246,7 @@ function Privacy() {
       <p>
         Angemeldet findest du oben rechts unter „Konto“ den Punkt „Konto löschen“. Wir fragen dein Passwort (und mit
         Zwei-Faktor-Anmeldung einen Code) ab. Dann löschen wir sofort dein Konto mit allen oben
-        genannten Daten, auch deine Treffen, Teilnahmen, Kontakte, Blockierungen, Bewertungen und Antworten. Danach ist dein Nickname wieder frei.
+        genannten Daten, auch deine Treffen, Serien, Teilnahmen, Kontakte, Blockierungen, Bewertungen und Antworten. Danach ist dein Nickname wieder frei.
       </p>
 
       <h2>Deine Rechte</h2>
