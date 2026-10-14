@@ -2,6 +2,7 @@
 // Cancel, Leave and move with Joins (SCRUM-37): the API of backend/app/meetups.py.
 
 import { answer } from './http'
+import { clampArea, type MapArea, type Place } from './places'
 
 export type MeetupHost = { id: number; nickname: string; avatar: string }
 
@@ -11,6 +12,7 @@ export type Participant = MeetupHost & { party_size: number }
 export type MoveOffer = { meetup_id: number; host: MeetupHost; starts_at: string; ends_at: string }
 
 export type MoveAnswer = 'go' | 'stay' | 'leave'
+export type TimeSpan = 'now' | '3h' | '6h' | 'today'
 
 export type Meetup = {
   id: number
@@ -35,6 +37,22 @@ export type Meetup = {
 
 // Without starts_at a Now-meetup; with it a later Meetup (ISO 8601 with time zone).
 export type MeetupInput = { place_id: number; hours: number; party_size: number; starts_at?: string }
+
+export type MapMeetups = { places: Place[]; meetups: Meetup[]; truncated: boolean }
+
+export async function fetchMapMeetups(
+  area: MapArea,
+  span: TimeSpan,
+  signal?: AbortSignal,
+  token: string | null = null,
+): Promise<MapMeetups> {
+  const { west, south, east, north } = clampArea(area)
+  const bbox = [west, south, east, north].map((value) => value.toFixed(5)).join(',')
+  const query = new URLSearchParams({ bbox, time: span })
+  const headers = token ? { Authorization: `Bearer ${token}` } : undefined
+  const response = await fetch(`/api/meetups?${query}`, { signal, ...(headers ? { headers } : {}) })
+  return answer(response, 'GET map meetups')
+}
 
 // With a login token the answer names the Host and the participants.
 export async function fetchMeetups(placeId: number, token: string | null = null): Promise<Meetup[]> {

@@ -1,0 +1,72 @@
+import type { Meetup, TimeSpan } from '../api/meetups'
+import type { Place } from '../api/places'
+import { slot } from './meetupTime'
+
+const SPANS: { value: TimeSpan; label: string }[] = [
+  { value: 'now', label: 'Jetzt' },
+  { value: '3h', label: '3 h' },
+  { value: '6h', label: '6 h' },
+  { value: 'today', label: 'Heute' },
+]
+
+type Props = {
+  span: TimeSpan | null
+  meetups: Meetup[]
+  places: Place[]
+  onSpanChange: (span: TimeSpan | null) => void
+  onOpenPlace: (placeId: number) => void
+  showList?: boolean
+}
+
+export default function MeetupMap({
+  span,
+  meetups,
+  places,
+  onSpanChange,
+  onOpenPlace,
+  showList = true,
+}: Props) {
+  const placesById = new Map(places.map((place) => [place.id, place]))
+  const visibleMeetups = meetups.filter((meetup) => placesById.has(meetup.place_id))
+
+  return (
+    <>
+      <div className="time-filter" role="group" aria-label="Treffen nach Zeit filtern">
+        {SPANS.map(({ value, label }) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={span === value}
+            className={span === value ? 'on' : ''}
+            onClick={() => onSpanChange(span === value ? null : value)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {span && showList && (
+        <section className="map-meetup-list" aria-label="Treffen im Kartenausschnitt">
+          <h2>Treffen</h2>
+          {visibleMeetups.length === 0 ? (
+            <p>Keine Treffen in diesem Kartenausschnitt.</p>
+          ) : (
+            <ul>
+              {visibleMeetups.map((meetup) => {
+                const place = placesById.get(meetup.place_id)!
+                return (
+                  <li key={meetup.id} className="map-meetup-item">
+                    <button className="map-meetup-button" type="button" onClick={() => onOpenPlace(meetup.place_id)}>
+                      <strong>{place.name}</strong>
+                      <span className="map-meetup-meta">{slot(meetup)}</span>
+                      <span className="map-meetup-meta">{meetup.people} {meetup.people === 1 ? 'Person' : 'Personen'}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </section>
+      )}
+    </>
+  )
+}

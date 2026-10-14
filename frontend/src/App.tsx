@@ -12,6 +12,7 @@ import {
   type User,
 } from './api/auth'
 import { fetchContacts, type Contacts } from './api/contacts'
+import { fetchMapMeetups, type Meetup, type TimeSpan } from './api/meetups'
 import AccountDialog from './auth/AccountDialog'
 import ContactsDialog from './auth/ContactsDialog'
 import AuthDialog from './auth/AuthDialog'
@@ -32,6 +33,7 @@ import PlaceMeetups from './places/PlaceMeetups'
 import SuggestPlaceDialog from './places/SuggestPlaceDialog'
 import PlaceRatings from './places/PlaceRatings'
 import PlaceSearch from './places/PlaceSearch'
+import MeetupMap from './places/MeetupMap'
 import { placeIdFromPath, placePath, usePath } from './places/route'
 import { groupBySpot } from './places/spots'
 
@@ -49,8 +51,7 @@ function MapAreaWatcher({ onMove }: { onMove: (area: MapArea) => void }) {
     onMove({ west: bounds.getWest(), south: bounds.getSouth(), east: bounds.getEast(), north: bounds.getNorth() })
   }
   useMapEvents({ moveend: report })
-  // oxlint-disable-next-line react-hooks/exhaustive-deps -- only once, for the first area
-  useEffect(report, [])
+  useEffect(report, [map, onMove])
   return null
 }
 
@@ -83,8 +84,11 @@ function CenterOnSearch({ target }: { target: SearchTarget | null }) {
   return null
 }
 
+// fallow-ignore-next-line complexity -- Existing top-level composition; feature logic stays in focused modules.
 export default function App() {
   const [places, setPlaces] = useState<Place[]>([])
+  const [mapMeetups, setMapMeetups] = useState<Meetup[]>([])
+  const [timeSpan, setTimeSpan] = useState<TimeSpan | null>(null)
   const [truncated, setTruncated] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // The request for the last map area; a newer pan or zoom cancels it, so an old answer
@@ -134,26 +138,34 @@ export default function App() {
   }
 
   // Point 8 of Steven's review: only when the Places, the filter or the open Place change.
-  const spots = useMemo(
-    () => groupBySpot(filterPlaces(places, chosen, selectedId)),
+  const visiblePlaces = useMemo(
+    () => filterPlaces(places, chosen, selectedId),
     [places, chosen, selectedId],
   )
+  const spots = useMemo(() => groupBySpot(visiblePlaces), [visiblePlaces])
 
-  function loadPlaces(area: MapArea) {
+  const loadPlaces = useCallback((area: MapArea) => {
     lastArea.current = area
     placesRequest.current?.abort()
     const request = new AbortController()
     placesRequest.current = request
-    fetchPlaces(area, request.signal, loadToken())
+    const answer = timeSpan
+      ? fetchMapMeetups(area, timeSpan, request.signal, loadToken())
+      : fetchPlaces(area, request.signal, loadToken()).then((placesAnswer) => ({
+          ...placesAnswer,
+          meetups: [] as Meetup[],
+        }))
+    answer
       .then((answer) => {
         setPlaces(answer.places)
         setTruncated(answer.truncated)
+        setMapMeetups(answer.meetups)
         setError(null)
       })
       .catch((err: Error) => {
         if (!request.signal.aborted) setError(err.message)
       })
-  }
+  }, [timeSpan])
 
   function reloadPlaces() {
     if (lastArea.current) loadPlaces(lastArea.current)
@@ -170,8 +182,7 @@ export default function App() {
       if (lastArea.current) loadPlaces(lastArea.current)
     }, PLACES_REFRESH_MS)
     return () => clearInterval(timer)
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- one timer; it reads the ref
-  }, [])
+  }, [loadPlaces])
 
   // Restore the login from an earlier visit; drop the token when the server no longer knows it.
   useEffect(() => {
@@ -358,6 +369,14 @@ export default function App() {
         />
       )}
       <PlaceSearch onPick={pickSearchHit} />
+      <MeetupMap
+        span={timeSpan}
+        meetups={mapMeetups}
+        places={visiblePlaces}
+        onSpanChange={setTimeSpan}
+        onOpenPlace={openPlace}
+        showList={selectedId === null}
+      />
       <ActivityFilter chosen={chosen} onChange={setChosen} />
       {selectedId !== null && (
         <PlaceDetail
