@@ -29,6 +29,8 @@ const meetup: Meetup = {
   cancelled: false,
   move_offer: null,
   blocked_user_in: false,
+  series_id: null,
+  can_cancel_series: false,
 }
 
 afterEach(() => {
