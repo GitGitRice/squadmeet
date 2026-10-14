@@ -16,7 +16,7 @@ import AccountDialog from './auth/AccountDialog'
 import ContactsDialog from './auth/ContactsDialog'
 import AuthDialog from './auth/AuthDialog'
 import DeleteAccountDialog from './auth/DeleteAccountDialog'
-import LockedPlacesDialog from './auth/LockedPlacesDialog'
+import AdminDialog, { type AdminDialogKind } from './auth/AdminDialog'
 import MfaDialog from './auth/MfaDialog'
 import RecoveryCodesDialog from './auth/RecoveryCodesDialog'
 import { AVATARS } from './auth/avatars'
@@ -99,7 +99,7 @@ export default function App() {
   const [showSuggest, setShowSuggest] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [showRecoveryCodes, setShowRecoveryCodes] = useState(false)
-  const [showLocked, setShowLocked] = useState(false)
+  const [adminDialog, setAdminDialog] = useState<AdminDialogKind | null>(null)
   const [showContacts, setShowContacts] = useState(false)
   // Contact requests waiting for the user's answer, shown on the "Konto" button (SCRUM-32).
   const [incomingRequests, setIncomingRequests] = useState(0)
@@ -225,7 +225,7 @@ export default function App() {
     setShowSuggest(false)
     setShowDelete(false)
     setShowRecoveryCodes(false)
-    setShowLocked(false)
+    setAdminDialog(null)
     if (token) await logout(token).catch(() => {})
   }
 
@@ -281,7 +281,11 @@ export default function App() {
           }}
           onLockedPlaces={() => {
             setShowAccount(false)
-            setShowLocked(true)
+            setAdminDialog('locked')
+          }}
+          onSuggestions={() => {
+            setShowAccount(false)
+            setAdminDialog('approvals')
           }}
           onClose={() => setShowAccount(false)}
         />
@@ -297,11 +301,20 @@ export default function App() {
           }}
         />
       )}
-      {showLocked && user && (
-        <LockedPlacesDialog
+      {adminDialog && user && (
+        <AdminDialog
+          kind={adminDialog}
           token={loadToken() ?? ''}
-          onUnlocked={reloadPlaces}
-          onClose={() => setShowLocked(false)}
+          onChanged={() => {
+            reloadPlaces()
+            // The open Place may be the one that just changed.
+            setDetailTry((n) => n + 1)
+          }}
+          onOpenPlace={(id) => {
+            setAdminDialog(null)
+            openPlace(id)
+          }}
+          onClose={() => setAdminDialog(null)}
         />
       )}
       {showMfa && user && (

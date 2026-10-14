@@ -5,8 +5,8 @@ Before saving, the app asks for Places of the same Activity type within DUPLICAT
 ("Ist es einer davon?"); the user can still continue. A suggestion is a Place with
 is_suggestion = true, so the map, the Place detail and its URL work for it as for any Place.
 The suggester's own Confirmation is the first of CONFIRMATIONS_NEEDED; at CONFIRMATIONS_NEEDED
-the Place becomes active (SCRUM-56 later adds an Admin approval step). Suggesting and
-confirming require an account that is at least MIN_ACCOUNT_AGE old.
+the suggestion waits for an Admin (confirmed_at, SCRUM-56, app.admin_suggestions), who makes it
+active. Suggesting and confirming require an account that is at least MIN_ACCOUNT_AGE old.
 """
 
 from datetime import UTC, datetime, timedelta
@@ -110,6 +110,7 @@ def suggest_place(
         activity_type=body.activity_type,
         location=f"SRID=4326;POINT({body.lon} {body.lat})",
         is_suggestion=True,
+        suggested_at=now,
     )
     session.add(place)
     session.flush()
@@ -165,7 +166,7 @@ def confirm_place(
         select(func.count()).where(PlaceConfirmation.place_id == place_id)
     ).one()
     if total >= CONFIRMATIONS_NEEDED:
-        place.is_suggestion = False
+        place.confirmed_at = now
     session.commit()
     row = session.exec(select_place_reads().where(Place.id == place_id)).one()
     return PlaceRead.model_validate(row, from_attributes=True)

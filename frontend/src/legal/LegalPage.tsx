@@ -119,7 +119,9 @@ function Privacy() {
           <strong>Platzvorschläge und Bestätigungen:</strong> welchen Platz du vorgeschlagen oder
           bestätigt hast, und wann. Andere sehen nur die Zahl der Bestätigungen, nicht deinen
           Nickname. Beim Löschen deines Kontos werden deine Bestätigungen gelöscht; der
-          vorgeschlagene Platz bleibt auf der Karte.
+          vorgeschlagene Platz bleibt auf der Karte. Bevor ein Admin einen Vorschlag freigibt,
+          fragt unser Server bei OpenStreetMap (Overpass-API) nach, was an diesem Punkt
+          eingetragen ist. Dabei gehen nur die Koordinaten des Platzes mit, keine Daten über dich.
         </li>
         <li>
           <strong>Kontakte:</strong> wem du eine Kontaktanfrage geschickt hast, ob sie angenommen

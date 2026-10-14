@@ -10,6 +10,7 @@ type Props = {
   onMfa: () => void
   onDelete: () => void
   onLockedPlaces: () => void
+  onSuggestions: () => void
   onClose: () => void
 }
 
@@ -21,6 +22,7 @@ export default function AccountDialog({
   onMfa,
   onDelete,
   onLockedPlaces,
+  onSuggestions,
   onClose,
 }: Props) {
   return (
@@ -34,9 +36,14 @@ export default function AccountDialog({
           Zwei-Faktor-Anmeldung ({user.mfa_enabled ? 'an' : 'aus'})
         </button>
         {canModerate(user) && (
-          <button type="button" onClick={onLockedPlaces}>
-            Gesperrte Plätze
-          </button>
+          <>
+            <button type="button" onClick={onSuggestions}>
+              Platzvorschläge freigeben
+            </button>
+            <button type="button" onClick={onLockedPlaces}>
+              Gesperrte Plätze
+            </button>
+          </>
         )}
         <button type="button" onClick={onDelete}>
           Konto löschen

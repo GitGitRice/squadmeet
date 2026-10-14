@@ -76,6 +76,23 @@ describe('PlaceDetail', () => {
     expect(container.textContent).not.toContain('Bewertungen hier')
   })
 
+  it('shows a suggestion with 3 Confirmations as waiting for an Admin, without the confirm button', () => {
+    const waiting = { ...place, is_suggestion: true, confirmations: 3, waiting_for_admin: true }
+    const container = render({
+      place: waiting,
+      error: null,
+      onRetry: () => {},
+      onClose: () => {},
+      children: <p>Treffen hier</p>,
+    })
+
+    expect(container.textContent).toContain('wartet auf Freigabe')
+    expect(container.textContent).toContain('3 von 3 Bestätigungen')
+    expect(container.textContent).not.toContain('Vor Ort bestätigen')
+    expect(container.textContent).not.toContain('Treffen hier')
+    expect(container.textContent).not.toContain('Von Nutzern hinzugefügt')
+  })
+
   it('confirms a Place suggestion at the Place with the browser location', async () => {
     saveToken('tok')
     vi.stubGlobal('navigator', {

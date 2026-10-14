@@ -14,7 +14,7 @@ from app.db import get_session
 from app.geocoding import NominatimGeocoder, get_geocoder
 from app.meetups import joined_people, viewer
 from app.models import Place, PlaceConfirmation, PlaceRead, PlaceSearchHit, User
-from app.place_status import MAX_DB_INT, NOT_FOUND, PlaceUse, allowed_in
+from app.place_status import MAX_DB_INT, NOT_FOUND, STATUS, PlaceStatus, PlaceUse, allowed_in
 
 router = APIRouter()
 
@@ -26,7 +26,7 @@ TRUNCATED_HEADER = "X-Places-Truncated"
 
 def select_place_reads(hidden_hosts: frozenset[int] = frozenset()):
     """The columns of a PlaceRead: the PostGIS point as lat and lon, the people there now, and
-    the Confirmations of a Place suggestion. Meetups of `hidden_hosts` (the viewer's blockers,
+    the Confirmations of a Place suggestion and whether it waits for an Admin (SCRUM-56). Meetups of `hidden_hosts` (the viewer's blockers,
     SCRUM-32) do not count in people_now."""
     # The Host's Party and every Join of the active Meetups (SCRUM-34).
     people_now = joined_people(datetime.now(UTC), hidden_hosts).scalar_subquery()
@@ -45,6 +45,7 @@ def select_place_reads(hidden_hosts: frozenset[int] = frozenset()):
         people_now.label("people_now"),
         Place.is_suggestion,
         confirmations.label("confirmations"),
+        (STATUS == PlaceStatus.WAITING.value).label("waiting_for_admin"),
     )
 
 

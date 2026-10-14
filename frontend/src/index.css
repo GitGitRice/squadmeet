@@ -1226,3 +1226,35 @@ body {
   display: block;
   color: #555;
 }
+
+/* Admin approval of Place suggestions (SCRUM-56), like the locked-places list. */
+.waiting-suggestions {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.waiting-suggestions li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.waiting-suggestions small {
+  display: block;
+  color: #555;
+}
+
+.waiting-suggestions small.osm-hint-found {
+  color: #8a1c13;
+  font-weight: 600;
+}
+
+.waiting-suggestion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
