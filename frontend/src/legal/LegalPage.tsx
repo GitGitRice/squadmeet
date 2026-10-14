@@ -66,7 +66,10 @@ function Privacy() {
 
       <h2>Kurz gesagt</h2>
       <ul>
-        <li>Wir speichern keine E-Mail-Adresse, keinen echten Namen und keinen Standort deines Geräts.</li>
+        <li>
+          Wir speichern keine E-Mail-Adresse, keinen echten Namen und keinen Standort deines Geräts
+          (Ausnahme: der Ort eines Platzes, den du vorschlägst, siehe unten).
+        </li>
         <li>Es gibt keine Cookies, keine Werbung und kein Tracking.</li>
         <li>Du kannst dein Konto jederzeit selbst löschen. Dann sind alle Daten dazu sofort weg.</li>
       </ul>
@@ -122,6 +125,14 @@ function Privacy() {
           vorgeschlagene Platz bleibt auf der Karte. Bevor ein Admin einen Vorschlag freigibt,
           fragt unser Server bei OpenStreetMap (Overpass-API) nach, was an diesem Punkt
           eingetragen ist. Dabei gehen nur die Koordinaten des Platzes mit, keine Daten über dich.
+        </li>
+        <li>
+          <strong>Standort beim Vorschlagen und Bestätigen:</strong> Nur in diesen beiden Fällen
+          fragt die App den Standort deines Geräts ab, und dein Browser fragt dich vorher um
+          Erlaubnis. Beim Vorschlagen senden wir den Punkt an den Server: Er sucht damit nach
+          ähnlichen Plätzen in der Nähe und speichert ihn als Ort des neuen Platzes, den alle auf
+          der Karte sehen, ohne deinen Nickname. Beim Bestätigen prüft der Server nur, ob du
+          höchstens 100 m vom Platz entfernt bist; diesen Standort speichern wir nicht.
         </li>
         <li>
           <strong>Kontakte:</strong> wem du eine Kontaktanfrage geschickt hast, ob sie angenommen
