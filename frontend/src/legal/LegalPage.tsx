@@ -216,6 +216,15 @@ function Privacy() {
         .
       </p>
 
+      <h2>Meldung an die Stadt</h2>
+      <p>
+        Bei einem Platz verlinken wir den offiziellen Mängelmelder der Stadt und die zuständige
+        Stelle mit E-Mail und Telefon. Wir senden dabei nichts an die Stadt. Erst wenn du den Link
+        öffnest, eine E-Mail aus deinem Mailprogramm schickst oder anrufst, gilt die
+        Datenschutzerklärung der Stadt. „Ort kopieren“ legt Adresse und Koordinaten nur in die
+        Zwischenablage deines Geräts.
+      </p>
+
       <h2>Konto löschen</h2>
       <p>
         Angemeldet findest du oben rechts unter „Konto“ den Punkt „Konto löschen“. Wir fragen dein Passwort (und mit

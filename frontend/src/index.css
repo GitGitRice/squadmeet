@@ -777,6 +777,33 @@ body {
   align-items: flex-end;
 }
 
+/* SCRUM-55: City report. Orange edge when the Condition names something to fix. */
+
+.city-report {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid #d5d8de;
+  border-radius: 10px;
+}
+
+.city-report.highlighted {
+  background: #fff4e5;
+  border-color: #e07b00;
+  border-left-width: 6px;
+}
+
+.city-report-office {
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.city-report-question {
+  margin: 0;
+  font-weight: 700;
+}
+
 /* SCRUM-31: Ratings. Gold = stars, green = a good Reason, orange = a Reason against. */
 
 .place-ratings {

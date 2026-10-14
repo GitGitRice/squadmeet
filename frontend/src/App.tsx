@@ -374,6 +374,7 @@ export default function App() {
           <PlaceRatings
             key={`${selectedId}-${user?.id ?? 'guest'}`}
             placeId={selectedId}
+            place={selected}
             user={user}
             onLoginNeeded={() => setShowAuth(true)}
           />
