@@ -1,11 +1,11 @@
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { canModerate } from '../api/admin'
-import { loadToken, type User } from '../api/auth'
+import type { User } from '../api/auth'
 import type { Place } from '../api/places'
-import { CONFIRMATIONS_NEEDED, confirmPlace, locate } from '../api/suggestions'
 import { activityOf } from './activities'
 import AdminPlaceActions from './AdminPlaceActions'
 import { routeUrl } from './routeLink'
+import SuggestionStatus from './SuggestionStatus'
 
 type Props = {
   place: Place | null
@@ -37,30 +37,6 @@ export default function PlaceDetail({
 }: Props) {
   const activity = place && activityOf(place.activity_type)
   const coordinates = place && `${place.lat.toFixed(5)}, ${place.lon.toFixed(5)}`
-  const [confirming, setConfirming] = useState(false)
-  const [confirmError, setConfirmError] = useState<{ placeId: number; message: string } | null>(null)
-  const currentConfirmError =
-    place && confirmError?.placeId === place.id ? confirmError.message : null
-
-  async function handleConfirm() {
-    if (!place) return
-    const token = loadToken()
-    if (!user || !token) {
-      onLoginNeeded?.()
-      return
-    }
-    setConfirming(true)
-    setConfirmError(null)
-    try {
-      const position = await locate()
-      const updated = await confirmPlace(token, place.id, { lat: position.lat, lon: position.lon })
-      onConfirmed?.(updated)
-    } catch (err) {
-      setConfirmError({ placeId: place.id, message: (err as Error).message })
-    } finally {
-      setConfirming(false)
-    }
-  }
 
   return (
     <section className="place-detail" aria-label={place?.name ?? 'Platz'}>
@@ -76,20 +52,14 @@ export default function PlaceDetail({
         </div>
       </div>
 
-      {place?.is_suggestion && (
-        <div className="suggestion-box">
-          <p className="suggestion-note">
-            <strong>Vorschlag, noch nicht bestätigt:</strong> {place.confirmations} von {CONFIRMATIONS_NEEDED}{' '}
-            Bestätigungen. Treffen und Bewertungen sind erst an bestätigten Plätzen möglich.
-          </p>
-          <button type="button" className="confirm-button" disabled={confirming} onClick={handleConfirm}>
-            {confirming ? 'Standort wird geprüft …' : '📍 Vor Ort bestätigen'}
-          </button>
-          {currentConfirmError && <p className="form-error">{currentConfirmError}</p>}
-        </div>
-      )}
-      {place && !place.is_suggestion && place.confirmations > 0 && (
-        <p className="user-added-note">Von Nutzern hinzugefügt</p>
+      {place && (
+        <SuggestionStatus
+          key={place.id}
+          place={place}
+          user={user}
+          onLoginNeeded={onLoginNeeded}
+          onConfirmed={onConfirmed}
+        />
       )}
       {place && (
         <p className="place-detail-location">

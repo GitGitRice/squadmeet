@@ -235,7 +235,7 @@ def test_a_user_can_confirm_a_suggestion_only_once(client, session, token):
     assert client.get(f"/api/places/{place_id}").json()["confirmations"] == 2
 
 
-def test_a_suggestion_becomes_active_at_3_confirmations(client, session, token):
+def test_at_3_confirmations_a_suggestion_waits_for_an_admin(client, session, token):
     place_id = suggest(client, token).json()["id"]
     second = user_token(client, session, "Stefan")
     third = user_token(client, session, "Dominik")
@@ -244,16 +244,19 @@ def test_a_suggestion_becomes_active_at_3_confirmations(client, session, token):
     after_two = confirm(client, second, place_id).json()
     after_three = confirm(client, third, place_id).json()
 
-    assert (after_two["is_suggestion"], after_two["confirmations"]) == (True, 2)
-    assert (after_three["is_suggestion"], after_three["confirmations"]) == (False, 3)
+    assert (after_two["waiting_for_admin"], after_two["confirmations"]) == (False, 2)
+    assert (after_three["is_suggestion"], after_three["confirmations"]) == (True, 3)
+    assert after_three["waiting_for_admin"] is True
     read = client.get(f"/api/places/{place_id}").json()
-    assert (read["is_suggestion"], read["confirmations"]) == (False, 3)
-    assert confirm(client, fourth, place_id).status_code == 409
+    assert (read["is_suggestion"], read["waiting_for_admin"]) == (True, True)
+    fourth_try = confirm(client, fourth, place_id)
+    assert fourth_try.status_code == 409
+    assert "Freigabe" in fourth_try.json()["detail"]
     assert (
         client.post(
             "/api/meetups", json={"place_id": place_id}, headers=auth_header(token)
         ).status_code
-        == 201
+        == 409
     )
     assert (
         client.put(
@@ -261,8 +264,18 @@ def test_a_suggestion_becomes_active_at_3_confirmations(client, session, token):
             json={"stars": 5, "reasons": ["table_good"]},
             headers=auth_header(token),
         ).status_code
-        == 200
+        == 409
     )
+
+
+def test_a_suggestion_records_when_it_was_suggested(client, session, token):
+    before = datetime.now(UTC)
+
+    place_id = suggest(client, token).json()["id"]
+
+    place = session.get(Place, place_id)
+    assert before <= place.suggested_at <= datetime.now(UTC)
+    assert place.confirmed_at is None
 
 
 def test_confirm_needs_a_login_and_an_existing_suggestion(client, session, token):

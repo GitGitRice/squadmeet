@@ -13,22 +13,47 @@ from app.place_status import PlaceStatus, PlaceUse, allowed_in, get_status, requ
 NOT_FOUND = (404, "Place not found")
 NOT_CONFIRMED = (409, "Dieser Platz ist noch nicht bestätigt")
 ALREADY_CONFIRMED = (409, "Dieser Platz ist schon bestätigt.")
+ENOUGH_CONFIRMATIONS = (
+    409,
+    "Dieser Platzvorschlag hat genug Bestätigungen und wartet auf die Freigabe durch einen Admin.",
+)
+NOT_WAITING = (409, "Dieser Platz wartet nicht auf eine Freigabe")
 OK = None
 
-ACTIVE, SUGGESTION, LOCKED, DELETED = PlaceStatus
+ACTIVE, SUGGESTION, WAITING, LOCKED, DELETED = PlaceStatus
 
 EXPECTED = {
-    PlaceUse.VIEW: {ACTIVE: OK, SUGGESTION: OK, LOCKED: NOT_FOUND, DELETED: NOT_FOUND},
-    PlaceUse.MAP: {ACTIVE: OK, SUGGESTION: OK, LOCKED: NOT_FOUND, DELETED: NOT_FOUND},
-    PlaceUse.MEETUP: {ACTIVE: OK, SUGGESTION: NOT_CONFIRMED, LOCKED: NOT_FOUND, DELETED: NOT_FOUND},
-    PlaceUse.RATE: {ACTIVE: OK, SUGGESTION: NOT_CONFIRMED, LOCKED: NOT_FOUND, DELETED: NOT_FOUND},
-    PlaceUse.CONFIRM: {
-        ACTIVE: ALREADY_CONFIRMED,
-        SUGGESTION: OK,
+    PlaceUse.VIEW: {ACTIVE: OK, SUGGESTION: OK, WAITING: OK, LOCKED: NOT_FOUND, DELETED: NOT_FOUND},
+    PlaceUse.MAP: {ACTIVE: OK, SUGGESTION: OK, WAITING: OK, LOCKED: NOT_FOUND, DELETED: NOT_FOUND},
+    PlaceUse.MEETUP: {
+        ACTIVE: OK,
+        SUGGESTION: NOT_CONFIRMED,
+        WAITING: NOT_CONFIRMED,
         LOCKED: NOT_FOUND,
         DELETED: NOT_FOUND,
     },
-    PlaceUse.ADMIN: {ACTIVE: OK, SUGGESTION: OK, LOCKED: OK, DELETED: NOT_FOUND},
+    PlaceUse.RATE: {
+        ACTIVE: OK,
+        SUGGESTION: NOT_CONFIRMED,
+        WAITING: NOT_CONFIRMED,
+        LOCKED: NOT_FOUND,
+        DELETED: NOT_FOUND,
+    },
+    PlaceUse.CONFIRM: {
+        ACTIVE: ALREADY_CONFIRMED,
+        SUGGESTION: OK,
+        WAITING: ENOUGH_CONFIRMATIONS,
+        LOCKED: NOT_FOUND,
+        DELETED: NOT_FOUND,
+    },
+    PlaceUse.APPROVE: {
+        ACTIVE: NOT_WAITING,
+        SUGGESTION: NOT_WAITING,
+        WAITING: OK,
+        LOCKED: NOT_WAITING,
+        DELETED: NOT_FOUND,
+    },
+    PlaceUse.ADMIN: {ACTIVE: OK, SUGGESTION: OK, WAITING: OK, LOCKED: OK, DELETED: NOT_FOUND},
 }
 
 NOW = datetime.now(UTC)
@@ -36,6 +61,10 @@ NOW = datetime.now(UTC)
 COLUMNS = {
     "active": ({}, ACTIVE),
     "suggestion": ({"is_suggestion": True}, SUGGESTION),
+    "waiting": ({"is_suggestion": True, "confirmed_at": NOW}, WAITING),
+    # An approved Place keeps confirmed_at; is_suggestion = false makes it active.
+    "approved": ({"confirmed_at": NOW, "approved_at": NOW}, ACTIVE),
+    "locked waiting": ({"is_suggestion": True, "confirmed_at": NOW, "locked_at": NOW}, LOCKED),
     "locked": ({"locked_at": NOW}, LOCKED),
     "locked suggestion": ({"is_suggestion": True, "locked_at": NOW}, LOCKED),
     "deleted": ({"deleted_at": NOW}, DELETED),

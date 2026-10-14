@@ -12,7 +12,7 @@ from enum import StrEnum
 from typing import NamedTuple
 
 from fastapi import HTTPException, status
-from sqlalchemy import case
+from sqlalchemy import and_, case
 from sqlmodel import Session, select
 
 from app.models import Place
@@ -20,8 +20,10 @@ from app.models import Place
 
 class PlaceStatus(StrEnum):
     ACTIVE = "active"
-    # A user added it, and it is not confirmed yet (SCRUM-30, SCRUM-36).
+    # A user added it, and it has fewer than 3 Confirmations (SCRUM-30, SCRUM-36).
     SUGGESTION = "suggestion"
+    # A Place suggestion with 3 Confirmations; an Admin must approve it (SCRUM-56).
+    WAITING = "waiting"
     # An Admin locked it (SCRUM-39); an Admin can unlock it.
     LOCKED = "locked"
     # An Admin deleted it (SCRUM-39). The row stays, so the OSM import cannot bring it back.
@@ -37,14 +39,18 @@ class PlaceUse(StrEnum):
     # A Rating, and the "noch so / behoben" vote on an issue.
     RATE = "rate"
     CONFIRM = "confirm"
+    # An Admin approves or rejects a Place suggestion that waits for it (SCRUM-56).
+    APPROVE = "approve"
     # Lock, unlock and delete.
     ADMIN = "admin"
 
 
-# When two columns are set, the stronger status counts: deleted, then locked, then suggestion.
+# When two columns are set, the stronger status counts: deleted, then locked, then waiting,
+# then suggestion. An approved Place keeps confirmed_at; is_suggestion = false makes it active.
 STATUS = case(
     (Place.deleted_at.is_not(None), PlaceStatus.DELETED.value),
     (Place.locked_at.is_not(None), PlaceStatus.LOCKED.value),
+    (and_(Place.is_suggestion, Place.confirmed_at.is_not(None)), PlaceStatus.WAITING.value),
     (Place.is_suggestion, PlaceStatus.SUGGESTION.value),
     else_=PlaceStatus.ACTIVE.value,
 )
@@ -60,33 +66,67 @@ NOT_FOUND = Refusal(status.HTTP_404_NOT_FOUND, "Place not found")
 # A Place suggestion may not be real; a Meetup or a Rating there would make it look real.
 NOT_CONFIRMED = Refusal(status.HTTP_409_CONFLICT, "Dieser Platz ist noch nicht bestätigt")
 ALREADY_CONFIRMED = Refusal(status.HTTP_409_CONFLICT, "Dieser Platz ist schon bestätigt.")
+ENOUGH_CONFIRMATIONS = Refusal(
+    status.HTTP_409_CONFLICT,
+    "Dieser Platzvorschlag hat genug Bestätigungen und wartet auf die Freigabe durch einen Admin.",
+)
+NOT_WAITING = Refusal(status.HTTP_409_CONFLICT, "Dieser Platz wartet nicht auf eine Freigabe")
 
-ACTIVE, SUGGESTION, LOCKED, DELETED = PlaceStatus
+ACTIVE, SUGGESTION, WAITING, LOCKED, DELETED = PlaceStatus
 
 # None = allowed.
 RULES: dict[PlaceUse, dict[PlaceStatus, Refusal | None]] = {
-    PlaceUse.VIEW: {ACTIVE: None, SUGGESTION: None, LOCKED: NOT_FOUND, DELETED: NOT_FOUND},
-    PlaceUse.MAP: {ACTIVE: None, SUGGESTION: None, LOCKED: NOT_FOUND, DELETED: NOT_FOUND},
+    PlaceUse.VIEW: {
+        ACTIVE: None,
+        SUGGESTION: None,
+        WAITING: None,
+        LOCKED: NOT_FOUND,
+        DELETED: NOT_FOUND,
+    },
+    PlaceUse.MAP: {
+        ACTIVE: None,
+        SUGGESTION: None,
+        WAITING: None,
+        LOCKED: NOT_FOUND,
+        DELETED: NOT_FOUND,
+    },
     PlaceUse.MEETUP: {
         ACTIVE: None,
         SUGGESTION: NOT_CONFIRMED,
+        WAITING: NOT_CONFIRMED,
         LOCKED: NOT_FOUND,
         DELETED: NOT_FOUND,
     },
     PlaceUse.RATE: {
         ACTIVE: None,
         SUGGESTION: NOT_CONFIRMED,
+        WAITING: NOT_CONFIRMED,
         LOCKED: NOT_FOUND,
         DELETED: NOT_FOUND,
     },
     PlaceUse.CONFIRM: {
         ACTIVE: ALREADY_CONFIRMED,
         SUGGESTION: None,
+        WAITING: ENOUGH_CONFIRMATIONS,
         LOCKED: NOT_FOUND,
         DELETED: NOT_FOUND,
     },
+    # A locked suggestion is first unlocked; then the Admin decides.
+    PlaceUse.APPROVE: {
+        ACTIVE: NOT_WAITING,
+        SUGGESTION: NOT_WAITING,
+        WAITING: None,
+        LOCKED: NOT_WAITING,
+        DELETED: NOT_FOUND,
+    },
     # An Admin can lock a Place suggestion and unlock a Locked place; a deleted one is gone.
-    PlaceUse.ADMIN: {ACTIVE: None, SUGGESTION: None, LOCKED: None, DELETED: NOT_FOUND},
+    PlaceUse.ADMIN: {
+        ACTIVE: None,
+        SUGGESTION: None,
+        WAITING: None,
+        LOCKED: None,
+        DELETED: NOT_FOUND,
+    },
 }
 
 # place.id is a PostgreSQL integer; a bigger number in the URL would make the query fail.

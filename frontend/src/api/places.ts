@@ -11,6 +11,8 @@ export type Place = {
   // A Place suggestion and its Confirmations so far (SCRUM-30); it needs 3 to become a Place.
   is_suggestion: boolean
   confirmations: number
+  // A suggestion with 3 Confirmations that waits for an Admin approval (SCRUM-56).
+  waiting_for_admin?: boolean
 }
 
 // The visible map area in degrees, in the order the API expects.

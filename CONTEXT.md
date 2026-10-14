@@ -18,6 +18,8 @@ _Avoid_: sport, category
 **Place suggestion** (Platzvorschlag):
 A Place that a user added and that is not yet confirmed. It becomes an active Place when 3 different
 users confirm it at the Place and then an Admin approves it, at least 24 hours after the suggestion.
+Between the 3rd Confirmation and the approval it is "waiting for Admin" (wartet auf Freigabe). The
+Admin can also reject it; then it is gone, like a Deleted place.
 The user who suggested it counts as one of the 3. Suggesting and confirming need an account that is
 at least 7 days old. A Place that came from a suggestion is marked as added by users.
 _Avoid_: draft, new place
@@ -44,9 +46,9 @@ so the next OSM import does not bring the Place back.
 _Avoid_: removed, archived
 
 **Place status** (Platzstatus):
-The one status of a Place: active, Place suggestion, Locked place or Deleted place. When two apply,
-the stronger one counts (deleted, then locked, then suggestion). The status decides what users and
-Admins may do at the Place.
+The one status of a Place: active, Place suggestion, waiting for Admin (a Place suggestion with 3
+Confirmations), Locked place or Deleted place. When two apply, the stronger one counts (deleted, then
+locked, then waiting, then suggestion). The status decides what users and Admins may do at the Place.
 _Avoid_: state, visibility
 
 ## Meetups

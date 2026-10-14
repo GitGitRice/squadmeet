@@ -3,6 +3,7 @@ import os
 from fastapi import APIRouter, FastAPI
 
 from app.admin_places import router as admin_places_router
+from app.admin_suggestions import router as admin_suggestions_router
 from app.auth import router as auth_router
 from app.contacts import router as contacts_router
 from app.meetups import router as meetups_router
@@ -28,4 +29,5 @@ api.include_router(contacts_router)
 api.include_router(suggestions_router)
 api.include_router(ratings_router)
 api.include_router(admin_places_router)
+api.include_router(admin_suggestions_router)
 app.include_router(api)
