@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { fetchPlace, fetchPlaces, type MapArea, type Place, type PlaceSearchHit } from './api/places'
@@ -11,10 +11,12 @@ import {
   type LoginResult,
   type User,
 } from './api/auth'
+import { fetchContacts, type Contacts } from './api/contacts'
 import AccountDialog from './auth/AccountDialog'
+import ContactsDialog from './auth/ContactsDialog'
 import AuthDialog from './auth/AuthDialog'
 import DeleteAccountDialog from './auth/DeleteAccountDialog'
-import LockedPlacesDialog from './auth/LockedPlacesDialog'
+import AdminDialog, { type AdminDialogKind } from './auth/AdminDialog'
 import MfaDialog from './auth/MfaDialog'
 import RecoveryCodesDialog from './auth/RecoveryCodesDialog'
 import { AVATARS } from './auth/avatars'
@@ -97,7 +99,10 @@ export default function App() {
   const [showSuggest, setShowSuggest] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [showRecoveryCodes, setShowRecoveryCodes] = useState(false)
-  const [showLocked, setShowLocked] = useState(false)
+  const [adminDialog, setAdminDialog] = useState<AdminDialogKind | null>(null)
+  const [showContacts, setShowContacts] = useState(false)
+  // Contact requests waiting for the user's answer, shown on the "Konto" button (SCRUM-32).
+  const [incomingRequests, setIncomingRequests] = useState(0)
   const [chosen, setChosen] = useState<Set<ActivityType>>(() => new Set(ACTIVITY_TYPES))
   const [path, navigate] = usePath()
   const selectedId = placeIdFromPath(path)
@@ -114,7 +119,7 @@ export default function App() {
   useEffect(() => {
     if (selectedId === null) return
     let stillWanted = true
-    fetchPlace(selectedId)
+    fetchPlace(selectedId, loadToken())
       .then((place) => stillWanted && setDetail({ id: selectedId, place }))
       .catch((err: Error) => stillWanted && setDetail({ id: selectedId, error: err.message }))
     return () => {
@@ -139,7 +144,7 @@ export default function App() {
     placesRequest.current?.abort()
     const request = new AbortController()
     placesRequest.current = request
-    fetchPlaces(area, request.signal)
+    fetchPlaces(area, request.signal, loadToken())
       .then((answer) => {
         setPlaces(answer.places)
         setTruncated(answer.truncated)
@@ -180,6 +185,20 @@ export default function App() {
       .catch(() => {})
   }, [])
 
+  // The number on the "Konto" button: open Contact requests to the user (SCRUM-32).
+  const updateRequests = useCallback((contacts: Contacts) => setIncomingRequests(contacts.incoming.length), [])
+  const userId = user?.id
+  useEffect(() => {
+    const token = loadToken()
+    if (!userId || !token) {
+      setIncomingRequests(0)
+      return
+    }
+    fetchContacts(token)
+      .then(updateRequests)
+      .catch(() => {})
+  }, [userId, updateRequests])
+
   function handleLoggedIn(result: LoginResult) {
     saveToken(result.token)
     setUser(result.user)
@@ -206,7 +225,7 @@ export default function App() {
     setShowSuggest(false)
     setShowDelete(false)
     setShowRecoveryCodes(false)
-    setShowLocked(false)
+    setAdminDialog(null)
     if (token) await logout(token).catch(() => {})
   }
 
@@ -231,7 +250,7 @@ export default function App() {
               {AVATARS[user.avatar]?.emoji} {user.nickname}
             </span>
             <button type="button" onClick={() => setShowAccount(true)}>
-              Konto
+              Konto{incomingRequests > 0 && ` (${incomingRequests})`}
             </button>
             <button type="button" onClick={handleLogout}>
               Abmelden
@@ -247,6 +266,11 @@ export default function App() {
       {showAccount && user && (
         <AccountDialog
           user={user}
+          incomingRequests={incomingRequests}
+          onContacts={() => {
+            setShowAccount(false)
+            setShowContacts(true)
+          }}
           onMfa={() => {
             setShowAccount(false)
             setShowMfa(true)
@@ -257,16 +281,40 @@ export default function App() {
           }}
           onLockedPlaces={() => {
             setShowAccount(false)
-            setShowLocked(true)
+            setAdminDialog('locked')
+          }}
+          onSuggestions={() => {
+            setShowAccount(false)
+            setAdminDialog('approvals')
           }}
           onClose={() => setShowAccount(false)}
         />
       )}
-      {showLocked && user && (
-        <LockedPlacesDialog
+      {showContacts && user && (
+        <ContactsDialog
           token={loadToken() ?? ''}
-          onUnlocked={reloadPlaces}
-          onClose={() => setShowLocked(false)}
+          onChanged={updateRequests}
+          onClose={() => {
+            setShowContacts(false)
+            // A Block changes which Meetups the user sees.
+            reloadPlaces()
+          }}
+        />
+      )}
+      {adminDialog && user && (
+        <AdminDialog
+          kind={adminDialog}
+          token={loadToken() ?? ''}
+          onChanged={() => {
+            reloadPlaces()
+            // The open Place may be the one that just changed.
+            setDetailTry((n) => n + 1)
+          }}
+          onOpenPlace={(id) => {
+            setAdminDialog(null)
+            openPlace(id)
+          }}
+          onClose={() => setAdminDialog(null)}
         />
       )}
       {showMfa && user && (
@@ -339,6 +387,7 @@ export default function App() {
           <PlaceRatings
             key={`${selectedId}-${user?.id ?? 'guest'}`}
             placeId={selectedId}
+            place={selected}
             user={user}
             onLoginNeeded={() => setShowAuth(true)}
           />

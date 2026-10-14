@@ -41,8 +41,10 @@ def meetups_at(client, place_id):
     return client.get(f"/api/places/{place_id}/meetups").json()
 
 
-def people_now(client, place_id):
-    places = client.get("/api/places", params={"bbox": "-31,0,-30,1"}).json()
+def people_now(client, place_id, token=None):
+    """The map's number of people at the Place, as a guest or as the user of `token`."""
+    headers = auth_header(token) if token else {}
+    places = client.get("/api/places", params={"bbox": "-31,0,-30,1"}, headers=headers).json()
     return next(p["people_now"] for p in places if p["id"] == place_id)
 
 

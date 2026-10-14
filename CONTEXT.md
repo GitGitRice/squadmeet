@@ -18,6 +18,8 @@ _Avoid_: sport, category
 **Place suggestion** (Platzvorschlag):
 A Place that a user added and that is not yet confirmed. It becomes an active Place when 3 different
 users confirm it at the Place and then an Admin approves it, at least 24 hours after the suggestion.
+Between the 3rd Confirmation and the approval it is "waiting for Admin" (wartet auf Freigabe). The
+Admin can also reject it; then it is gone, like a Deleted place.
 The user who suggested it counts as one of the 3. Suggesting and confirming need an account that is
 at least 7 days old. A Place that came from a suggestion is marked as added by users.
 _Avoid_: draft, new place
@@ -37,6 +39,17 @@ A Place that an Admin marked as not publicly accessible. It is not on the map, a
 Meetups are cancelled (running ones end at once). An Admin can unlock it; cancelled Meetups stay
 cancelled. An Admin can also delete a Place: like locking, but it never comes back.
 _Avoid_: closed, hidden, disabled
+
+**Deleted place** (gelöschter Platz):
+A Place that an Admin removed for good. Users and Admins cannot see it any more. The record stays,
+so the next OSM import does not bring the Place back.
+_Avoid_: removed, archived
+
+**Place status** (Platzstatus):
+The one status of a Place: active, Place suggestion, waiting for Admin (a Place suggestion with 3
+Confirmations), Locked place or Deleted place. When two apply, the stronger one counts (deleted, then
+locked, then waiting, then suggestion). The status decides what users and Admins may do at the Place.
+_Avoid_: state, visibility
 
 ## Meetups
 
@@ -147,11 +160,14 @@ Another user that both sides agreed to connect with.
 _Avoid_: friend, follower, connection
 
 **Contact request** (Kontaktanfrage):
-A request to become a Contact. The other user must accept it.
+A request to become a Contact, sent by the exact Nickname. The other user must accept it. If they
+decline, the asker sees that and may ask again.
 _Avoid_: friend request, invite
 
 **Block** (Blockieren):
-A user's choice to stop all requests from another user and hide their own Meetups from them.
+A user's choice that works in one direction: the blocked user can no longer send them requests,
+does not see the Meetups they host, and does not see their Nickname in other Meetups. The
+blocking user still sees the blocked user and is warned when they are in the same Meetup.
 _Avoid_: mute, report
 
 **Admin**:

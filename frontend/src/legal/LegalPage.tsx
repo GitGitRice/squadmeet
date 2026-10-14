@@ -66,7 +66,10 @@ function Privacy() {
 
       <h2>Kurz gesagt</h2>
       <ul>
-        <li>Wir speichern keine E-Mail-Adresse, keinen echten Namen und keinen Standort deines Geräts.</li>
+        <li>
+          Wir speichern keine E-Mail-Adresse, keinen echten Namen und keinen Standort deines Geräts
+          (Ausnahme: der Ort eines Platzes, den du vorschlägst, siehe unten).
+        </li>
         <li>Es gibt keine Cookies, keine Werbung und kein Tracking.</li>
         <li>Du kannst dein Konto jederzeit selbst löschen. Dann sind alle Daten dazu sofort weg.</li>
       </ul>
@@ -119,7 +122,26 @@ function Privacy() {
           <strong>Platzvorschläge und Bestätigungen:</strong> welchen Platz du vorgeschlagen oder
           bestätigt hast, und wann. Andere sehen nur die Zahl der Bestätigungen, nicht deinen
           Nickname. Beim Löschen deines Kontos werden deine Bestätigungen gelöscht; der
-          vorgeschlagene Platz bleibt auf der Karte.
+          vorgeschlagene Platz bleibt auf der Karte. Bevor ein Admin einen Vorschlag freigibt,
+          fragt unser Server bei OpenStreetMap (Overpass-API) nach, was an diesem Punkt
+          eingetragen ist. Dabei gehen nur die Koordinaten des Platzes mit, keine Daten über dich.
+        </li>
+        <li>
+          <strong>Standort beim Vorschlagen und Bestätigen:</strong> Nur in diesen beiden Fällen
+          fragt die App den Standort deines Geräts ab, und dein Browser fragt dich vorher um
+          Erlaubnis. Beim Vorschlagen senden wir den Punkt an den Server: Er sucht damit nach
+          ähnlichen Plätzen in der Nähe und speichert ihn als Ort des neuen Platzes, den alle auf
+          der Karte sehen, ohne deinen Nickname. Beim Bestätigen prüft der Server nur, ob du
+          höchstens 100 m vom Platz entfernt bist; diesen Standort speichern wir nicht.
+        </li>
+        <li>
+          <strong>Kontakte:</strong> wem du eine Kontaktanfrage geschickt hast, ob sie angenommen
+          oder abgelehnt wurde und wann. Deine Kontakte sehen deinen Nickname mit Avatar in ihrer
+          Liste.
+        </li>
+        <li>
+          <strong>Blockierungen:</strong> wen du blockiert hast und seit wann. Die blockierte Person
+          erfährt das nicht; sie sieht nur deine Treffen und deinen Nickname nicht mehr.
         </li>
         <li>
           <strong>Heimatgebiet und Fotos:</strong> nur, wenn du sie angibst oder hochlädst, sobald
@@ -190,11 +212,37 @@ function Privacy() {
         .
       </p>
 
+      <h2>Routenplanung (Apple Maps oder Google Maps)</h2>
+      <p>
+        Im Platz-Detail kannst du „Route planen“ wählen. Erst wenn du diesen Link anklickst,
+        öffnet dein Browser Apple Maps auf iPhone und iPad oder sonst Google Maps. Dabei erhält
+        der jeweilige Dienst deine IP-Adresse und die Koordinaten des Ziels. Vor dem Klick stellt
+        SquadMeet keine Verbindung zu Apple oder Google her. Für die weitere Verarbeitung gelten
+        die{' '}
+        <a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noreferrer">
+          Datenschutzregeln von Apple
+        </a>{' '}
+        beziehungsweise die{' '}
+        <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">
+          Datenschutzerklärung von Google
+        </a>
+        .
+      </p>
+
+      <h2>Meldung an die Stadt</h2>
+      <p>
+        Bei einem Platz verlinken wir den offiziellen Mängelmelder der Stadt und die zuständige
+        Stelle mit E-Mail und Telefon. Wir senden dabei nichts an die Stadt. Erst wenn du den Link
+        öffnest, eine E-Mail aus deinem Mailprogramm schickst oder anrufst, gilt die
+        Datenschutzerklärung der Stadt. „Ort kopieren“ legt Adresse und Koordinaten nur in die
+        Zwischenablage deines Geräts.
+      </p>
+
       <h2>Konto löschen</h2>
       <p>
         Angemeldet findest du oben rechts unter „Konto“ den Punkt „Konto löschen“. Wir fragen dein Passwort (und mit
         Zwei-Faktor-Anmeldung einen Code) ab. Dann löschen wir sofort dein Konto mit allen oben
-        genannten Daten, auch deine Treffen, Teilnahmen, Bewertungen und Antworten. Danach ist dein Nickname wieder frei.
+        genannten Daten, auch deine Treffen, Teilnahmen, Kontakte, Blockierungen, Bewertungen und Antworten. Danach ist dein Nickname wieder frei.
       </p>
 
       <h2>Deine Rechte</h2>

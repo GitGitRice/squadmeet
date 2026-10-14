@@ -366,6 +366,11 @@ body {
   margin-top: 3px;
 }
 
+.place-detail-location .place-detail-route {
+  margin-right: 10px;
+  font-weight: 700;
+}
+
 .place-detail-back {
   align-self: flex-start;
   padding: 10px 0;
@@ -703,12 +708,100 @@ body {
   font-weight: 600;
 }
 
+/* SCRUM-32: tap a Nickname to ask or Block; the warning when a blocked user is in. */
+
+.person-button {
+  padding: 0;
+  font: inherit;
+  color: #1a5fb4;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.meetup-card .person-button {
+  min-height: 0;
+  padding: 0;
+  border: none;
+}
+
+.person-actions {
+  display: flex;
+  flex-wrap: wrap;
+  flex-basis: 100%;
+  gap: 8px;
+  align-items: center;
+}
+
+.blocked-warning {
+  font-weight: 600;
+  color: #9a4a00;
+}
+
+.contacts section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.contacts h3 {
+  margin: 4px 0 0;
+  font-size: 1rem;
+}
+
+.contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contact-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.contact-list li span {
+  flex: 1;
+}
+
 .move-form {
   display: flex;
   flex-wrap: wrap;
   flex-basis: 100%;
   gap: 8px;
   align-items: flex-end;
+}
+
+/* SCRUM-55: City report. Orange edge when the Condition names something to fix. */
+
+.city-report {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid #d5d8de;
+  border-radius: 10px;
+}
+
+.city-report.highlighted {
+  background: #fff4e5;
+  border-color: #e07b00;
+  border-left-width: 6px;
+}
+
+.city-report-office {
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.city-report-question {
+  margin: 0;
+  font-weight: 700;
 }
 
 /* SCRUM-31: Ratings. Gold = stars, green = a good Reason, orange = a Reason against. */
@@ -1132,4 +1225,36 @@ body {
 .locked-places small {
   display: block;
   color: #555;
+}
+
+/* Admin approval of Place suggestions (SCRUM-56), like the locked-places list. */
+.waiting-suggestions {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.waiting-suggestions li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.waiting-suggestions small {
+  display: block;
+  color: #555;
+}
+
+.waiting-suggestions small.osm-hint-found {
+  color: #8a1c13;
+  font-weight: 600;
+}
+
+.waiting-suggestion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }

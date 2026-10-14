@@ -29,6 +29,8 @@ export type Meetup = {
   // The Host called it off before the start; it stays listed until its end time.
   cancelled: boolean
   move_offer: MoveOffer | null
+  // The viewer is in this Meetup, and so is someone they blocked (SCRUM-32).
+  blocked_user_in: boolean
 }
 
 // Without starts_at a Now-meetup; with it a later Meetup (ISO 8601 with time zone).

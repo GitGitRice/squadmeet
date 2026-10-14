@@ -13,6 +13,16 @@ Die Details stehen in Jira. Nenne also den Ticket-Key und kopiere nicht den Tick
 
 ---
 
+## Mi 14.10.2026 — Tag 6
+
+- **Steven:** CI für PRs #48, #50, #51, #52 geprüft; `SCRUM-60`, `SCRUM-53`, `SCRUM-55`, `SCRUM-65` auf Done gesetzt, `TICKETS.md` aktualisiert. `SCRUM-56` Admin-Freigabe für Platzvorschläge gebaut (wartet nach 3 Bestätigungen auf Admin, Freigabe frühestens nach 24 h, OSM-Hinweis Gebäude/privat/Wohngebiet ohne Sperre; PR im Review). Fallow-Hook vergleicht jetzt mit `dev` statt `main`.
+
+## Di 13.10.2026 — Tag 5
+
+- **Steven:** `SCRUM-39` Admin: Platz sperren, entsperren und löschen gebaut (Sperren/Löschen sagt kommende Treffen ab und beendet laufende; gelöschter Platz kommt beim OSM-Import nicht zurück), gemergt (PR #45) und nach Stefans Bestätigung erledigt. Release-PR #46 (`dev` → `main`) gemergt, läuft live. `SCRUM-60` Platzstatus in einem Modul: Design im Grilling festgelegt, test-first gebaut (PR #48 im Review).
+- **Stefan:** `SCRUM-32` Kontakte und Blockieren gebaut und gemergt (PR #49). `SCRUM-55` Meldung an die Stadt: offizielle Mängelmelder und zuständige Grünflächen-Stellen der 5 Städte recherchiert und eingebaut (PR #51). Releases und Entscheidungen zu `SCRUM-39` mit Steven abgestimmt.
+- **Dominik:** `SCRUM-52` gemergt; `SCRUM-53` Route-Link zu Apple Maps auf iOS und Google Maps auf anderen Geräten implementiert und automatisiert getestet.
+
 ## Mo 12.10.2026 — Tag 4
 
 - **Team:** Dominik ist neu im Team; offene Tickets und neue Features aufgeteilt (`SCRUM-51`).

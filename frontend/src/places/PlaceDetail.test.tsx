@@ -36,13 +36,17 @@ const place = {
 
 describe('PlaceDetail', () => {
   it('shows name, Activity type and the stored address', () => {
-    const text = render({ place, error: null, onRetry: () => {}, onClose: () => {} }).textContent
+    const container = render({ place, error: null, onRetry: () => {}, onClose: () => {} })
+    const text = container.textContent
 
     expect(text).toContain('Korbanlage')
     expect(text).toContain('Basketball')
     expect(text).toContain('Adresse')
     expect(text).toContain('Anton-Bruckner-Allee 1, Leipzig')
     expect(text).not.toContain('Von Nutzern hinzugefügt')
+    const route = container.querySelector<HTMLAnchorElement>('a[href*="maps/dir"]')
+    expect(route?.href).toContain('destination=51.3,12.3')
+    expect(route?.target).toBe('_blank')
   })
 
   it('marks a Place that came from a suggestion with "Von Nutzern hinzugefügt"', () => {
@@ -70,6 +74,23 @@ describe('PlaceDetail', () => {
     expect(container.textContent).toContain('1 von 3 Bestätigungen')
     expect(container.textContent).not.toContain('Treffen hier')
     expect(container.textContent).not.toContain('Bewertungen hier')
+  })
+
+  it('shows a suggestion with 3 Confirmations as waiting for an Admin, without the confirm button', () => {
+    const waiting = { ...place, is_suggestion: true, confirmations: 3, waiting_for_admin: true }
+    const container = render({
+      place: waiting,
+      error: null,
+      onRetry: () => {},
+      onClose: () => {},
+      children: <p>Treffen hier</p>,
+    })
+
+    expect(container.textContent).toContain('wartet auf Freigabe')
+    expect(container.textContent).toContain('3 von 3 Bestätigungen')
+    expect(container.textContent).not.toContain('Vor Ort bestätigen')
+    expect(container.textContent).not.toContain('Treffen hier')
+    expect(container.textContent).not.toContain('Von Nutzern hinzugefügt')
   })
 
   it('confirms a Place suggestion at the Place with the browser location', async () => {

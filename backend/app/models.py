@@ -45,9 +45,27 @@ class Place(SQLModel, table=True):
     address: str | None = None
     # WGS 84 (lon/lat), the coordinate system of OpenStreetMap and Leaflet.
     location: Any = Field(sa_column=Column(Geometry("POINT", srid=4326), nullable=False))
-    # A Place suggestion (SCRUM-30): a user added it, and it has fewer than 3 Confirmations.
+    # A Place suggestion (SCRUM-30): a user added it, and no Admin has approved it yet.
     is_suggestion: bool = Field(
         default=False, sa_column=Column(Boolean, nullable=False, server_default=false())
+    )
+    # SCRUM-56: when the user suggested it. An Admin may approve it 24 h after this at the
+    # earliest.
+    suggested_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
+    # SCRUM-56: when it got its 3rd Confirmation. From then on it waits for an Admin.
+    confirmed_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
+    # SCRUM-56: when an Admin approved it; it is an active Place since then.
+    approved_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
+    # SCRUM-56: what OSM has at the point ("building", "private", "residential"), only a hint
+    # for the Admin. [] = nothing found; None = not checked yet, or Overpass did not answer.
+    osm_hints: list[str] | None = Field(
+        default=None, sa_column=Column(ARRAY(String), nullable=True)
     )
     # SCRUM-39: an Admin locked it (not publicly accessible); it is hidden until unlocked.
     locked_at: datetime | None = Field(
@@ -91,6 +109,8 @@ class PlaceRead(SQLModel):
     # A Place suggestion and its number of Confirmations so far (SCRUM-30); 0 for OSM Places.
     is_suggestion: bool = False
     confirmations: int = 0
+    # A Place suggestion with 3 Confirmations that waits for an Admin approval (SCRUM-56).
+    waiting_for_admin: bool = False
 
 
 class PlaceSearchHit(SQLModel):
@@ -284,4 +304,50 @@ class ConditionVote(SQLModel, table=True):
     )
     # True = the issue is still there; False = it is fixed.
     still_there: bool
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
+class ContactRequest(SQLModel, table=True):
+    """A Contact request and, once accepted, the Contact itself (SCRUM-32, see CONTEXT.md).
+
+    One row per pair of users, from the one who asked. status: pending, accepted (they are
+    Contacts) or declined (the asker sees it and may ask again, which makes it pending).
+    """
+
+    __tablename__ = "contact_request"
+    __table_args__ = (
+        UniqueConstraint("requester_id", "addressee_id", name="uq_contact_request_pair"),
+        CheckConstraint("requester_id <> addressee_id", name="ck_contact_request_not_self"),
+        CheckConstraint(
+            "status IN ('pending', 'accepted', 'declined')", name="ck_contact_request_status"
+        ),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    requester_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    addressee_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    status: str
+    updated_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
+class UserBlock(SQLModel, table=True):
+    """A Block (SCRUM-32, see CONTEXT.md): blocker_id blocked blocked_id. One direction only."""
+
+    __tablename__ = "user_block"
+    __table_args__ = (
+        UniqueConstraint("blocker_id", "blocked_id", name="uq_user_block_pair"),
+        CheckConstraint("blocker_id <> blocked_id", name="ck_user_block_not_self"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    blocker_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    blocked_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))

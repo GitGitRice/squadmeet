@@ -20,6 +20,7 @@ const meetup: Meetup = {
   participants: [],
   cancelled: false,
   move_offer: null,
+  blocked_user_in: false,
   starts_at: '2026-10-12T09:00:00Z',
   ends_at: '2026-10-12T11:00:00Z',
 }

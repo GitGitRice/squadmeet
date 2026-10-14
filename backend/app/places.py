@@ -1,22 +1,157 @@
-"""Which Places users can see. A Place that an Admin locked or deleted (SCRUM-39) is hidden
-everywhere: map, search, Place detail, Meetups, Ratings and suggestions answer as if it did not
-exist. Only the Admin routes (app.admin_places) see it."""
+"""The Place routes: the map (SCRUM-21), the search (SCRUM-52) and the Place detail (SCRUM-24),
+and the query for PlaceRead, which the duplicate warning (app.suggestions) uses too.
 
-from fastapi import HTTPException, status
-from sqlalchemy import and_
-from sqlmodel import Session
+What a user may see of a Place depends on its status (app.place_status, SCRUM-60)."""
 
-from app.models import Place
+from datetime import UTC, datetime
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from sqlalchemy import func
+from sqlmodel import Session, select
+
+from app.contacts import blockers_of
+from app.db import get_session
+from app.geocoding import NominatimGeocoder, get_geocoder
+from app.meetups import joined_people, viewer
+from app.models import Place, PlaceConfirmation, PlaceRead, PlaceSearchHit, User
+from app.place_status import MAX_DB_INT, NOT_FOUND, STATUS, PlaceStatus, PlaceUse, allowed_in
+
+router = APIRouter()
+
+# A whole city is about 700 Places; more than this only happens when the map is zoomed far out.
+MAX_PLACES = 2000
+# Set on the answer when there were more Places than MAX_PLACES, so the map can ask to zoom in.
+TRUNCATED_HEADER = "X-Places-Truncated"
 
 
-def is_visible():
-    """SQL condition: the Place is neither locked nor deleted."""
-    return and_(Place.locked_at.is_(None), Place.deleted_at.is_(None))
+def select_place_reads(hidden_hosts: frozenset[int] = frozenset()):
+    """The columns of a PlaceRead: the PostGIS point as lat and lon, the people there now, and
+    the Confirmations of a Place suggestion and whether it waits for an Admin (SCRUM-56). Meetups of `hidden_hosts` (the viewer's blockers,
+    SCRUM-32) do not count in people_now."""
+    # The Host's Party and every Join of the active Meetups (SCRUM-34).
+    people_now = joined_people(datetime.now(UTC), hidden_hosts).scalar_subquery()
+    confirmations = (
+        select(func.count())
+        .where(PlaceConfirmation.place_id == Place.id)
+        .scalar_subquery()
+    )
+    return select(
+        Place.id,
+        Place.name,
+        Place.activity_type,
+        func.ST_Y(Place.location).label("lat"),
+        func.ST_X(Place.location).label("lon"),
+        Place.address,
+        people_now.label("people_now"),
+        Place.is_suggestion,
+        confirmations.label("confirmations"),
+        (STATUS == PlaceStatus.WAITING.value).label("waiting_for_admin"),
+    )
 
 
-def get_visible_place(session: Session, place_id: int) -> Place:
-    """The Place, or 404 when it does not exist or is locked or deleted."""
-    place = session.get(Place, place_id)
-    if place is None or place.locked_at is not None or place.deleted_at is not None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place not found")
-    return place
+def parse_bbox(bbox: str) -> tuple[float, float, float, float]:
+    """"west,south,east,north" in degrees (WGS 84), the order of Leaflet's toBBoxString()."""
+    try:
+        west, south, east, north = (float(value) for value in bbox.split(","))
+    except ValueError:
+        raise HTTPException(status_code=422, detail="bbox must be west,south,east,north") from None
+    if not (-180 <= west < east <= 180 and -90 <= south < north <= 90):
+        raise HTTPException(status_code=422, detail="bbox is not a valid area")
+    return west, south, east, north
+
+
+@router.get("/places", response_model=list[PlaceRead])
+def list_places(
+    response: Response,
+    bbox: str = Query(description="The visible map area: west,south,east,north"),
+    user: User | None = Depends(viewer),
+    session: Session = Depends(get_session),
+):
+    """The Places inside the visible map area (SCRUM-21), at most MAX_PLACES. A logged-in
+    user's count of people leaves out the Meetups of users who blocked them (SCRUM-32)."""
+    west, south, east, north = parse_bbox(bbox)
+    area = func.ST_MakeEnvelope(west, south, east, north, 4326)
+    rows = session.exec(
+        select_place_reads(frozenset(blockers_of(session, user.id if user else None)))
+        # && compares bounding boxes, so PostgreSQL can use the spatial index.
+        .where(Place.location.op("&&")(area), allowed_in(PlaceUse.MAP))
+        .order_by(Place.id)
+        .limit(MAX_PLACES + 1)
+    ).all()
+    if len(rows) > MAX_PLACES:
+        rows = rows[:MAX_PLACES]
+        response.headers[TRUNCATED_HEADER] = "true"
+    return [PlaceRead.model_validate(row, from_attributes=True) for row in rows]
+
+
+@router.get("/search", response_model=list[PlaceSearchHit])
+def search_places(
+    q: str = Query(min_length=1, max_length=200),
+    session: Session = Depends(get_session),
+    geocoding: NominatimGeocoder = Depends(get_geocoder),
+):
+    """Named database Places plus address/POI hits from Nominatim (SCRUM-52).
+
+    The UI calls this only when its search form is submitted; it is deliberately not an
+    autocomplete endpoint, in accordance with the public Nominatim usage policy.
+    """
+    query = q.strip()
+    if not query:
+        return []
+    places = session.exec(
+        select(
+            Place.id,
+            Place.name,
+            func.ST_Y(Place.location).label("lat"),
+            func.ST_X(Place.location).label("lon"),
+        )
+        .where(Place.name.icontains(query, autoescape=True), allowed_in(PlaceUse.MAP))
+        .order_by(Place.name, Place.id)
+        .limit(5)
+    ).all()
+    hits = [
+        PlaceSearchHit(kind="place", label=place.name, lat=place.lat, lon=place.lon, place_id=place.id)
+        for place in places
+    ]
+    try:
+        external = geocoding.search(query, limit=5)
+    except (OSError, TimeoutError, ValueError):
+        # Database Place search remains useful when the optional public service is unavailable.
+        external = []
+    hits.extend(
+        PlaceSearchHit(kind="address", label=hit.label, lat=hit.lat, lon=hit.lon)
+        for hit in external
+    )
+    return hits
+
+
+@router.get("/places/{place_id}", response_model=PlaceRead)
+def get_place(
+    place_id: int,
+    user: User | None = Depends(viewer),
+    session: Session = Depends(get_session),
+    geocoding: NominatimGeocoder = Depends(get_geocoder),
+):
+    """One Place, for the Place detail page (SCRUM-24): its URL can be shared and reloaded."""
+    if not 1 <= place_id <= MAX_DB_INT:
+        raise HTTPException(status_code=NOT_FOUND.status_code, detail=NOT_FOUND.detail)
+    row = session.exec(
+        select_place_reads(frozenset(blockers_of(session, user.id if user else None))).where(
+            Place.id == place_id, allowed_in(PlaceUse.VIEW)
+        )
+    ).first()
+    if row is None:
+        raise HTTPException(status_code=NOT_FOUND.status_code, detail=NOT_FOUND.detail)
+    result = PlaceRead.model_validate(row, from_attributes=True)
+    if result.address is None:
+        try:
+            address = geocoding.reverse(result.lat, result.lon)
+        except (OSError, TimeoutError, ValueError):
+            address = None
+        if address:
+            place = session.get(Place, place_id)
+            place.address = address
+            session.add(place)
+            session.commit()
+            result.address = address
+    return result
