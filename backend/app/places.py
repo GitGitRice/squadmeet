@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy import func
 from sqlmodel import Session, select
 
-from app.contacts import blockers_of
+from app.blocks import blockers_of
 from app.db import get_session
 from app.geocoding import NominatimGeocoder, get_geocoder
 from app.meetups import joined_people, viewer

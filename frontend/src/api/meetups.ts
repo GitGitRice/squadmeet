@@ -31,10 +31,17 @@ export type Meetup = {
   move_offer: MoveOffer | null
   // The viewer is in this Meetup, and so is someone they blocked (SCRUM-32).
   blocked_user_in: boolean
-  // An Occurrence of a weekly Series (SCRUM-38), and whether the viewer may cancel the Series.
+  // An Occurrence of a weekly Series (SCRUM-38).
   series_id: number | null
-  can_cancel_series: boolean
+  // SCRUM-61: the state now and what the viewer may do, worked out by the server. The UI shows
+  // only these buttons; a guest gets "join", which asks them to log in.
+  state: MeetupState
+  actions: MeetupAction[]
 }
+
+export type MeetupState = 'upcoming' | 'live' | 'ended' | 'cancelled' | 'closed'
+
+export type MeetupAction = 'join' | 'leave' | 'cancel' | 'end' | 'move' | 'cancel_series'
 
 // Without starts_at a Now-meetup; with it a later Meetup (ISO 8601 with time zone).
 export type MeetupInput = { place_id: number; hours: number; party_size: number; starts_at?: string }

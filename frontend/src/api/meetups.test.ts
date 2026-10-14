@@ -22,7 +22,8 @@ const meetup: Meetup = {
   move_offer: null,
   blocked_user_in: false,
   series_id: null as number | null,
-  can_cancel_series: false,
+  state: 'upcoming',
+  actions: [],
   starts_at: '2026-10-12T09:00:00Z',
   ends_at: '2026-10-12T11:00:00Z',
 }

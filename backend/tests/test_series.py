@@ -175,8 +175,8 @@ def test_the_host_may_cancel_the_series_only_while_it_runs(client, place, host):
 def test_an_occurrence_shows_whether_the_viewer_may_cancel_the_series(client, place, host, guest):
     create_series(client, host[0], place.id, [slot(0)])
 
-    assert all(m["can_cancel_series"] for m in occurrences(client, host[0], place.id))
-    assert not any(m["can_cancel_series"] for m in occurrences(client, guest[0], place.id))
+    assert all("cancel_series" in m["actions"] for m in occurrences(client, host[0], place.id))
+    assert not any("cancel_series" in m["actions"] for m in occurrences(client, guest[0], place.id))
 
 
 @pytest.mark.parametrize(

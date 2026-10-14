@@ -13,10 +13,11 @@ import {
   leaveMeetup,
   moveMeetupStart,
   type Meetup,
+  type MeetupAction,
 } from '../api/meetups'
 import { askForContact, blockUser } from '../api/contacts'
 import { AVATARS } from '../auth/avatars'
-import { fromInputValue, inputBounds, isLive, slot, toInputValue } from './meetupTime'
+import { fromInputValue, inputBounds, slot, toInputValue } from './meetupTime'
 import { WEEKDAYS, emptySlots, groupSeries, slotsInput, type SlotFields } from './seriesGroups'
 
 type Props = {
@@ -99,7 +100,7 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
   const [slotFields, setSlotFields] = useState<SlotFields[]>(emptySlots)
   const [until, setUntil] = useState('')
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
-  // The time of the last load; it decides which Meetups are live.
+  // The time of the last load, for the limits of the date and time fields.
   const [now, setNow] = useState(() => new Date())
   const [hours, setHours] = useState(2)
   const [partySize, setPartySize] = useState(1)
@@ -174,15 +175,16 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
   // One Meetup in the list. `laterCount` > 0: the next Occurrence of a Series, with the
   // overview of its other dates (SCRUM-38).
   function renderCard(meetup: Meetup, laterCount: number) {
+    // The server says what the Meetup is and what this user may do (SCRUM-61).
+    const can = (action: MeetupAction) => meetup.actions.includes(action)
+    const live = meetup.state === 'live'
+    // Only for the label "(du, Gastgeber)", not for a rule.
     const isHost = user !== null && user.id === meetup.host?.id
-    const joined = meetup.participants?.some((p) => p.id === user?.id) ?? false
-    const live = !meetup.cancelled && isLive(meetup, now)
-    const open = !meetup.cancelled
     const offer = meetup.move_offer
     return (
-      <li key={meetup.id} className={live ? 'meetup-card' : meetup.cancelled ? 'meetup-card cancelled' : 'meetup-card later'}>
+      <li key={meetup.id} className={live ? 'meetup-card' : meetup.state === 'cancelled' ? 'meetup-card cancelled' : 'meetup-card later'}>
         <div>
-          {meetup.cancelled && (
+          {meetup.state === 'cancelled' && (
             <>
               <span className="cancelled-tag">Abgesagt</span>{' '}
             </>
@@ -299,7 +301,7 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
             ))}
           </div>
         )}
-        {open && !isHost && !joined && joining?.id !== meetup.id && (
+        {can('join') && joining?.id !== meetup.id && (
           <button
             type="button"
             disabled={busy}
@@ -308,7 +310,7 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
             Ich komme mit
           </button>
         )}
-        {open && (joined || isHost) && (
+        {can('leave') && (
           <button type="button" disabled={busy} onClick={() => run((token) => leaveMeetup(token, meetup.id))}>
             Verlassen
           </button>
@@ -348,7 +350,7 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
             Alle Termine ({laterCount + 1}) {expanded.has(meetup.series_id) ? '▴' : '▾'}
           </button>
         )}
-        {meetup.can_cancel_series && laterCount > 0 && (
+        {can('cancel_series') && laterCount > 0 && (
           <button
             type="button"
             disabled={busy}
@@ -357,17 +359,17 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
             Serie absagen
           </button>
         )}
-        {isHost && live && (
+        {can('end') && (
           <button type="button" disabled={busy} onClick={() => run((token) => endMeetup(token, meetup.id))}>
             Jetzt beenden
           </button>
         )}
-        {isHost && open && !live && (
+        {can('cancel') && (
           <button type="button" disabled={busy} onClick={() => run((token) => cancelMeetup(token, meetup.id))}>
             Absagen
           </button>
         )}
-        {isHost && open && !live && moving?.id !== meetup.id && (
+        {can('move') && moving?.id !== meetup.id && (
           <button
             type="button"
             disabled={busy}
