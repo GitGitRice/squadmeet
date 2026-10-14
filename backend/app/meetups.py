@@ -27,8 +27,9 @@ from sqlmodel import Session, select
 
 from app.auth import bearer, current_login, current_user
 from app.contacts import blocked_by, blockers_of
+from app.series import fill_open_series
 from app.db import get_session
-from app.models import Meetup, MeetupJoin, Place, User
+from app.models import Meetup, MeetupJoin, MeetupSeries, Place, User
 from app.place_status import PlaceUse, require
 
 MIN_HOURS = 1
@@ -203,6 +204,9 @@ class MeetupRead(BaseModel):
     move_offer: "MoveOfferRead | None"
     # For the viewer only: they are in this Meetup, and so is someone they blocked (SCRUM-32).
     blocked_user_in: bool = False
+    # An Occurrence of a weekly Series (SCRUM-38), and whether the viewer may cancel the Series.
+    series_id: int | None = None
+    can_cancel_series: bool = False
 
 
 class MoveOfferRead(BaseModel):
@@ -250,6 +254,12 @@ def to_reads(session: Session, meetups: list[Meetup], user: User | None) -> list
         ).all()
     }
     now = datetime.now(UTC)
+    series_ids = {meetup.series_id for meetup in meetups if meetup.series_id is not None}
+    series = (
+        {s.id: s for s in session.exec(select(MeetupSeries).where(MeetupSeries.id.in_(series_ids)))}
+        if series_ids
+        else {}
+    )
     # SCRUM-32: the viewer's blockers stay unnamed; the users the viewer blocked trigger a warning.
     hidden = blockers_of(session, user.id) if user else set()
     blocked = blocked_by(session, user.id) if user else set()
@@ -285,6 +295,11 @@ def to_reads(session: Session, meetups: list[Meetup], user: User | None) -> list
                 blocked_user_in=user is not None
                 and user.id in members
                 and bool(members & blocked),
+                series_id=meetup.series_id,
+                can_cancel_series=user is not None
+                and meetup.series_id in series
+                and series[meetup.series_id].host_id == user.id
+                and series[meetup.series_id].cancelled_at is None,
             )
         )
     return reads
@@ -337,6 +352,8 @@ def list_meetups(
     """The active and the later Meetups at a Place, for the Place detail page. By start time,
     so the active ones come first."""
     require(session, place_id, PlaceUse.VIEW)
+    # The Occurrences of the next 30 days of this Place's Series (SCRUM-38).
+    fill_open_series(session, datetime.now(UTC), place_id)
     query = (
         select(Meetup)
         .where(

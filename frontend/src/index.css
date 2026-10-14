@@ -854,6 +854,55 @@ body {
   flex: 1;
 }
 
+/* SCRUM-38: weekly Series. */
+
+.series-tag {
+  font-size: 0.9rem;
+}
+
+.series-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.series-slots legend {
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.series-slot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.series-slot label {
+  min-width: 52px;
+  font-weight: 600;
+}
+
+.series-slot input[type='time'],
+.series-slot select,
+.place-meetups input[type='date'] {
+  min-height: 40px;
+  padding: 4px 8px;
+  font: inherit;
+  border: 2px solid #d5d8de;
+  border-radius: 10px;
+}
+
+.place-meetups label.checkbox {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-weight: 600;
+}
+
 .move-form {
   display: flex;
   flex-wrap: wrap;

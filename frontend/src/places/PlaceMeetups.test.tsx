@@ -19,6 +19,8 @@ const meetup = {
   participants: [] as { id: number; nickname: string; avatar: string; party_size: number }[],
   cancelled: false,
   blocked_user_in: false,
+  series_id: null as number | null,
+  can_cancel_series: false,
   move_offer: null as null | { meetup_id: number; host: { id: number; nickname: string; avatar: string }; starts_at: string; ends_at: string },
   starts_at: hoursFromNow(-1),
   ends_at: hoursFromNow(1),
@@ -291,5 +293,64 @@ describe('PlaceMeetups', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([{ ...meetup, blocked_user_in: true }])))
 
     expect((await render(paula)).textContent).toContain('Jemand, den du blockiert hast, ist dabei')
+  })
+
+  it('plans a weekly Series with a time and duration per weekday (SCRUM-38)', async () => {
+    localStorage.setItem('squadmeet.token', 'tok')
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) =>
+      init?.method === 'POST' && url === '/api/meetup-series' ? Response.json({ id: 5 }, { status: 201 }) : Response.json([]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const container = await render(paula)
+
+    act(() => button(container, 'Später treffen')!.click())
+    act(() => container.querySelector<HTMLInputElement>('label.checkbox input')!.click())
+    expect(button(container, 'Serie anlegen')!.disabled).toBe(true)
+    const monday = [...container.querySelectorAll<HTMLInputElement>('.series-slot input[type="checkbox"]')][0]
+    act(() => monday.click())
+    await act(async () => button(container, 'Serie anlegen')!.click())
+
+    const post = fetchMock.mock.calls.find(([url]) => url === '/api/meetup-series')!
+    expect(JSON.parse(post[1]!.body as string)).toEqual({
+      place_id: 3,
+      slots: [{ weekday: 0, time: '19:00', hours: 2 }],
+      party_size: 1,
+      until: null,
+    })
+  })
+
+  it('shows the next date of a Series and the others in "Alle Termine"', async () => {
+    const occurrence = (id: number, h: number) => ({ ...laterMeetup, id, series_id: 9, starts_at: hoursFromNow(h), ends_at: hoursFromNow(h + 2) })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([occurrence(20, 24), occurrence(21, 24 * 8), occurrence(22, 24 * 15)])))
+    const container = await render(karl)
+
+    expect(container.querySelectorAll('.meetup-card')).toHaveLength(1)
+    act(() => button(container, 'Alle Termine (3)')!.click())
+
+    expect(container.querySelectorAll('.meetup-card')).toHaveLength(3)
+    expect(container.querySelectorAll('.series-tag')).toHaveLength(3)
+    // Each date has its own Join.
+    expect([...container.querySelectorAll('button')].filter((b) => b.textContent === 'Ich komme mit')).toHaveLength(3)
+  })
+
+  it('lets the Host of a Series cancel it', async () => {
+    localStorage.setItem('squadmeet.token', 'tok')
+    const occurrence = (id: number, h: number) => ({
+      ...laterMeetup,
+      id,
+      series_id: 9,
+      can_cancel_series: true,
+      starts_at: hoursFromNow(h),
+      ends_at: hoursFromNow(h + 2),
+    })
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === 'POST' ? Response.json({ id: 9 }) : Response.json([occurrence(20, 24), occurrence(21, 24 * 8)]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const container = await render(paula)
+
+    await act(async () => button(container, 'Serie absagen')!.click())
+
+    expect(fetchMock.mock.calls.some(([url, init]) => url === '/api/meetup-series/9/cancel' && init?.method === 'POST')).toBe(true)
   })
 })

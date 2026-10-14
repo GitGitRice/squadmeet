@@ -33,6 +33,9 @@ export type Meetup = {
   move_offer: MoveOffer | null
   // The viewer is in this Meetup, and so is someone they blocked (SCRUM-32).
   blocked_user_in: boolean
+  // An Occurrence of a weekly Series (SCRUM-38), and whether the viewer may cancel the Series.
+  series_id: number | null
+  can_cancel_series: boolean
 }
 
 // Without starts_at a Now-meetup; with it a later Meetup (ISO 8601 with time zone).
@@ -122,4 +125,30 @@ export async function answerMove(token: string, meetupId: number, choice: MoveAn
     body: JSON.stringify({ answer: choice }),
   })
   return answer(response, 'POST move answer')
+}
+
+// A weekly Series (SCRUM-38): weekday 0 = Monday, the time in Berlin ("19:00"), 1–4 hours.
+export type SeriesInput = {
+  place_id: number
+  slots: { weekday: number; time: string; hours: number }[]
+  party_size: number
+  // "2026-12-31", or null for no end.
+  until: string | null
+}
+
+export async function createSeries(token: string, input: SeriesInput): Promise<{ id: number }> {
+  const response = await fetch('/api/meetup-series', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(input),
+  })
+  return answer(response, 'POST series')
+}
+
+export async function cancelSeries(token: string, seriesId: number): Promise<{ id: number }> {
+  const response = await fetch(`/api/meetup-series/${seriesId}/cancel`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return answer(response, 'POST cancel series')
 }
