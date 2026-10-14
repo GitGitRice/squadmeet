@@ -199,6 +199,23 @@ function Privacy() {
         .
       </p>
 
+      <h2>Routenplanung (Apple Maps oder Google Maps)</h2>
+      <p>
+        Im Platz-Detail kannst du „Route planen“ wählen. Erst wenn du diesen Link anklickst,
+        öffnet dein Browser Apple Maps auf iPhone und iPad oder sonst Google Maps. Dabei erhält
+        der jeweilige Dienst deine IP-Adresse und die Koordinaten des Ziels. Vor dem Klick stellt
+        SquadMeet keine Verbindung zu Apple oder Google her. Für die weitere Verarbeitung gelten
+        die{' '}
+        <a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noreferrer">
+          Datenschutzregeln von Apple
+        </a>{' '}
+        beziehungsweise die{' '}
+        <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">
+          Datenschutzerklärung von Google
+        </a>
+        .
+      </p>
+
       <h2>Meldung an die Stadt</h2>
       <p>
         Bei einem Platz verlinken wir den offiziellen Mängelmelder der Stadt und die zuständige

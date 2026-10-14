@@ -366,6 +366,11 @@ body {
   margin-top: 3px;
 }
 
+.place-detail-location .place-detail-route {
+  margin-right: 10px;
+  font-weight: 700;
+}
+
 .place-detail-back {
   align-self: flex-start;
   padding: 10px 0;

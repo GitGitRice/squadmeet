@@ -36,13 +36,17 @@ const place = {
 
 describe('PlaceDetail', () => {
   it('shows name, Activity type and the stored address', () => {
-    const text = render({ place, error: null, onRetry: () => {}, onClose: () => {} }).textContent
+    const container = render({ place, error: null, onRetry: () => {}, onClose: () => {} })
+    const text = container.textContent
 
     expect(text).toContain('Korbanlage')
     expect(text).toContain('Basketball')
     expect(text).toContain('Adresse')
     expect(text).toContain('Anton-Bruckner-Allee 1, Leipzig')
     expect(text).not.toContain('Von Nutzern hinzugefügt')
+    const route = container.querySelector<HTMLAnchorElement>('a[href*="maps/dir"]')
+    expect(route?.href).toContain('destination=51.3,12.3')
+    expect(route?.target).toBe('_blank')
   })
 
   it('marks a Place that came from a suggestion with "Von Nutzern hinzugefügt"', () => {

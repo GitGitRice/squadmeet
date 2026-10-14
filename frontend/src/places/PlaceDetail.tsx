@@ -5,6 +5,7 @@ import type { Place } from '../api/places'
 import { CONFIRMATIONS_NEEDED, confirmPlace, locate } from '../api/suggestions'
 import { activityOf } from './activities'
 import AdminPlaceActions from './AdminPlaceActions'
+import { routeUrl } from './routeLink'
 
 type Props = {
   place: Place | null
@@ -94,6 +95,14 @@ export default function PlaceDetail({
         <p className="place-detail-location">
           <strong>{place.address ? 'Adresse' : 'Lage'}</strong>
           <span>{place.address ?? coordinates}</span>
+          <a
+            className="place-detail-route"
+            href={routeUrl(place.lat, place.lon)}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Route planen
+          </a>{' '}
           <a
             href={`https://www.openstreetmap.org/?mlat=${place.lat}&mlon=${place.lon}#map=18/${place.lat}/${place.lon}`}
             target="_blank"
