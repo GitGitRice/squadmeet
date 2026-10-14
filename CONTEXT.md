@@ -98,11 +98,13 @@ list to Places with Meetups in that span.
 _Avoid_: Time rule, schedule
 
 **Series** (Serie):
-A weekly repeating set of Meetups at one Place, on one or more weekdays, each with its own time.
+A weekly repeating set of Meetups at one Place, on one or more weekdays, each with its own start
+time and duration, optionally until an end date. Its Occurrences exist for the next 30 days.
 _Avoid_: recurring event
 
 **Occurrence** (Termin einer Serie):
-One date of a Series. Users join Occurrences, not the Series itself.
+One date of a Series. It behaves like a Meetup. Users join each Occurrence on its own; there is
+no joining a whole Series.
 _Avoid_: instance
 
 **Join** ("Ich komme mit"):
