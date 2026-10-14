@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from sqlalchemy import func
 from sqlmodel import Session, select
 
-from app.contacts import blockers_of
+from app.blocks import blockers_of
 from app.db import get_session
 from app.geocoding import NominatimGeocoder, get_geocoder
 from app.meetups import (
@@ -23,9 +23,7 @@ from app.meetups import (
     visible_to,
 )
 from app.models import Meetup, Place, PlaceConfirmation, PlaceRead, PlaceSearchHit, User
-from app.meetups import joined_people, viewer
 from app.series import fill_open_series
-from app.models import Place, PlaceConfirmation, PlaceRead, PlaceSearchHit, User
 from app.place_status import MAX_DB_INT, NOT_FOUND, STATUS, PlaceStatus, PlaceUse, allowed_in
 
 router = APIRouter()

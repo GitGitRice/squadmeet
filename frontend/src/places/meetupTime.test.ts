@@ -1,20 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_DAYS_AHEAD, fromInputValue, inputBounds, isLive, slot, toInputValue } from './meetupTime'
+import { MAX_DAYS_AHEAD, fromInputValue, inputBounds, slot, toInputValue } from './meetupTime'
 
 const now = new Date(2026, 9, 12, 10, 30) // Mon 12.10.2026 10:30, local time
-
-describe('isLive', () => {
-  it('is true from the start until the end, not after', () => {
-    const meetup = { starts_at: new Date(2026, 9, 12, 10, 0).toISOString(), ends_at: new Date(2026, 9, 12, 12, 0).toISOString() }
-    expect(isLive(meetup, now)).toBe(true)
-    expect(isLive(meetup, new Date(2026, 9, 12, 12, 0))).toBe(false)
-  })
-
-  it('is false for a later Meetup', () => {
-    const meetup = { starts_at: new Date(2026, 9, 17, 18, 0).toISOString(), ends_at: new Date(2026, 9, 17, 20, 0).toISOString() }
-    expect(isLive(meetup, now)).toBe(false)
-  })
-})
 
 describe('slot', () => {
   it('shows weekday, date and the time span', () => {

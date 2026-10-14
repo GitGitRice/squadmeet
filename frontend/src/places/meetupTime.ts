@@ -1,15 +1,11 @@
 // Times of Meetups (SCRUM-29, SCRUM-35) in the browser's own time zone. The server gets every
 // time with its time zone, so it knows the exact moment.
 
-// The server's limit for a later Meetup (backend/app/meetups.py, MAX_DAYS_AHEAD).
+// A copy of the server's limit for a later Meetup (MAX_DAYS_AHEAD in
+// backend/app/meetup_lifecycle.py), only for the date picker; the server always checks.
 export const MAX_DAYS_AHEAD = 30
 
 type Span = { starts_at: string; ends_at: string }
-
-export function isLive(meetup: Span, now: Date): boolean {
-  const time = now.getTime()
-  return new Date(meetup.starts_at).getTime() <= time && time < new Date(meetup.ends_at).getTime()
-}
 
 const day = new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' })
 const clock = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' })

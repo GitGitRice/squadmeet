@@ -12,6 +12,7 @@ import {
   type User,
 } from './api/auth'
 import { fetchContacts, type Contacts } from './api/contacts'
+import { countFor, type RequestCount } from './auth/requestCount'
 import { fetchMapMeetups, type Meetup, type TimeSpan } from './api/meetups'
 import AccountDialog from './auth/AccountDialog'
 import ContactsDialog from './auth/ContactsDialog'
@@ -106,7 +107,7 @@ export default function App() {
   const [adminDialog, setAdminDialog] = useState<AdminDialogKind | null>(null)
   const [showContacts, setShowContacts] = useState(false)
   // Contact requests waiting for the user's answer, shown on the "Konto" button (SCRUM-32).
-  const [incomingRequests, setIncomingRequests] = useState(0)
+  const [requests, setRequests] = useState<RequestCount | null>(null)
   const [chosen, setChosen] = useState<Set<ActivityType>>(() => new Set(ACTIVITY_TYPES))
   const [path, navigate] = usePath()
   const selectedId = placeIdFromPath(path)
@@ -197,17 +198,27 @@ export default function App() {
   }, [])
 
   // The number on the "Konto" button: open Contact requests to the user (SCRUM-32).
-  const updateRequests = useCallback((contacts: Contacts) => setIncomingRequests(contacts.incoming.length), [])
   const userId = user?.id
+  const incomingRequests = countFor(requests, userId)
+  const updateRequests = useCallback(
+    (contacts: Contacts) => {
+      if (userId) setRequests({ userId, count: contacts.incoming.length })
+    },
+    [userId],
+  )
   useEffect(() => {
     const token = loadToken()
-    if (!userId || !token) {
-      setIncomingRequests(0)
-      return
-    }
+    if (!userId || !token) return
+    // A late answer for a user who has logged out since must not set the count.
+    let current = true
     fetchContacts(token)
-      .then(updateRequests)
+      .then((contacts) => {
+        if (current) updateRequests(contacts)
+      })
       .catch(() => {})
+    return () => {
+      current = false
+    }
   }, [userId, updateRequests])
 
   function handleLoggedIn(result: LoginResult) {

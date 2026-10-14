@@ -6,7 +6,7 @@ remove a Contact. No chat (ADR-0004).
 
 A Block works in one direction: when Paula blocks Karl, their Contact and open requests go,
 Karl cannot ask Paula again (he gets a neutral answer), and Karl no longer sees the Meetups
-Paula hosts, nor her Nickname in other Meetups (app.meetups uses blockers_of). Paula still
+Paula hosts, nor her Nickname in other Meetups (app.blocks, used by app.meetups). Paula still
 sees Karl, and is warned when he is in a Meetup she is in.
 """
 
@@ -18,26 +18,13 @@ from sqlalchemy import and_, delete, func, or_
 from sqlmodel import Session, select
 
 from app.auth import current_user
+from app.blocks import blocked_by, blockers_of  # noqa: F401  (blockers_of: used by others)
 from app.db import get_session
 from app.models import ContactRequest, Meetup, MeetupJoin, User, UserBlock
 
 router = APIRouter(tags=["contacts"])
 
 NOT_POSSIBLE = "Anfrage nicht möglich"
-
-
-def blockers_of(session: Session, user_id: int | None) -> set[int]:
-    """The users who blocked `user_id`: their Meetups and Nicknames are hidden from them."""
-    if user_id is None:
-        return set()
-    return set(session.exec(select(UserBlock.blocker_id).where(UserBlock.blocked_id == user_id)))
-
-
-def blocked_by(session: Session, user_id: int | None) -> set[int]:
-    """The users `user_id` blocked."""
-    if user_id is None:
-        return set()
-    return set(session.exec(select(UserBlock.blocked_id).where(UserBlock.blocker_id == user_id)))
 
 
 class NicknameBody(BaseModel):

@@ -20,6 +20,7 @@ from sqlmodel import Session, select
 
 from app.auth import current_user
 from app.db import get_session
+from app.meetup_lifecycle import call_off
 from app.models import Meetup, MeetupSeries, Place, User
 from app.place_status import PlaceUse, allowed_in, require
 
@@ -193,15 +194,9 @@ def cancel_series(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Die Serie ist schon abgesagt")
     now = datetime.now(UTC)
     series.cancelled_at = now
-    for meetup in session.exec(
-        select(Meetup).where(
-            Meetup.series_id == series.id,
-            Meetup.starts_at > now,
-            Meetup.cancelled_at.is_(None),
-            Meetup.closed_at.is_(None),
-        )
-    ):
-        meetup.cancelled_at = now
+    for meetup in session.exec(select(Meetup).where(Meetup.series_id == series.id)):
+        # Upcoming ones are cancelled, a running one goes on (SCRUM-61: one transition).
+        call_off(meetup, now, end_running=False)
     session.commit()
     session.refresh(series)
     return to_read(series)
