@@ -34,3 +34,7 @@ Default label names (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for
 ### Domain docs
 
 Single-context: one `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+<!-- fallow:agent-install v1 claude-import:start -->
+@AGENTS.md
+<!-- fallow:agent-install v1 claude-import:end -->
