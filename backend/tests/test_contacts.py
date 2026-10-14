@@ -6,7 +6,15 @@ import pytest
 
 from app.models import Meetup
 from tests.test_auth import auth_header, register
-from tests.test_meetups import create, join, later, meetups_seen_by, people_now, place  # noqa: F401
+from tests.test_meetups import (  # noqa: F401
+    create,
+    join,
+    later,
+    map_meetups,
+    meetups_seen_by,
+    people_now,
+    place,
+)
 
 
 def user(client, nickname):
@@ -176,6 +184,17 @@ def test_the_map_does_not_count_them_for_the_blocked_user(client, place, paula, 
 
     assert people_now(client, place.id) == 3
     assert people_now(client, place.id, karl[0]) == 0
+
+
+def test_the_time_filtered_map_hides_the_blockers_meetup(client, place, paula, karl):
+    create(client, paula[0], place.id, party_size=3)
+    block(client, paula[0], "Korb_Karl")
+
+    hidden = map_meetups(client, "now", karl[0]).json()
+    visible = map_meetups(client, "now", paula[0]).json()
+
+    assert (hidden["places"], hidden["meetups"]) == ([], [])
+    assert [meetup["party_size"] for meetup in visible["meetups"]] == [3]
 
 
 def test_a_blocked_user_cannot_join_a_meetup_of_the_blocker(client, place, paula, karl):
