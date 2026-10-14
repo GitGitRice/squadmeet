@@ -21,7 +21,7 @@ Erledigte Tickets aus Sprint 1 und 2 stehen in Jira.
 | ✓ | SCRUM-36 | Platzvorschlag am Platz bestätigen (+ Konto ab 7 Tagen, Kennzeichnung) | SCRUM-9 Platzvorschläge | Should | 30 |
 | ✓ | SCRUM-60 | Refactor: ein Modul für den Platzstatus (vor 56 und 57) | SCRUM-7 Plätze & Karte | Could | — |
 | ✓ | SCRUM-65 | Fallow-Codeanalyse für das Frontend (CI nur Bericht, Commit-Hook) | SCRUM-6 Infrastruktur | — | — |
-| ▶ | SCRUM-56 | Admin-Freigabe für Platzvorschläge, 24 h, OSM-Hinweis | SCRUM-9 Platzvorschläge | Should | 36, 39 |
+| ● | SCRUM-56 | Admin-Freigabe für Platzvorschläge, 24 h, OSM-Hinweis | SCRUM-9 Platzvorschläge | Should | 36, 39 |
 | ▶ | SCRUM-57 | Platz melden | SCRUM-13 Admin & Moderation | Could | 39 |
 | | SCRUM-48 | Übergabe: Stefan hostet und besitzt Squadmeet nach der Präsentation | — | Must | alle anderen Musts |
 

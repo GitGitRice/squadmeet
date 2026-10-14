@@ -221,6 +221,13 @@ if [ -n "$MIN_VERSION" ] && [ -n "$VERSION" ]; then
   fi
 fi
 
+# Squadmeet: feature branches go into dev (Gitflow). Without a base, fallow compares with the
+# branch's upstream, and a new branch has none, so it falls back to origin/main and counts all
+# of dev's unreleased work as new. Pin the base to origin/dev; FALLOW_AUDIT_BASE still overrides.
+if [ -z "${FALLOW_AUDIT_BASE:-}" ] && git rev-parse --verify --quiet origin/dev >/dev/null; then
+  export FALLOW_AUDIT_BASE=origin/dev
+fi
+
 TMP_JSON="$(mktemp)"
 TMP_ERR="$(mktemp)"
 cleanup() {
