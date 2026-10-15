@@ -394,7 +394,7 @@ def cancel_meetup(
     """Absagen: the Host calls off an upcoming Meetup for everyone. It stays listed as
     cancelled until its end time, so the users who joined see it."""
     meetup = get_meetup(session, meetup_id)
-    lifecycle.cancel(meetup, user.id, datetime.now(UTC))
+    lifecycle.cancel(session, meetup, user.id, datetime.now(UTC))
     session.commit()
     session.refresh(meetup)
     return to_read(session, meetup, user)

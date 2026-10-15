@@ -37,15 +37,15 @@ def test_state(now, changes, expected):
     assert lifecycle.state(meetup(**changes), now) is expected
 
 
-def test_only_the_host_cancels_and_only_before_the_start():
+def test_only_the_host_cancels_and_only_before_the_start(session):
     m = meetup()
 
     with pytest.raises(NotAllowed):
-        lifecycle.cancel(m, KARL, T0 - timedelta(hours=1))
+        lifecycle.cancel(session, m, KARL, T0 - timedelta(hours=1))
     with pytest.raises(Conflict, match="läuft schon"):
-        lifecycle.cancel(m, HOST, T0 + timedelta(minutes=5))
+        lifecycle.cancel(session, m, HOST, T0 + timedelta(minutes=5))
 
-    lifecycle.cancel(m, HOST, T0 - timedelta(hours=1))
+    lifecycle.cancel(session, m, HOST, T0 - timedelta(hours=1))
     assert lifecycle.state(m, T0) is MeetupState.CANCELLED
 
 
@@ -61,20 +61,20 @@ def test_end_only_while_running():
         lifecycle.end(m, HOST, T0 + timedelta(minutes=31))
 
 
-def test_call_off_cancels_upcoming_and_ends_running():
+def test_call_off_cancels_upcoming_and_ends_running(session):
     upcoming, running = meetup(), meetup(starts=T0 - timedelta(hours=1))
 
-    lifecycle.call_off(upcoming, T0 - timedelta(minutes=1))
-    lifecycle.call_off(running, T0)
+    lifecycle.call_off(session, upcoming, T0 - timedelta(minutes=1))
+    lifecycle.call_off(session, running, T0)
 
     assert upcoming.cancelled_at is not None
     assert (running.cancelled_at, running.ends_at) == (None, T0)
 
 
-def test_call_off_for_a_series_leaves_a_running_occurrence():
+def test_call_off_for_a_series_leaves_a_running_occurrence(session):
     running = meetup(starts=T0 - timedelta(hours=1))
 
-    lifecycle.call_off(running, T0, end_running=False)
+    lifecycle.call_off(session, running, T0, end_running=False)
 
     assert lifecycle.state(running, T0) is MeetupState.LIVE
 

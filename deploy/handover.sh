@@ -452,7 +452,9 @@ stage_4() {
     || die "Give a temporary name, not ${FINAL_DOMAIN%.duckdns.org}."
   ask_secret DUCKDNS_TOKEN "Paste YOUR DuckDNS token:"
   [[ -n "$DUCKDNS_TOKEN" ]] || die "No token given."
-  answer=$(curl -fsS "https://www.duckdns.org/update?domains=$DUCKDNS_SUBDOMAIN&token=$DUCKDNS_TOKEN&verbose=false" || true)
+  # Checks name and token. Without an IP, DuckDNS sets your current one; stage 6 changes it
+  # to the server. Only the first line counts ("OK" or "KO").
+  answer=$(curl -fsS "https://www.duckdns.org/update?domains=$DUCKDNS_SUBDOMAIN&token=$DUCKDNS_TOKEN" | head -n1 || true)
   [[ "$answer" == OK ]] || die "DuckDNS answered '$answer'. Check the subdomain and the token."
   DOMAIN="$DUCKDNS_SUBDOMAIN.duckdns.org"
   write_env DUCKDNS_SUBDOMAIN "$DUCKDNS_SUBDOMAIN"

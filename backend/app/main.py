@@ -9,6 +9,7 @@ from app.auth import router as auth_router
 from app.contacts import router as contacts_router
 from app.meetup_lifecycle import LifecycleError
 from app.meetups import router as meetups_router
+from app.notifications import router as notifications_router
 from app.series import router as series_router
 from app.places import router as places_router
 from app.ratings import router as ratings_router
@@ -34,6 +35,7 @@ def health():
 api.include_router(places_router)
 api.include_router(auth_router)
 api.include_router(meetups_router)
+api.include_router(notifications_router)
 api.include_router(series_router)
 api.include_router(contacts_router)
 api.include_router(suggestions_router)

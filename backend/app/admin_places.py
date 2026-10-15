@@ -36,7 +36,7 @@ def call_off_meetups(session: Session, place: Place, now: datetime) -> None:
     """Cancel the Meetups that have not started, end the running ones (the shared transition
     call_off, SCRUM-61). The caller commits."""
     for meetup in session.exec(select(Meetup).where(Meetup.place_id == place.id)).all():
-        call_off(meetup, now)
+        call_off(session, meetup, now)
 
 
 @router.get("/locked", response_model=list[LockedPlaceRead])

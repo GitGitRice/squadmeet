@@ -19,6 +19,7 @@ from sqlmodel import Session, select
 
 from app.blocks import blockers_of
 from app.models import Meetup, MeetupJoin, MeetupSeries
+from app.notification_events import notify_joined, notify_users
 
 # The furthest start of a later Meetup. frontend/src/places/meetupTime.ts has a copy for the
 # date picker only; the server always checks.
@@ -117,12 +118,13 @@ def check_start(starts_at: datetime, now: datetime) -> None:
         raise Invalid(f"Ein Treffen kann höchstens {MAX_DAYS_AHEAD} Tage im Voraus geplant werden")
 
 
-def cancel(meetup: Meetup, by: int, now: datetime) -> None:
+def cancel(session: Session, meetup: Meetup, by: int, now: datetime) -> None:
     """Absagen: the Host calls off a Meetup before it starts. A running one is ended instead."""
     require_host(meetup, by, "das Treffen absagen")
     require_open(meetup, now)
     if state(meetup, now) is MeetupState.LIVE:
         raise Conflict("Das Treffen läuft schon, beende es stattdessen")
+    notify_joined(session, meetup, "meetup_cancelled", now)
     meetup.cancelled_at = now
 
 
@@ -136,13 +138,15 @@ def end(meetup: Meetup, by: int, now: datetime) -> None:
     meetup.ends_at = now
 
 
-def call_off(meetup: Meetup, now: datetime, end_running: bool = True) -> None:
+def call_off(session: Session, meetup: Meetup, now: datetime, end_running: bool = True) -> None:
     """The system calls a Meetup off (no Host check): an upcoming one is cancelled, a running
     one ended (Admin lock, SCRUM-39) or left running (a cancelled Series, SCRUM-38)."""
     current = state(meetup, now)
     if current is MeetupState.UPCOMING:
+        notify_joined(session, meetup, "meetup_cancelled", now)
         meetup.cancelled_at = now
     elif current is MeetupState.LIVE and end_running:
+        notify_joined(session, meetup, "meetup_ended", now)
         meetup.ends_at = now
 
 
@@ -155,7 +159,8 @@ def find_join(session: Session, meetup: Meetup, user_id: int) -> MeetupJoin | No
 def join(session: Session, meetup: Meetup, by: int, party_size: int, now: datetime) -> None:
     """"Ich komme mit" with a Party size. The caller commits; the unique key (meetup, user)
     still stops two requests at the same moment."""
-    if meetup.host_id in blockers_of(session, by):
+    blockers = blockers_of(session, by)
+    if meetup.host_id in blockers:
         # As if it did not exist: the blocked user does not see this Meetup (SCRUM-32).
         raise NotFound("Meetup not found")
     require_open(meetup, now)
@@ -164,6 +169,15 @@ def join(session: Session, meetup: Meetup, by: int, party_size: int, now: dateti
     if find_join(session, meetup, by) is not None:
         raise Conflict("Du bist schon dabei")
     session.add(MeetupJoin(meetup_id=meetup.id, user_id=by, party_size=party_size, joined_at=now))
+    if blockers:
+        present_blockers = set(
+            session.exec(
+                select(MeetupJoin.user_id).where(
+                    MeetupJoin.meetup_id == meetup.id, MeetupJoin.user_id.in_(blockers)
+                )
+            )
+        )
+        notify_users(session, present_blockers, meetup, "blocked_user_joined", now)
 
 
 def hand_over(session: Session, meetup: Meetup, now: datetime) -> None:
@@ -181,6 +195,7 @@ def hand_over(session: Session, meetup: Meetup, now: datetime) -> None:
     meetup.host_id = first.user_id
     meetup.party_size = first.party_size
     meetup.host_move_pending = first.move_pending
+    notify_users(session, {first.user_id}, meetup, "host_handover", now)
     session.delete(first)
 
 
