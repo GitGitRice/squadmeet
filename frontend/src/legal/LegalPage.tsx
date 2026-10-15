@@ -148,6 +148,12 @@ function Privacy() {
           erfährt das nicht; sie sieht nur deine Treffen und deinen Nickname nicht mehr.
         </li>
         <li>
+          <strong>Benachrichtigungen:</strong> welches Treffen dich betrifft, der Anlass, wann die
+          Benachrichtigung entstand und ob du sie gelesen hast. Wenn jemand, den du blockiert hast,
+          demselben Treffen beitritt, erhältst nur du einen neutralen Hinweis; die blockierte Person
+          erfährt dadurch nichts von der Blockierung.
+        </li>
+        <li>
           <strong>Heimatgebiet und Fotos:</strong> nur, wenn du sie angibst oder hochlädst, sobald
           es diese Funktionen gibt.
         </li>

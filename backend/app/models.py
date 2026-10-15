@@ -363,6 +363,33 @@ class UserBlock(SQLModel, table=True):
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
 
 
+class Notification(SQLModel, table=True):
+    """A Meetup event kept in one user's in-app Notification list (SCRUM-40)."""
+
+    __tablename__ = "notification"
+    __table_args__ = (
+        CheckConstraint(
+            "kind IN ('meetup_cancelled', 'meetup_ended', 'host_handover', "
+            "'blocked_user_joined')",
+            name="ck_notification_kind",
+        ),
+        Index("ix_notification_user_created", "user_id", "created_at"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False)
+    )
+    meetup_id: int = Field(
+        sa_column=Column(ForeignKey("meetup.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    kind: str
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    read_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
+
+
 class MeetupSeries(SQLModel, table=True):
     """A weekly Series (SCRUM-38, see CONTEXT.md): weekdays, each with a start time in Berlin
     and a duration. Its Occurrences are ordinary Meetups (series_id), made for the next 30 days
