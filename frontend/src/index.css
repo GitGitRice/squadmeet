@@ -47,6 +47,54 @@ body {
   box-shadow: 0 1px 4px rgb(0 0 0 / 30%);
 }
 
+.notification-button {
+  position: relative;
+}
+
+.notification-count {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  min-width: 16px;
+  padding: 1px 4px;
+  border-radius: 999px;
+  background: #b3261e;
+  color: white;
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.notification-list button {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  border: 1px solid #d5d5d5;
+  background: #fff;
+  text-align: left;
+}
+
+.notification-list button.unread {
+  border-color: #1a5fb4;
+  background: #eef5ff;
+  font-weight: 600;
+}
+
+.notification-list time {
+  color: #555;
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
 .dialog-backdrop {
   position: fixed;
   inset: 0;

@@ -12,6 +12,7 @@ import {
   type User,
 } from './api/auth'
 import { fetchContacts, type Contacts } from './api/contacts'
+import { fetchNotifications, type Notification } from './api/notifications'
 import { countFor, type RequestCount } from './auth/requestCount'
 import { fetchMapMeetups, type Meetup, type TimeSpan } from './api/meetups'
 import AccountDialog from './auth/AccountDialog'
@@ -35,6 +36,8 @@ import SuggestPlaceDialog from './places/SuggestPlaceDialog'
 import PlaceRatings from './places/PlaceRatings'
 import PlaceSearch from './places/PlaceSearch'
 import MeetupMap from './places/MeetupMap'
+import NotificationsDialog from './notifications/NotificationsDialog'
+import { notificationsFor, type NotificationState } from './notifications/notificationState'
 import { placeIdFromPath, placePath, usePath } from './places/route'
 import { groupBySpot } from './places/spots'
 
@@ -43,6 +46,7 @@ const LEIPZIG: [number, number] = [51.3397, 12.3731]
 const MIN_ZOOM = 11
 // Meetups end by themselves (SCRUM-29); the map asks again so an ended one leaves the map.
 const PLACES_REFRESH_MS = 60_000
+const NOTIFICATIONS_REFRESH_MS = 60_000
 
 // Calls onMove with the visible map area at the start and after each pan or zoom.
 function MapAreaWatcher({ onMove }: { onMove: (area: MapArea) => void }) {
@@ -106,8 +110,10 @@ export default function App() {
   const [showRecoveryCodes, setShowRecoveryCodes] = useState(false)
   const [adminDialog, setAdminDialog] = useState<AdminDialogKind | null>(null)
   const [showContacts, setShowContacts] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
   // Contact requests waiting for the user's answer, shown on the "Konto" button (SCRUM-32).
   const [requests, setRequests] = useState<RequestCount | null>(null)
+  const [notificationState, setNotificationState] = useState<NotificationState | null>(null)
   const [chosen, setChosen] = useState<Set<ActivityType>>(() => new Set(ACTIVITY_TYPES))
   const [path, navigate] = usePath()
   const selectedId = placeIdFromPath(path)
@@ -221,6 +227,34 @@ export default function App() {
     }
   }, [userId, updateRequests])
 
+  // Notifications are refreshed while signed in. Keep every answer with its user so a late
+  // response after logout cannot expose that user's unread count to the next login.
+  const notifications = notificationsFor(notificationState, userId)
+  const unreadNotifications = notifications.filter((notice) => !notice.read).length
+  const updateNotifications = useCallback(
+    (found: Notification[]) => {
+      if (userId) setNotificationState({ userId, items: found })
+    },
+    [userId],
+  )
+  useEffect(() => {
+    const token = loadToken()
+    if (!userId || !token) return
+    let current = true
+    const reload = () =>
+      fetchNotifications(token)
+        .then((found) => {
+          if (current) updateNotifications(found)
+        })
+        .catch(() => {})
+    void reload()
+    const timer = setInterval(reload, NOTIFICATIONS_REFRESH_MS)
+    return () => {
+      current = false
+      clearInterval(timer)
+    }
+  }, [userId, updateNotifications])
+
   function handleLoggedIn(result: LoginResult) {
     saveToken(result.token)
     setUser(result.user)
@@ -243,6 +277,7 @@ export default function App() {
     clearToken()
     setUser(null)
     setShowAccount(false)
+    setShowNotifications(false)
     setShowMfa(false)
     setShowSuggest(false)
     setShowDelete(false)
@@ -256,6 +291,7 @@ export default function App() {
     clearToken()
     setUser(null)
     setShowAccount(false)
+    setShowNotifications(false)
     setShowSuggest(false)
     setShowDelete(false)
     reloadPlaces()
@@ -271,6 +307,14 @@ export default function App() {
             <span>
               {AVATARS[user.avatar]?.emoji} {user.nickname}
             </span>
+            <button
+              type="button"
+              className="notification-button"
+              aria-label={`Benachrichtigungen${unreadNotifications ? `, ${unreadNotifications} ungelesen` : ''}`}
+              onClick={() => setShowNotifications(true)}
+            >
+              🔔{unreadNotifications > 0 && <span className="notification-count">{unreadNotifications}</span>}
+            </button>
             <button type="button" onClick={() => setShowAccount(true)}>
               Konto{incomingRequests > 0 && ` (${incomingRequests})`}
             </button>
@@ -285,6 +329,18 @@ export default function App() {
         )}
       </div>
       {showAuth && <AuthDialog onLoggedIn={handleLoggedIn} onClose={() => setShowAuth(false)} />}
+      {showNotifications && user && (
+        <NotificationsDialog
+          key={user.id}
+          token={loadToken() ?? ''}
+          onChanged={updateNotifications}
+          onOpenMeetup={(placeId) => {
+            setShowNotifications(false)
+            openPlace(placeId)
+          }}
+          onClose={() => setShowNotifications(false)}
+        />
+      )}
       {showAccount && user && (
         <AccountDialog
           user={user}
