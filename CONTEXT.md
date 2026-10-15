@@ -192,5 +192,6 @@ inside a Time rule. A Favorite without Time rules notifies always.
 _Avoid_: schedule, filter
 
 **Notification** (Benachrichtigung):
-A message about a Meetup, sent as push and kept in the in-app list.
+A message about a Meetup, kept in the in-app list newest first. A tap marks it read and opens the
+affected Place and its Meetups. Push delivery is a separate feature.
 _Avoid_: alert, pop-up, message
