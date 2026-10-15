@@ -4,6 +4,7 @@ import type { User } from '../api/auth'
 import type { Place } from '../api/places'
 import { activityOf } from './activities'
 import AdminPlaceActions from './AdminPlaceActions'
+import PlaceReportBox from './PlaceReportBox'
 import { routeUrl } from './routeLink'
 import SuggestionStatus from './SuggestionStatus'
 
@@ -17,6 +18,8 @@ type Props = {
   onConfirmed?: (place: Place) => void
   // An Admin locked or deleted the Place (SCRUM-39).
   onRemoved?: () => void
+  // The user reported the Place (SCRUM-57).
+  onReported?: () => void
   // The Meetups (SCRUM-29) and Ratings (SCRUM-31) parts, shown once the Place is loaded.
   // Not for a Place suggestion.
   children?: ReactNode
@@ -33,6 +36,7 @@ export default function PlaceDetail({
   onLoginNeeded,
   onConfirmed,
   onRemoved,
+  onReported,
   children,
 }: Props) {
   const activity = place && activityOf(place.activity_type)
@@ -53,39 +57,46 @@ export default function PlaceDetail({
       </div>
 
       {place && (
-        <SuggestionStatus
-          key={place.id}
-          place={place}
-          user={user}
-          onLoginNeeded={onLoginNeeded}
-          onConfirmed={onConfirmed}
-        />
-      )}
-      {place && (
-        <p className="place-detail-location">
-          <strong>{place.address ? 'Adresse' : 'Lage'}</strong>
-          <span>{place.address ?? coordinates}</span>
-          <a
-            className="place-detail-route"
-            href={routeUrl(place.lat, place.lon)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Route planen
-          </a>{' '}
-          <a
-            href={`https://www.openstreetmap.org/?mlat=${place.lat}&mlon=${place.lon}#map=18/${place.lat}/${place.lon}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            In OpenStreetMap ansehen
-          </a>
-        </p>
-      )}
-      {place && !place.is_suggestion && children}
-      {/* Also for a Place suggestion: an invented Place is a reason to lock it. */}
-      {place && canModerate(user) && (
-        <AdminPlaceActions key={place.id} placeId={place.id} onRemoved={() => onRemoved?.()} />
+        <>
+          <SuggestionStatus
+            key={place.id}
+            place={place}
+            user={user}
+            onLoginNeeded={onLoginNeeded}
+            onConfirmed={onConfirmed}
+          />
+          <p className="place-detail-location">
+            <strong>{place.address ? 'Adresse' : 'Lage'}</strong>
+            <span>{place.address ?? coordinates}</span>
+            <a
+              className="place-detail-route"
+              href={routeUrl(place.lat, place.lon)}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Route planen
+            </a>{' '}
+            <a
+              href={`https://www.openstreetmap.org/?mlat=${place.lat}&mlon=${place.lon}#map=18/${place.lat}/${place.lon}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              In OpenStreetMap ansehen
+            </a>
+          </p>
+          {!place.is_suggestion && children}
+          <PlaceReportBox
+            key={`report-${place.id}`}
+            place={place}
+            user={user}
+            onLoginNeeded={onLoginNeeded}
+            onReported={onReported}
+          />
+          {/* Also for a Place suggestion: an invented Place is a reason to lock it. */}
+          {canModerate(user) && (
+            <AdminPlaceActions key={`admin-${place.id}`} placeId={place.id} onRemoved={() => onRemoved?.()} />
+          )}
+        </>
       )}
       {error && (
         <>

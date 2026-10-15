@@ -24,7 +24,17 @@ from app.meetups import (
 )
 from app.models import Meetup, Place, PlaceConfirmation, PlaceRead, PlaceSearchHit, User
 from app.series import fill_open_series
-from app.place_status import MAX_DB_INT, NOT_FOUND, STATUS, PlaceStatus, PlaceUse, allowed_in
+from app.place_reports import REPORT_REASON
+from app.place_status import (
+    MAX_DB_INT,
+    NOT_FOUND,
+    OPEN_REPORTS,
+    STATUS,
+    PlaceStatus,
+    PlaceUse,
+    allowed_in,
+    view_use,
+)
 
 router = APIRouter()
 
@@ -42,7 +52,8 @@ class MapMeetupsRead(BaseModel):
 
 def select_place_reads(hidden_hosts: frozenset[int] = frozenset()):
     """The columns of a PlaceRead: the PostGIS point as lat and lon, the people there now, and
-    the Confirmations of a Place suggestion and whether it waits for an Admin (SCRUM-56).
+    the Confirmations of a Place suggestion and whether it waits for an Admin (SCRUM-56), and
+    the open Place reports with their most common reason (SCRUM-57).
     Meetups of `hidden_hosts` (the viewer's blockers, SCRUM-32) do not count in people_now."""
     # The Host's Party and every Join of the active Meetups (SCRUM-34).
     people_now = joined_people(datetime.now(UTC), hidden_hosts).scalar_subquery()
@@ -62,6 +73,8 @@ def select_place_reads(hidden_hosts: frozenset[int] = frozenset()):
         Place.is_suggestion,
         confirmations.label("confirmations"),
         (STATUS == PlaceStatus.WAITING.value).label("waiting_for_admin"),
+        OPEN_REPORTS.label("open_reports"),
+        REPORT_REASON.label("report_reason"),
     )
 
 
@@ -200,12 +213,13 @@ def get_place(
     session: Session = Depends(get_session),
     geocoding: NominatimGeocoder = Depends(get_geocoder),
 ):
-    """One Place, for the Place detail page (SCRUM-24): its URL can be shared and reloaded."""
+    """One Place, for the Place detail page (SCRUM-24): its URL can be shared and reloaded.
+    An Admin also opens a reported Place (SCRUM-57)."""
     if not 1 <= place_id <= MAX_DB_INT:
         raise HTTPException(status_code=NOT_FOUND.status_code, detail=NOT_FOUND.detail)
     row = session.exec(
         select_place_reads(frozenset(blockers_of(session, user.id if user else None))).where(
-            Place.id == place_id, allowed_in(PlaceUse.VIEW)
+            Place.id == place_id, allowed_in(view_use(user))
         )
     ).first()
     if row is None:

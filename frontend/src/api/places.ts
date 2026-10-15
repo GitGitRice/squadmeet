@@ -1,3 +1,6 @@
+import { answer } from './http'
+
+
 export type Place = {
   id: number
   name: string
@@ -13,6 +16,31 @@ export type Place = {
   confirmations: number
   // A suggestion with 3 Confirmations that waits for an Admin approval (SCRUM-56).
   waiting_for_admin?: boolean
+  // Open Place reports and their most common reason (SCRUM-57); null = no open report.
+  open_reports?: number
+  report_reason?: PlaceReportReason | null
+}
+
+export type PlaceReportReason = 'not_existing' | 'not_public' | 'dangerous'
+
+// The fixed reasons of a Place report (backend: PLACE_REPORT_REASONS), no free text (ADR-0004).
+export const REPORT_REASONS: Record<PlaceReportReason, string> = {
+  not_existing: 'Gibt es nicht',
+  not_public: 'Nicht öffentlich',
+  dangerous: 'Gefährlich',
+}
+
+// From this many users a reported Place leaves the map until an Admin decides.
+export const REPORTS_TO_HIDE = 3
+
+/** "Melden" (SCRUM-57). A second open report of the same user answers 409. */
+export async function reportPlace(token: string, placeId: number, reason: PlaceReportReason): Promise<void> {
+  const response = await fetch(`/api/places/${placeId}/reports`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ reason }),
+  })
+  if (!response.ok) await answer(response, 'POST place report')
 }
 
 // The visible map area in degrees, in the order the API expects.

@@ -31,7 +31,9 @@ _Avoid_: vote, verification
 **Place report** (Platz melden):
 A user's statement that a Place does not exist, is not public, or is dangerous, chosen from fixed
 reasons. A reported Place shows that users reported it; after reports from 3 different users it
-leaves the map until an Admin dismisses the reports or locks the Place.
+leaves the map until an Admin dismisses the reports or locks the Place. While it is off the map,
+only Admins can open it, and nobody can start a Meetup or rate it there; its Meetups stay.
+Dismissing or locking closes the reports; a user can report the Place again later.
 _Avoid_: complaint, flag, City report
 
 **Locked place** (gesperrter Platz):
@@ -47,8 +49,9 @@ _Avoid_: removed, archived
 
 **Place status** (Platzstatus):
 The one status of a Place: active, Place suggestion, waiting for Admin (a Place suggestion with 3
-Confirmations), Locked place or Deleted place. When two apply, the stronger one counts (deleted, then
-locked, then waiting, then suggestion). The status decides what users and Admins may do at the Place.
+Confirmations), reported (open Place reports from 3 users), Locked place or Deleted place. When two
+apply, the stronger one counts (deleted, then locked, then waiting, then suggestion, then
+reported). The status decides what users and Admins may do at the Place.
 _Avoid_: state, visibility
 
 ## Meetups

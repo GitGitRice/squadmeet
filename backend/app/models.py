@@ -99,6 +99,47 @@ class PlaceConfirmation(SQLModel, table=True):
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
 
 
+# The fixed reasons of a Place report (SCRUM-57); no free text (ADR-0004). The labels are in
+# the frontend.
+PLACE_REPORT_REASONS = ("not_existing", "not_public", "dangerous")
+PlaceReportReason = Literal["not_existing", "not_public", "dangerous"]
+
+
+class PlaceReport(SQLModel, table=True):
+    """A user's Place report (SCRUM-57, see CONTEXT.md). It is open until an Admin dismisses
+    the reports of the Place or locks it; then closed_at is set and the user may report again."""
+
+    __tablename__ = "place_report"
+    __table_args__ = (
+        CheckConstraint(
+            "reason IN (" + ", ".join(f"'{r}'" for r in PLACE_REPORT_REASONS) + ")",
+            name="ck_place_report_reason",
+        ),
+        # One open report per user and Place.
+        Index(
+            "uq_place_report_open",
+            "place_id",
+            "user_id",
+            unique=True,
+            postgresql_where=text("closed_at IS NULL"),
+        ),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(
+        sa_column=Column(ForeignKey("place.id", ondelete="CASCADE"), nullable=False)
+    )
+    # Deleting the account deletes the user's reports, like the Confirmations.
+    user_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    reason: str
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    closed_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
+
+
 class PlaceRead(SQLModel):
     id: int
     name: str
@@ -113,6 +154,9 @@ class PlaceRead(SQLModel):
     confirmations: int = 0
     # A Place suggestion with 3 Confirmations that waits for an Admin approval (SCRUM-56).
     waiting_for_admin: bool = False
+    # Open Place reports (SCRUM-57) and their most common reason; None = no open report.
+    open_reports: int = 0
+    report_reason: str | None = None
 
 
 class PlaceSearchHit(SQLModel):
