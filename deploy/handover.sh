@@ -551,15 +551,7 @@ stage_8() {
   else
     warn "From Steven's stop until the end of this stage the app is offline (a few minutes)."
     warn "Tell the team: nobody uses the app now."
-    if confirm "Move the data (users, Meetups, Ratings) from Steven's host to yours?"; then
-      write_env MOVE_DATA yes
-      move_data
-    else
-      write_env MOVE_DATA no
-      steven "Stop the old app, so nobody writes to it any more:
-aws ssm start-session --target <his instance id>
-sudo -i && cd /opt/squadmeet && docker compose stop backend web"
-    fi
+    data_step
     steven "DuckDNS (his account) → delete the sub domain '${FINAL_DOMAIN%.duckdns.org}'."
     open_url "https://www.duckdns.org"
     step "YOUR DuckDNS account: add the sub domain '${FINAL_DOMAIN%.duckdns.org}'."
@@ -585,11 +577,31 @@ sudo -i && cd /opt/squadmeet && docker compose stop backend web"
     AWS_REGION="$AWS_REGION" EC2_INSTANCE_ID="$INSTANCE_ID" APP_DOMAIN="$FINAL_DOMAIN" \
       deploy/deploy.sh "$sha" || die "The deploy with the new name failed (output above)."
   fi
+  # A switch done earlier (or by hand) skipped the question above: ask it now.
+  if [[ -z "${MOVE_DATA:-}" ]]; then
+    warn "The data question was not answered at the switch. Steven's host still has the old data."
+    warn "A move now replaces your database: accounts made on your server since the switch are lost."
+    data_step
+  fi
   DOMAIN="$FINAL_DOMAIN"
   write_env DOMAIN "$DOMAIN"
   stage_check "$FINAL_DOMAIN"
   note_handoff "stage 8 done ($FINAL_DOMAIN runs on your server; data moved: ${MOVE_DATA:-no})."
   pause
+}
+
+# data_step: asks once whether the data moves (kept as MOVE_DATA), then moves it or has Steven
+# stop the old app. Either way nobody writes to the old database any more.
+data_step() {
+  if confirm "Move the data (users, Meetups, Ratings) from Steven's host to yours?"; then
+    move_data
+    MOVE_DATA=yes && write_env MOVE_DATA yes
+  else
+    MOVE_DATA=no && write_env MOVE_DATA no
+    steven "Stop the old app, so nobody writes to it any more:
+aws ssm start-session --target <his instance id>
+sudo -i && cd /opt/squadmeet && docker compose stop backend web"
+  fi
 }
 
 # move_data: Steven dumps the old database into a private bucket of yours through a one-hour
