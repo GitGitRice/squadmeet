@@ -11,6 +11,7 @@ type Props = {
   onDelete: () => void
   onLockedPlaces: () => void
   onSuggestions: () => void
+  onReports: () => void
   onClose: () => void
 }
 
@@ -23,6 +24,7 @@ export default function AccountDialog({
   onDelete,
   onLockedPlaces,
   onSuggestions,
+  onReports,
   onClose,
 }: Props) {
   return (
@@ -39,6 +41,9 @@ export default function AccountDialog({
           <>
             <button type="button" onClick={onSuggestions}>
               Platzvorschläge freigeben
+            </button>
+            <button type="button" onClick={onReports}>
+              Gemeldete Plätze
             </button>
             <button type="button" onClick={onLockedPlaces}>
               Gesperrte Plätze

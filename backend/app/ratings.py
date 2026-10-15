@@ -34,7 +34,8 @@ from sqlmodel import Session, select
 from app.auth import current_user
 from app.db import get_session
 from app.models import ConditionVote, Place, Rating, User
-from app.place_status import PlaceUse, require
+from app.meetups import viewer
+from app.place_status import PlaceUse, require, view_use
 from app.reasons import Reason, reasons_for
 
 # Two months: how long a reported or confirmed issue counts before users are asked again.
@@ -190,15 +191,23 @@ def load_summary(session: Session, place: Place) -> RatingSummary:
 
 
 @router.get("/places/{place_id}/reasons", response_model=list[ReasonRead])
-def list_reasons(place_id: int, session: Session = Depends(get_session)):
+def list_reasons(
+    place_id: int,
+    user: User | None = Depends(viewer),
+    session: Session = Depends(get_session),
+):
     """The Reasons the rating form offers for this Place (SCRUM-18)."""
-    place = require(session, place_id, PlaceUse.VIEW)
+    place = require(session, place_id, view_use(user))
     return [to_read(reason) for reason in reasons_for(place.activity_type)]
 
 
 @router.get("/places/{place_id}/ratings", response_model=RatingSummary)
-def rating_summary(place_id: int, session: Session = Depends(get_session)):
-    return load_summary(session, require(session, place_id, PlaceUse.VIEW))
+def rating_summary(
+    place_id: int,
+    user: User | None = Depends(viewer),
+    session: Session = Depends(get_session),
+):
+    return load_summary(session, require(session, place_id, view_use(user)))
 
 
 @router.get("/places/{place_id}/ratings/mine", response_model=RatingRead | None)
@@ -208,7 +217,7 @@ def my_rating(
     session: Session = Depends(get_session),
 ):
     """The user's own Rating of the Place, or null, so the form can show it for a change."""
-    require(session, place_id, PlaceUse.VIEW)
+    require(session, place_id, view_use(user))
     rating = session.exec(
         select(Rating).where(Rating.place_id == place_id, Rating.user_id == user.id)
     ).first()

@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import {
   approveSuggestion,
   fetchWaitingSuggestions,
@@ -7,6 +6,7 @@ import {
   type WaitingSuggestion,
 } from '../api/admin'
 import { activityOf } from '../places/activities'
+import { useAdminList } from './useAdminList'
 
 type Props = {
   token: string
@@ -37,31 +37,14 @@ function dateTime(value: string): string {
  * a Place only with an approval, at least 24 h after it was suggested. The OSM hint only helps
  * the Admin decide; it never blocks. */
 export default function SuggestionApprovalDialog({ token, onChanged, onOpenPlace, onClose }: Props) {
-  const [suggestions, setSuggestions] = useState<WaitingSuggestion[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [busyId, setBusyId] = useState<number | null>(null)
-  const [rejectingId, setRejectingId] = useState<number | null>(null)
-
-  useEffect(() => {
-    fetchWaitingSuggestions(token)
-      .then(setSuggestions)
-      .catch((err: Error) => setError(err.message))
-  }, [token])
-
-  async function decide(id: number, action: (token: string, id: number) => Promise<void>) {
-    setBusyId(id)
-    setError(null)
-    try {
-      await action(token, id)
-      setSuggestions((current) => current?.filter((item) => item.id !== id) ?? null)
-      setRejectingId(null)
-      onChanged()
-    } catch (err) {
-      setError((err as Error).message)
-    } finally {
-      setBusyId(null)
-    }
-  }
+  const {
+    items: suggestions,
+    error,
+    busyId,
+    confirmingId: rejectingId,
+    setConfirmingId: setRejectingId,
+    decide,
+  } = useAdminList<WaitingSuggestion>(token, fetchWaitingSuggestions, onChanged)
 
   return (
     <div className="dialog-backdrop">

@@ -131,6 +131,13 @@ function Privacy() {
           eingetragen ist. Dabei gehen nur die Koordinaten des Platzes mit, keine Daten über dich.
         </li>
         <li>
+          <strong>Meldungen von Plätzen:</strong> welchen Platz du gemeldet hast, mit welchem Grund
+          („Gibt es nicht“, „Nicht öffentlich“, „Gefährlich“), und wann. Andere sehen nur den
+          häufigsten Grund und die Zahl der Meldungen, nicht deinen Nickname. Admins sehen die
+          Gründe, aber nicht, wer gemeldet hat. Beim Löschen deines Kontos werden deine Meldungen
+          gelöscht.
+        </li>
+        <li>
           <strong>Standort beim Vorschlagen und Bestätigen:</strong> Nur in diesen beiden Fällen
           fragt die App den Standort deines Geräts ab, und dein Browser fragt dich vorher um
           Erlaubnis. Beim Vorschlagen senden wir den Punkt an den Server: Er sucht damit nach

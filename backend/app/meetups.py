@@ -25,7 +25,7 @@ from app.blocks import blocked_by, blockers_of
 from app.db import get_session
 from app.meetup_lifecycle import MAX_DAYS_AHEAD, MeetupState, is_active, is_open
 from app.models import Meetup, MeetupJoin, MeetupSeries, Place, User
-from app.place_status import PlaceUse, require
+from app.place_status import PlaceUse, require, view_use
 from app.series import fill_open_series
 
 MIN_HOURS = 1
@@ -305,7 +305,7 @@ def list_meetups(
 ):
     """The upcoming, live and cancelled Meetups at a Place, for the Place detail page. By start
     time, so the live ones come first."""
-    require(session, place_id, PlaceUse.VIEW)
+    require(session, place_id, view_use(user))
     now = datetime.now(UTC)
     # The Occurrences of the next 30 days of this Place's Series (SCRUM-38).
     fill_open_series(session, now, place_id)

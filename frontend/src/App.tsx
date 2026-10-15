@@ -365,6 +365,10 @@ export default function App() {
             setShowAccount(false)
             setAdminDialog('approvals')
           }}
+          onReports={() => {
+            setShowAccount(false)
+            setAdminDialog('reports')
+          }}
           onClose={() => setShowAccount(false)}
         />
       )}
@@ -461,6 +465,8 @@ export default function App() {
             navigate('/')
             reloadPlaces()
           }}
+          // Only the map: the detail stays open with the thanks, even when the Place leaves the map.
+          onReported={reloadPlaces}
         >
           <PlaceMeetups
             key={selectedId}

@@ -199,7 +199,7 @@ export default function PlaceRatings({ placeId, place, user, onLoginNeeded }: Pr
   const [askReport, setAskReport] = useState(false)
 
   const reload = useCallback(() => {
-    fetchRatingSummary(placeId)
+    fetchRatingSummary(placeId, loadToken())
       .then(setSummary)
       .catch((err: Error) => setError(err.message))
   }, [placeId])

@@ -1440,3 +1440,25 @@ body {
   align-items: center;
   gap: 8px;
 }
+
+/* Place report (SCRUM-57): the hint and the reasons to choose. */
+.place-report {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.place-report-note {
+  margin: 0;
+  padding: 8px 10px;
+  background: #fff4e6;
+  border-left: 4px solid #fd7e14;
+  border-radius: 6px;
+}
+
+.place-report-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
