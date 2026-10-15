@@ -191,10 +191,15 @@ finish() {
 # made (by the name "squadmeet") and remembers values in .env.aws (not in git).
 # Needs: aws (CLI v2), gh, jq, curl, openssl, dig. Run it after the frontend image with
 # Caddy is in GHCR (the SCRUM-20 PR is merged into dev).
+# SCRUM-48: deploy/handover.sh runs this wizard for Stefan's account and sets
+#   INSTANCE_TYPE (default t2.micro, x86_64 like the CI images) and FINAL_DOMAIN (the name
+#   the app gets at the switch, when this run uses a temporary DuckDNS subdomain).
 
 cd "$(dirname "$0")/.."
 ENV_FILE=".env.aws"
 NAME="squadmeet"
+INSTANCE_TYPE="${INSTANCE_TYPE:-t2.micro}"
+FINAL_DOMAIN="${FINAL_DOMAIN:-}"
 
 die() { printf '\n  %s✗ %s%s\n\n' "$RED" "$1" "$RESET"; exit 1; }
 
@@ -263,7 +268,11 @@ stage "Free subdomain (DuckDNS)"
 say "DuckDNS gives a free name like squadmeet.duckdns.org. Stage 7 points it to the server."
 open_url "https://www.duckdns.org"
 step "Sign in at the top right (for example with GitHub)."
-step "Type a name in the 'sub domain' field (for example 'squadmeet') → 'add domain'."
+if [[ -n "$FINAL_DOMAIN" ]]; then
+  step "Add a temporary name (for example 'squadmeet-neu') → 'add domain'. $FINAL_DOMAIN comes at the switch."
+else
+  step "Type a name in the 'sub domain' field (for example 'squadmeet') → 'add domain'."
+fi
 step "Your token is at the top of the page, next to 'token'."
 ask DUCKDNS_SUBDOMAIN "Subdomain (only the name, without .duckdns.org):"
 DUCKDNS_SUBDOMAIN="${DUCKDNS_SUBDOMAIN%.duckdns.org}"
@@ -284,6 +293,12 @@ ask GHCR_USER "GitHub user name for the token (Enter for ${gh_login:-?}):"
 GHCR_USER="${GHCR_USER:-$gh_login}"
 [[ -n "$GHCR_USER" ]] || die "No GitHub user name given."
 write_env GHCR_USER "$GHCR_USER"
+# The GHCR account of the images: the repo's owner in lowercase (CI pushes there, SCRUM-48).
+repo_owner=$(gh repo view --json owner --jq .owner.login 2>/dev/null | tr '[:upper:]' '[:lower:]' || true)
+ask IMAGE_OWNER "GHCR owner of the images (Enter for ${repo_owner:-?}):"
+IMAGE_OWNER="${IMAGE_OWNER:-$repo_owner}"
+[[ "$IMAGE_OWNER" =~ ^[a-z0-9-]+$ ]] || die "The image owner must be a lowercase GitHub name."
+write_env IMAGE_OWNER "$IMAGE_OWNER"
 
 replace_token=y
 if aws ssm get-parameter --name "/$NAME/ghcr-token" >/dev/null 2>&1; then
@@ -299,12 +314,12 @@ if [[ "$replace_token" == y ]]; then
   [[ -n "$GHCR_TOKEN" ]] || die "No token given."
   say "Checking the token and the 'dev' frontend image in GHCR …"
   registry_token=$(curl -fsS -u "$GHCR_USER:$GHCR_TOKEN" \
-    "https://ghcr.io/token?scope=repository:gitgitrice/$NAME-frontend:pull" | jq -r .token) \
+    "https://ghcr.io/token?scope=repository:$IMAGE_OWNER/$NAME-frontend:pull" | jq -r .token) \
     || die "GHCR did not accept the token. Check the user name and the read:packages scope."
   curl -fsS -o /dev/null -H "Authorization: Bearer $registry_token" \
     -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json" \
-    "https://ghcr.io/v2/gitgitrice/$NAME-frontend/manifests/dev" \
-    || die "The token works, but the image $NAME-frontend:dev is not readable. Is the SCRUM-20 PR merged into dev?"
+    "https://ghcr.io/v2/$IMAGE_OWNER/$NAME-frontend/manifests/dev" \
+    || die "The token works, but ghcr.io/$IMAGE_OWNER/$NAME-frontend:dev is not readable. Did CI push it there (a merge into dev)?"
   aws ssm put-parameter --name "/$NAME/ghcr-token" --type SecureString \
     --value "$GHCR_TOKEN" --overwrite >/dev/null
   say "${GREEN}✓${RESET} stored /$NAME/ghcr-token"
@@ -328,6 +343,9 @@ fi
 if [[ "$replace_turnstile" == y ]]; then
   open_url "https://dash.cloudflare.com/?to=/:account/turnstile"
   step "Cloudflare → Turnstile → 'Add widget'. Name: $NAME. Hostname: $DOMAIN."
+  if [[ -n "$FINAL_DOMAIN" && "$FINAL_DOMAIN" != "$DOMAIN" ]]; then
+    step "Add a second hostname: $FINAL_DOMAIN (the name after the switch)."
+  fi
   step "Widget mode: Managed. Pre-clearance: No. Then copy the two keys."
   ask TURNSTILE_SITE_KEY "Paste the site key (starts with 0x):"
   ask_secret TURNSTILE_SECRET_KEY "Paste the secret key:"
@@ -396,9 +414,16 @@ pause
 # ── 6 ─────────────────────────────────────────────────────────────────────
 stage "EC2 server and fixed IP"
 say "This starts, if it does not exist yet:"
-step "EC2 't2.micro' (Free Tier in this account) with Amazon Linux 2023, 20 GB disk, Docker and a 2 GB swap file."
+step "EC2 '$INSTANCE_TYPE' with Amazon Linux 2023 (x86_64), 20 GB disk, Docker and a 2 GB swap file."
 step "An Elastic IP (fixed address, about 3.60 USD a month from the credit)."
 note "CPU credits are 'standard', so a busy CPU slows down instead of costing extra."
+free_tier=$(aws ec2 describe-instance-types --instance-types "$INSTANCE_TYPE" \
+  --query 'InstanceTypes[0].FreeTierEligible' --output text 2>/dev/null || echo unknown)
+if [[ "$free_tier" == True ]]; then
+  say "${GREEN}✓${RESET} '$INSTANCE_TYPE' is Free Tier eligible in this account."
+else
+  warn "'$INSTANCE_TYPE' is not Free Tier eligible in this account (answer: $free_tier). It costs money."
+fi
 confirm "Start the server now?" || die "Stopped. No server was started."
 
 INSTANCE_ID=$(aws ec2 describe-instances \
@@ -410,7 +435,7 @@ if [[ "$INSTANCE_ID" == "None" ]]; then
     --query Parameter.Value --output text)
   # A new instance profile takes a few seconds before EC2 can use it.
   for _ in 1 2 3 4 5 6; do
-    INSTANCE_ID=$(aws ec2 run-instances --image-id "$AMI_ID" --instance-type t2.micro \
+    INSTANCE_ID=$(aws ec2 run-instances --image-id "$AMI_ID" --instance-type "$INSTANCE_TYPE" \
       --security-group-ids "$SG_ID" --iam-instance-profile Name="$NAME-ec2" \
       --credit-specification CpuCredits=standard \
       --metadata-options HttpTokens=required,HttpEndpoint=enabled \
@@ -477,7 +502,7 @@ done
 # merge into main; before that, run the wizard with DEPLOY_TAG=dev.
 DEPLOY_TAG="${DEPLOY_TAG:-main}"
 # The SSM document is the only command the deploy role may send (SCRUM-47).
-AWS_REGION="$AWS_REGION" deploy/setup-deploy-document.sh "$DOMAIN" \
+AWS_REGION="$AWS_REGION" deploy/setup-deploy-document.sh "$DOMAIN" "$IMAGE_OWNER" \
   || die "The SSM document setup failed (output above)."
 say "Pulling the '$DEPLOY_TAG' images on the server and starting them …"
 AWS_REGION="$AWS_REGION" EC2_INSTANCE_ID="$INSTANCE_ID" APP_DOMAIN="$DOMAIN" \

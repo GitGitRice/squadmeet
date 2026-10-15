@@ -1,6 +1,8 @@
 # CI (SCRUM-19): tests and Docker images on every pull request into dev and main.
 # A merge into dev or main also pushes the images to GHCR, tagged with the commit SHA and
 # the branch name. A merge into main then deploys that SHA to AWS (SCRUM-23).
+# A manual run on dev or main (workflow_dispatch) does the same as a push; deploy/handover.sh
+# uses it to build the images in the new owner's GHCR after the repo transfer (SCRUM-48).
 # Actions are pinned to a commit SHA (the comment names the release), so a moved tag
 # cannot change what runs here.
 name: CI
@@ -10,6 +12,7 @@ on:
     branches: [dev, main]
   push:
     branches: [dev, main]
+  workflow_dispatch:
 
 # A new push cancels the old run, but never on main: a deploy must not stop halfway.
 concurrency:
@@ -88,6 +91,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    env:
+      # Images go to GHCR on a push to dev or main, or on a manual run on one of them.
+      PUBLISH: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && contains(fromJSON('["dev", "main"]'), github.ref_name)) }}
     strategy:
       matrix:
         # deploy: compose.yml + host-deploy.sh for the SSM document squadmeet-deploy (SCRUM-47)
@@ -95,8 +101,13 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - name: Log in to GHCR (only on push to dev or main)
-        if: github.event_name == 'push'
+      # The images belong to the repo's owner (since SCRUM-48 Stefan's account). GHCR needs
+      # the owner name in lowercase, and GitHub expressions have no lowercase function.
+      - name: Image owner
+        id: owner
+        run: echo "name=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+      - name: Log in to GHCR (only when the images are published)
+        if: env.PUBLISH == 'true'
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
@@ -105,12 +116,11 @@ jobs:
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: ./${{ matrix.image }}
-          push: ${{ github.event_name == 'push' }}
-          # GHCR needs a lowercase owner name.
-          # On a pull request nothing is pushed; "pr" only keeps the tag valid.
+          push: ${{ env.PUBLISH == 'true' }}
+          # Without PUBLISH nothing is pushed; "pr" only keeps the tag valid.
           tags: |
-            ghcr.io/gitgitrice/squadmeet-${{ matrix.image }}:${{ github.sha }}
-            ghcr.io/gitgitrice/squadmeet-${{ matrix.image }}:${{ github.event_name == 'push' && github.ref_name || 'pr' }}
+            ghcr.io/${{ steps.owner.outputs.name }}/squadmeet-${{ matrix.image }}:${{ github.sha }}
+            ghcr.io/${{ steps.owner.outputs.name }}/squadmeet-${{ matrix.image }}:${{ env.PUBLISH == 'true' && github.ref_name || 'pr' }}
           # The backend shows the SHA in /api/health; the deploy smoke test checks it.
           build-args: GIT_SHA=${{ github.sha }}
           cache-from: type=gha,scope=${{ matrix.image }}
@@ -119,7 +129,9 @@ jobs:
   deploy:
     name: Deploy to AWS + smoke test
     needs: [images]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Without the deploy role there is no host to deploy to: between the repo transfer and
+    # the new host's setup in deploy/handover.sh (SCRUM-48), a merge into main only builds.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.AWS_DEPLOY_ROLE_ARN != ''
     runs-on: ubuntu-latest
     # deploy.sh waits at most 35 min for the host + 3 min for the smoke test.
     timeout-minutes: 45

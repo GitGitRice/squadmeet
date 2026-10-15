@@ -3,11 +3,15 @@
 # pulls the images and (re)starts the stack in /opt/squadmeet.
 # The secrets come from SSM Parameter Store (/squadmeet/*); the host's IAM role may read them.
 #
-# Usage: host-deploy.sh <domain> <image-tag>   (a commit SHA, or "main" / "dev")
+# Usage: host-deploy.sh <domain> <image-tag> [<image-owner>]
+#   image-tag: a commit SHA, or "main" / "dev"; image-owner: the GHCR account, lowercase.
 set -euo pipefail
 
 DOMAIN="$1"
-IMAGE_TAG="${2:?Usage: host-deploy.sh <domain> <image-tag>}"
+IMAGE_TAG="${2:?Usage: host-deploy.sh <domain> <image-tag> [<image-owner>]}"
+# SSM documents made before SCRUM-48 pass no owner; they run on the old host, whose
+# images are in the old repo owner's GHCR.
+IMAGE_OWNER="${3:-gitgitrice}"
 cd /opt/squadmeet
 
 # The AWS CLI on the host needs the region; the instance metadata (IMDSv2) knows it.
@@ -25,6 +29,7 @@ umask 077
 cat > .env <<EOF
 DOMAIN=$DOMAIN
 IMAGE_TAG=$IMAGE_TAG
+IMAGE_OWNER=$IMAGE_OWNER
 POSTGRES_USER=squadmeet
 POSTGRES_DB=squadmeet
 POSTGRES_PASSWORD=$(param /squadmeet/postgres-password)
