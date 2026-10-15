@@ -16,6 +16,7 @@ Die Details stehen in Jira. Nenne also den Ticket-Key und kopiere nicht den Tick
 ## Do 15.10.2026 — Tag 7
 
 - **Steven:** `SCRUM-48` Übergabe an Stefan: Repo an `S-max-ui-star` übertragen, PRs #61 und #62 gemergt. Datenbank per pg_dump auf Stefans Server umgezogen, danach meinen AWS-Server, Turnstile-Widget, GHCR-Pakete und Zugänge abgebaut. Wizard-Fehler behoben: Datenfrage wurde übersprungen, wenn der Name schon umgeschaltet war (PR #64).
+- **Stefan:** `SCRUM-48` Übergabe-Wizard gebaut (PR #59) und Stufe 1–9 durchlaufen: eigener AWS-Server (t2.micro, Free Tier), Images in `ghcr.io/s-max-ui-star`, Turnstile-Schlüssel, Domain squadmeet.duckdns.org umgestellt; Release #63 hat das automatische Deploy auf den neuen Server bewiesen. DuckDNS-Prüfung im Wizard korrigiert (PR #62).
 - **Dominik:** `SCRUM-40` In-App-Benachrichtigungen test-first umgesetzt; Glocke, Ungelesen-Zähler, Ereignis, Platz und Adresse sowie Absage und Hostwechsel im Browser geprüft.
 
 ## Mi 14.10.2026 — Tag 6
