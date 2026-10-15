@@ -3,20 +3,22 @@
 # Creates (or updates) in AWS:
 #   - the OIDC provider for GitHub Actions (token.actions.githubusercontent.com),
 #   - the IAM role squadmeet-github-deploy. Only workflow runs on the main branch of
-#     GitGitRice/squadmeet may assume it. It may only send the SSM document squadmeet-deploy
+#     this repo (REPO, default: the repo of the local checkout) may assume it. It may only send the SSM document squadmeet-deploy
 #     (deploy/setup-deploy-document.sh, SCRUM-47) to our one instance and read the result.
 #     It cannot send AWS-RunShellScript, so it cannot run any other command on the host.
 # Then it sets the GitHub variable AWS_DEPLOY_ROLE_ARN (an ARN is not a secret).
 # Safe to run again. The setup wizard (setup-aws.sh, stage 10) runs it.
 #
-# Usage: deploy/setup-github-deploy.sh <instance-id>     (AWS_REGION must be set)
+# Usage: deploy/setup-github-deploy.sh <instance-id>     (AWS_REGION must be set;
+#        REPO=owner/name to name another repo than the local checkout's)
 # Needs: aws (CLI v2, logged in), jq, gh (logged in).
 set -euo pipefail
 
 INSTANCE_ID="${1:?Usage: deploy/setup-github-deploy.sh <instance-id>}"
 : "${AWS_REGION:?}"
 export AWS_REGION
-REPO="GitGitRice/squadmeet"
+# GitHub answers with the repo's current name, also after a transfer (SCRUM-48).
+REPO="${REPO:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}"
 ROLE="squadmeet-github-deploy"
 ISSUER="token.actions.githubusercontent.com"
 DOCUMENT="squadmeet-deploy"
