@@ -17,7 +17,7 @@ from sqlmodel import Session, select
 
 from app.auth import require_admin
 from app.db import get_session
-from app.meetups import is_open
+from app.meetup_lifecycle import call_off
 from app.models import Meetup, Place, User
 from app.place_status import STATUS, PlaceStatus, PlaceUse, get_status, require
 
@@ -33,14 +33,10 @@ class LockedPlaceRead(BaseModel):
 
 
 def call_off_meetups(session: Session, place: Place, now: datetime) -> None:
-    """Cancel the Meetups that have not started, end the running ones. The caller commits."""
+    """Cancel the Meetups that have not started, end the running ones (the shared transition
+    call_off, SCRUM-61). The caller commits."""
     for meetup in session.exec(select(Meetup).where(Meetup.place_id == place.id)).all():
-        if not is_open(meetup, now):
-            continue
-        if meetup.starts_at > now:
-            meetup.cancelled_at = now
-        else:
-            meetup.ends_at = now
+        call_off(meetup, now)
 
 
 @router.get("/locked", response_model=list[LockedPlaceRead])

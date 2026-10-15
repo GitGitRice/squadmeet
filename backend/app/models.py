@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Literal
 
 from geoalchemy2 import Geometry
@@ -8,10 +8,12 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     Column,
+    Date,
     DateTime,
     ForeignKey,
     Index,
     Integer,
+    JSON,
     String,
     UniqueConstraint,
     false,
@@ -193,6 +195,7 @@ class Meetup(SQLModel, table=True):
     __table_args__ = (
         CheckConstraint("party_size BETWEEN 1 AND 10", name="ck_meetup_party_size"),
         CheckConstraint("ends_at > starts_at", name="ck_meetup_ends_after_start"),
+        UniqueConstraint("series_id", "series_date", name="uq_meetup_series_date"),
     )
 
     id: int | None = Field(default=None, primary_key=True)
@@ -225,6 +228,13 @@ class Meetup(SQLModel, table=True):
     host_move_pending: bool = Field(
         default=False, sa_column=Column(Boolean, nullable=False, server_default=false())
     )
+    # SCRUM-38: an Occurrence of a weekly Series, and its date in Berlin (one per Series and
+    # date, so a moved or cancelled Occurrence is never made again).
+    series_id: int | None = Field(
+        default=None,
+        sa_column=Column(ForeignKey("meetup_series.id", ondelete="SET NULL"), nullable=True, index=True),
+    )
+    series_date: date | None = Field(default=None, sa_column=Column(Date, nullable=True))
 
 
 class MeetupJoin(SQLModel, table=True):
@@ -351,3 +361,30 @@ class UserBlock(SQLModel, table=True):
         sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
     )
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
+class MeetupSeries(SQLModel, table=True):
+    """A weekly Series (SCRUM-38, see CONTEXT.md): weekdays, each with a start time in Berlin
+    and a duration. Its Occurrences are ordinary Meetups (series_id), made for the next 30 days
+    by app.series.fill_series."""
+
+    __tablename__ = "meetup_series"
+    __table_args__ = (CheckConstraint("party_size BETWEEN 1 AND 10", name="ck_meetup_series_party_size"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(
+        sa_column=Column(ForeignKey("place.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    host_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    party_size: int
+    # [{"weekday": 0-6 (Monday = 0), "time": "HH:MM", "hours": 1-4}, ...], one per weekday.
+    slots: list[dict[str, Any]] = Field(sa_column=Column(JSON, nullable=False))
+    # The last date (Berlin) that may have an Occurrence; None = no end.
+    until: date | None = Field(default=None, sa_column=Column(Date, nullable=True))
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    # The Host cancelled the whole Series: no new Occurrences.
+    cancelled_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )

@@ -167,7 +167,7 @@ body {
 .activity-filter {
   position: absolute;
   z-index: 1000;
-  top: 104px;
+  top: 152px;
   left: 56px;
   right: 8px;
   display: flex;
@@ -175,6 +175,82 @@ body {
   overflow-x: auto;
   padding-bottom: 4px;
   scrollbar-width: none;
+}
+
+/* SCRUM-54: Time filter and Meetups in the visible map area. */
+
+.time-filter {
+  position: absolute;
+  z-index: 1000;
+  top: 104px;
+  left: 56px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.time-filter button {
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 0 14px;
+  font-weight: 700;
+  color: #1a5fb4;
+  background: white;
+  border: 2px solid #1a5fb4;
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 25%);
+  cursor: pointer;
+}
+
+.time-filter button.on {
+  color: white;
+  background: #1a5fb4;
+}
+
+.map-meetup-list {
+  position: absolute;
+  z-index: 1000;
+  right: 8px;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  width: min(360px, calc(100% - 16px));
+  max-height: 38%;
+  overflow-y: auto;
+  padding: 12px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
+  box-sizing: border-box;
+}
+
+.map-meetup-list h2,
+.map-meetup-list p {
+  margin: 0;
+}
+
+.map-meetup-list ul {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.map-meetup-item {
+  border-top: 1px solid #e4e6ea;
+}
+
+.map-meetup-button {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 4px;
+  text-align: left;
+  background: white;
+  border: none;
+  cursor: pointer;
+}
+
+.map-meetup-meta {
+  color: #505663;
 }
 
 /* SCRUM-52: submit-only search. Nominatim forbids client-side autocomplete. */
@@ -389,16 +465,25 @@ body {
   }
 
   .activity-filter {
+    top: 108px;
+  }
+
+  .time-filter {
     top: 60px;
   }
 
+  .map-meetup-list {
+    top: 108px;
+    bottom: auto;
+  }
+
   .place-detail {
-    top: 112px;
+    top: 160px;
     left: 12px;
     right: auto;
     bottom: auto;
     width: 360px;
-    max-height: calc(100% - 120px);
+    max-height: calc(100% - 168px);
     border-radius: 12px;
   }
 }
@@ -767,6 +852,55 @@ body {
 
 .contact-list li span {
   flex: 1;
+}
+
+/* SCRUM-38: weekly Series. */
+
+.series-tag {
+  font-size: 0.9rem;
+}
+
+.series-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.series-slots legend {
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.series-slot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.series-slot label {
+  min-width: 52px;
+  font-weight: 600;
+}
+
+.series-slot input[type='time'],
+.series-slot select,
+.place-meetups input[type='date'] {
+  min-height: 40px;
+  padding: 4px 8px;
+  font: inherit;
+  border: 2px solid #d5d8de;
+  border-radius: 10px;
+}
+
+.place-meetups label.checkbox {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-weight: 600;
 }
 
 .move-form {

@@ -9,7 +9,8 @@ import PlaceMeetups from './PlaceMeetups'
 const paula: User = { id: 1, nickname: 'Paula', avatar: 'fox', mfa_enabled: false, is_admin: false }
 const hoursFromNow = (h: number) => new Date(Date.now() + h * 3_600_000).toISOString()
 
-// Running now.
+// The server works out state and actions per viewer (SCRUM-61); the fixtures carry what it
+// would send. Running now, as its Host Paula sees it.
 const meetup = {
   id: 7,
   place_id: 3,
@@ -19,18 +20,32 @@ const meetup = {
   participants: [] as { id: number; nickname: string; avatar: string; party_size: number }[],
   cancelled: false,
   blocked_user_in: false,
+  series_id: null as number | null,
+  state: 'live',
+  actions: ['end', 'leave'] as string[],
   move_offer: null as null | { meetup_id: number; host: { id: number; nickname: string; avatar: string }; starts_at: string; ends_at: string },
   starts_at: hoursFromNow(-1),
   ends_at: hoursFromNow(1),
 }
 
-// As a guest sees it (SCRUM-34): only the number of people.
-const guestView = { ...meetup, host: null, participants: null }
+// As a guest sees it (SCRUM-34): only the number of people; "join" asks to log in.
+const guestView = { ...meetup, host: null, participants: null, actions: ['join'] }
+
+// As another logged-in user sees it, before and after joining.
+const asOther = <T extends object>(m: T) => ({ ...m, actions: ['join'] })
+const asJoined = <T extends object>(m: T) => ({ ...m, actions: ['leave'] })
 
 const karl: User = { ...paula, id: 2, nickname: 'Korb_Karl', avatar: 'bear' }
 
-// Starts tomorrow (SCRUM-35).
-const laterMeetup = { ...meetup, id: 8, starts_at: hoursFromNow(24), ends_at: hoursFromNow(26) }
+// Starts tomorrow (SCRUM-35), as its Host Paula sees it.
+const laterMeetup = {
+  ...meetup,
+  id: 8,
+  starts_at: hoursFromNow(24),
+  ends_at: hoursFromNow(26),
+  state: 'upcoming',
+  actions: ['cancel', 'move', 'leave'],
+}
 
 afterEach(() => {
   document.body.innerHTML = ''
@@ -68,7 +83,7 @@ describe('PlaceMeetups', () => {
     expect(button(await render(paula), 'Jetzt beenden')).toBeDefined()
 
     document.body.innerHTML = ''
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([meetup])))
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([asOther(meetup)])))
     const other = { ...paula, id: 2, nickname: 'Karl' }
     expect(button(await render(other), 'Jetzt beenden')).toBeUndefined()
   })
@@ -184,7 +199,7 @@ describe('PlaceMeetups', () => {
   it('lets another user join with a Party size', async () => {
     localStorage.setItem('squadmeet.token', 'tok')
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
-      init?.method === 'POST' ? Response.json(meetup, { status: 201 }) : Response.json([meetup]),
+      init?.method === 'POST' ? Response.json(asJoined(meetup), { status: 201 }) : Response.json([asOther(meetup)]),
     )
     vi.stubGlobal('fetch', fetchMock)
     const container = await render(karl)
@@ -201,7 +216,7 @@ describe('PlaceMeetups', () => {
 
   it('shows "Verlassen" to a user who joined, and leaves', async () => {
     localStorage.setItem('squadmeet.token', 'tok')
-    const withKarl = { ...meetup, participants: [{ id: 2, nickname: 'Korb_Karl', avatar: 'bear', party_size: 1 }] }
+    const withKarl = asJoined({ ...meetup, participants: [{ id: 2, nickname: 'Korb_Karl', avatar: 'bear', party_size: 1 }] })
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
       init?.method === 'DELETE' ? new Response(null, { status: 204 }) : Response.json([withKarl]),
     )
@@ -240,7 +255,7 @@ describe('PlaceMeetups', () => {
   })
 
   it('shows a cancelled Meetup as "Abgesagt", without actions', async () => {
-    const cancelled = { ...laterMeetup, cancelled: true }
+    const cancelled = { ...laterMeetup, cancelled: true, state: 'cancelled', actions: [] }
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([cancelled])))
     const container = await render(karl)
 
@@ -250,10 +265,10 @@ describe('PlaceMeetups', () => {
 
   it('asks a user who was in after the Host moved it, and sends the answer', async () => {
     localStorage.setItem('squadmeet.token', 'tok')
-    const offered = {
+    const offered = asJoined({
       ...laterMeetup,
       move_offer: { meetup_id: 9, host: { id: 1, nickname: 'Paula', avatar: 'fox' }, starts_at: hoursFromNow(25), ends_at: hoursFromNow(27) },
-    }
+    })
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
       init?.method === 'POST' ? Response.json(laterMeetup) : Response.json([offered]),
     )
@@ -270,7 +285,7 @@ describe('PlaceMeetups', () => {
 
   it('asks a participant as a Contact after a tap on the Nickname (SCRUM-32)', async () => {
     localStorage.setItem('squadmeet.token', 'tok')
-    const withMia = { ...meetup, participants: [{ id: 3, nickname: 'Mia_Matte', avatar: 'fox', party_size: 1 }] }
+    const withMia = asOther({ ...meetup, participants: [{ id: 3, nickname: 'Mia_Matte', avatar: 'fox', party_size: 1 }] })
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) =>
       init?.method === 'POST' && url === '/api/contacts/requests'
         ? Response.json({ id: 1, user: { id: 3, nickname: 'Mia_Matte', avatar: 'fox' }, status: 'pending' }, { status: 201 })
@@ -291,5 +306,65 @@ describe('PlaceMeetups', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([{ ...meetup, blocked_user_in: true }])))
 
     expect((await render(paula)).textContent).toContain('Jemand, den du blockiert hast, ist dabei')
+  })
+
+  it('plans a weekly Series with a time and duration per weekday (SCRUM-38)', async () => {
+    localStorage.setItem('squadmeet.token', 'tok')
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) =>
+      init?.method === 'POST' && url === '/api/meetup-series' ? Response.json({ id: 5 }, { status: 201 }) : Response.json([]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const container = await render(paula)
+
+    act(() => button(container, 'Später treffen')!.click())
+    act(() => container.querySelector<HTMLInputElement>('label.checkbox input')!.click())
+    expect(button(container, 'Serie anlegen')!.disabled).toBe(true)
+    const monday = [...container.querySelectorAll<HTMLInputElement>('.series-slot input[type="checkbox"]')][0]
+    act(() => monday.click())
+    await act(async () => button(container, 'Serie anlegen')!.click())
+
+    const post = fetchMock.mock.calls.find(([url]) => url === '/api/meetup-series')!
+    expect(JSON.parse(post[1]!.body as string)).toEqual({
+      place_id: 3,
+      slots: [{ weekday: 0, time: '19:00', hours: 2 }],
+      party_size: 1,
+      until: null,
+    })
+  })
+
+  it('shows the next date of a Series and the others in "Alle Termine"', async () => {
+    const occurrence = (id: number, h: number) =>
+      asOther({ ...laterMeetup, id, series_id: 9, starts_at: hoursFromNow(h), ends_at: hoursFromNow(h + 2) })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([occurrence(20, 24), occurrence(21, 24 * 8), occurrence(22, 24 * 15)])))
+    const container = await render(karl)
+
+    expect(container.querySelectorAll('.meetup-card')).toHaveLength(1)
+    act(() => button(container, 'Alle Termine (3)')!.click())
+
+    expect(container.querySelectorAll('.meetup-card')).toHaveLength(3)
+    expect(container.querySelectorAll('.series-tag')).toHaveLength(3)
+    // Each date has its own Join.
+    expect([...container.querySelectorAll('button')].filter((b) => b.textContent === 'Ich komme mit')).toHaveLength(3)
+  })
+
+  it('lets the Host of a Series cancel it', async () => {
+    localStorage.setItem('squadmeet.token', 'tok')
+    const occurrence = (id: number, h: number) => ({
+      ...laterMeetup,
+      id,
+      series_id: 9,
+      actions: [...laterMeetup.actions, 'cancel_series'],
+      starts_at: hoursFromNow(h),
+      ends_at: hoursFromNow(h + 2),
+    })
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === 'POST' ? Response.json({ id: 9 }) : Response.json([occurrence(20, 24), occurrence(21, 24 * 8)]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const container = await render(paula)
+
+    await act(async () => button(container, 'Serie absagen')!.click())
+
+    expect(fetchMock.mock.calls.some(([url, init]) => url === '/api/meetup-series/9/cancel' && init?.method === 'POST')).toBe(true)
   })
 })

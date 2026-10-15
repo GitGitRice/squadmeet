@@ -190,12 +190,14 @@ finish() {
 # Nothing goes to .env or GitHub: local development and CI use Cloudflare's test keys.
 #
 # Usage: deploy/setup-turnstile.sh   (needs the AWS CLI, curl and jq)
-# Run it again to replace the keys, for example at the handover to Stefan (SCRUM-48).
+# Run it again to replace the keys. deploy/handover.sh (SCRUM-48) runs it with DOMAIN (the
+# temporary name of the new host) and FINAL_DOMAIN (the name after the switch).
 
 TOTAL_STAGES=5
 NAME=squadmeet
 AWS_REGION="${AWS_REGION:-eu-central-1}"
 DOMAIN="${DOMAIN:-$NAME.duckdns.org}"
+FINAL_DOMAIN="${FINAL_DOMAIN:-$DOMAIN}"
 SITE_PARAM="/$NAME/turnstile-site-key"
 SECRET_PARAM="/$NAME/turnstile-secret-key"
 SITEVERIFY_URL="https://challenges.cloudflare.com/turnstile/v0/siteverify"
@@ -237,12 +239,15 @@ fi
 # ── 3 ─────────────────────────────────────────────────────────────────────
 stage "Cloudflare — make the widget"
 say "Log in to the Cloudflare account that owns the hosting."
-note "Until the handover to Stefan (SCRUM-48), that is Steven's account."
+note "Since the handover (SCRUM-48), that is Stefan's account."
 open_url "https://dash.cloudflare.com/?to=/:account/turnstile"
 step "Left menu: Turnstile (if you do not see it, search for 'Turnstile')."
 step "Click 'Add widget'."
 step "Widget name: $NAME"
-step "Hostnames: add $DOMAIN (only this one; local development uses test keys)."
+step "Hostnames: add $DOMAIN (local development uses test keys)."
+if [[ "$FINAL_DOMAIN" != "$DOMAIN" ]]; then
+  step "Add a second hostname: $FINAL_DOMAIN (the name after the switch)."
+fi
 step "Widget mode: Managed. Pre-clearance: No."
 step "Click 'Create'. Cloudflare shows the Site Key and the Secret Key."
 ask TURNSTILE_SITE_KEY "Paste the Site Key:"

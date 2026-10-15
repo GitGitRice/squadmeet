@@ -25,6 +25,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.db import get_session
+from app.meetup_lifecycle import hand_over_meetups_of
 from app.models import LoginSession, RecoveryCode, User
 from app.rate_limit import RateLimit
 from app.turnstile import Verifier, client_ip, require_captcha, turnstile_verifier
@@ -547,11 +548,8 @@ def delete_account(
         and (check_totp(session, user, body.code) or use_recovery_code(session, user, body.code))
     ):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Code falsch")
-    # SCRUM-37: a Meetup with others in it gets a new Host first. Imported here, because
-    # app.meetups imports this module.
-    from app.meetups import hand_over_meetups_of
-
-    hand_over_meetups_of(session, user)
+    # SCRUM-37: a Meetup with others in it gets a new Host first (app.meetup_lifecycle).
+    hand_over_meetups_of(session, user.id, datetime.now(UTC))
     session.delete(user)
     session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -3,6 +3,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
+from app.meetups import time_span_end
 from app.models import Meetup, Place
 from tests.test_auth import PASSWORD, auth_header, register
 
@@ -46,6 +47,74 @@ def people_now(client, place_id, token=None):
     headers = auth_header(token) if token else {}
     places = client.get("/api/places", params={"bbox": "-31,0,-30,1"}, headers=headers).json()
     return next(p["people_now"] for p in places if p["id"] == place_id)
+
+
+def map_meetups(client, span, token=None):
+    headers = auth_header(token) if token else {}
+    return client.get(
+        "/api/meetups", params={"bbox": "-31,0,-30,1", "time": span}, headers=headers
+    )
+
+
+def test_map_meetups_use_the_visible_area_and_three_hour_borders(
+    client, session, place, host
+):
+    outside = Place(
+        name="Außen", activity_type="table_tennis", location="SRID=4326;POINT(-29.5 0.5)"
+    )
+    session.add(outside)
+    session.commit()
+    now = datetime.now(UTC)
+    active = Meetup(
+        place_id=place.id,
+        host_id=host[1],
+        party_size=1,
+        starts_at=now - timedelta(minutes=30),
+        ends_at=now + timedelta(minutes=30),
+    )
+    just_inside = Meetup(
+        place_id=place.id,
+        host_id=host[1],
+        party_size=2,
+        starts_at=now + timedelta(hours=3) - timedelta(seconds=1),
+        ends_at=now + timedelta(hours=4),
+    )
+    just_outside = Meetup(
+        place_id=place.id,
+        host_id=host[1],
+        party_size=3,
+        starts_at=now + timedelta(hours=3, seconds=1),
+        ends_at=now + timedelta(hours=4),
+    )
+    outside_area = Meetup(
+        place_id=outside.id,
+        host_id=host[1],
+        party_size=4,
+        starts_at=now + timedelta(hours=1),
+        ends_at=now + timedelta(hours=2),
+    )
+    session.add_all([active, just_inside, just_outside, outside_area])
+    session.commit()
+
+    response = map_meetups(client, "3h")
+
+    assert response.status_code == 200
+    answer = response.json()
+    assert [item["id"] for item in answer["places"]] == [place.id]
+    assert [item["id"] for item in answer["meetups"]] == [active.id, just_inside.id]
+
+
+def test_today_ends_at_the_next_midnight_in_berlin():
+    winter = datetime(2026, 1, 14, 21, 30, tzinfo=UTC)
+    summer = datetime(2026, 7, 14, 10, 0, tzinfo=UTC)
+
+    assert time_span_end("today", winter) == datetime(2026, 1, 14, 23, 0, tzinfo=UTC)
+    assert time_span_end("today", summer) == datetime(2026, 7, 14, 22, 0, tzinfo=UTC)
+
+
+@pytest.mark.parametrize("span", ["soon", "24h", ""])
+def test_map_meetups_reject_an_unknown_time_span(client, span):
+    assert map_meetups(client, span).status_code == 422
 
 
 def test_create_a_now_meetup_with_the_creator_as_host(client, place, host):

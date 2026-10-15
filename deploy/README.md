@@ -10,6 +10,7 @@ browser ──HTTPS──▶ web (Caddy: built React app + /api/* → backend) �
 | File | What |
 |------|------|
 | [setup-aws.sh](setup-aws.sh) | Wizard for the first setup. You run it on your laptop; it uses the AWS CLI |
+| [handover.sh](handover.sh) | Wizard for the handover to Stefan's accounts (`SCRUM-48`). It runs `setup-turnstile.sh` and `setup-aws.sh` |
 | [compose.yml](compose.yml) | The production stack. It pulls the images from GHCR; nothing is built on the host |
 | [host-deploy.sh](host-deploy.sh) | Runs on the host: writes `.env`, logs in to GHCR, pulls the images, restarts the stack |
 | [deploy.sh](deploy.sh) | Runs on your laptop or in CI: sends the SSM document `squadmeet-deploy` with one image tag, then the smoke test |
@@ -94,6 +95,33 @@ The values are in the GitHub variables (`gh variable list`). The images of every
 stay in GHCR, so you can deploy each older SHA again. **Limit:** only commits from `SCRUM-47` on
 have the `squadmeet-deploy` image. An older SHA fails at `docker pull`. Database migrations do not go back by
 themselves: a rollback over a migration needs `alembic downgrade` first.
+
+## Handover to Stefan (SCRUM-48)
+
+All hosting moves to Stefan's accounts: AWS, GitHub (repo + GHCR images), DuckDNS and Cloudflare
+Turnstile. Steven's host stays live until the switch, so there is no time without a host.
+In the repo root, on `main`:
+
+```sh
+./deploy/handover.sh              # after a break: START_AT=<stage> ./deploy/handover.sh
+```
+
+| # | Stage | Who |
+|---|-------|-----|
+| 1 | Tools, your GitHub login, your AWS account (account ID confirmed before any write), Free Tier check of `t2.micro` | Stefan |
+| 2 | Repo transfer `GitGitRice/squadmeet` → Stefan; checks: Actions, rulesets, secrets, variables, collaborators; Steven's deploy variables deleted | **Steven** transfers, Stefan accepts |
+| 3 | CI builds the four images `dev` and `main` in `ghcr.io/<new owner>/squadmeet-*` (manual run) | Stefan |
+| 4 | Your DuckDNS: a temporary name; `squadmeet` comes at the switch | Stefan |
+| 5 | `setup-turnstile.sh` with your Cloudflare account, widget for both names | Stefan |
+| 6 | `setup-aws.sh` (budget, GHCR token of your account, server, IP, deploy, automatic deploy), then checks | Stefan |
+| 7 | Proof: one merge into `main` deploys by itself | Stefan |
+| 8 | Switch: data move if wanted (**Steven** dumps into a one-hour upload link; your server restores it), **Steven** deletes `squadmeet` in his DuckDNS, you add it, deploy with the name, checks | both |
+| 9 | **Steven** removes his side (course AWS account, Turnstile widget, GHCR packages); you decide on his collaborator access | both |
+| 10 | Docs and the Jira comment | Stefan |
+
+Between stage 2 and stage 7, a merge into `main` builds the images but does not deploy (CI
+skips the deploy job without `AWS_DEPLOY_ROLE_ARN`). Each stage writes a line into
+`HANDOFF.local.md`. Values are in `.env.aws` (not in git); tokens and keys go only to SSM.
 
 ## Troubleshooting
 
