@@ -169,6 +169,11 @@ function Privacy() {
           nicht mehr, dass du es warst.
         </li>
         <li>
+          <strong>Favoriten:</strong> welche Plätze du gespeichert hast sowie optionale Wochentage
+          und Uhrzeiten für Benachrichtigungen über neue Treffen. Diese Angaben sind nur für dich
+          sichtbar und werden gelöscht, wenn du den Favoriten oder dein Konto löschst.
+        </li>
+        <li>
           <strong>Heimatgebiet und Fotos:</strong> nur, wenn du sie angibst oder hochlädst, sobald
           es diese Funktionen gibt.
         </li>

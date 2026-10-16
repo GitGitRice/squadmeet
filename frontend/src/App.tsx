@@ -22,6 +22,7 @@ import DeleteAccountDialog from './auth/DeleteAccountDialog'
 import AdminDialog, { type AdminDialogKind } from './auth/AdminDialog'
 import MfaDialog from './auth/MfaDialog'
 import RecoveryCodesDialog from './auth/RecoveryCodesDialog'
+import FavoritesDialog from './auth/FavoritesDialog'
 import { AVATARS } from './auth/avatars'
 import { legalPageFromPath } from './legal/legal'
 import LegalLinks from './legal/LegalLinks'
@@ -36,6 +37,7 @@ import SuggestPlaceDialog from './places/SuggestPlaceDialog'
 import PlaceRatings from './places/PlaceRatings'
 import PlaceSearch from './places/PlaceSearch'
 import MeetupMap from './places/MeetupMap'
+import FavoriteButton from './places/FavoriteButton'
 import NotificationsDialog from './notifications/NotificationsDialog'
 import { notificationsFor, type NotificationState } from './notifications/notificationState'
 import { placeIdFromPath, placePath, usePath } from './places/route'
@@ -110,6 +112,7 @@ export default function App() {
   const [showRecoveryCodes, setShowRecoveryCodes] = useState(false)
   const [adminDialog, setAdminDialog] = useState<AdminDialogKind | null>(null)
   const [showContacts, setShowContacts] = useState(false)
+  const [showFavorites, setShowFavorites] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   // Contact requests waiting for the user's answer, shown on the "Konto" button (SCRUM-32).
   const [requests, setRequests] = useState<RequestCount | null>(null)
@@ -278,6 +281,7 @@ export default function App() {
     setUser(null)
     setShowAccount(false)
     setShowNotifications(false)
+    setShowFavorites(false)
     setShowMfa(false)
     setShowSuggest(false)
     setShowDelete(false)
@@ -349,6 +353,10 @@ export default function App() {
             setShowAccount(false)
             setShowContacts(true)
           }}
+          onFavorites={() => {
+            setShowAccount(false)
+            setShowFavorites(true)
+          }}
           onMfa={() => {
             setShowAccount(false)
             setShowMfa(true)
@@ -381,6 +389,16 @@ export default function App() {
             // A Block changes which Meetups the user sees.
             reloadPlaces()
           }}
+        />
+      )}
+      {showFavorites && user && (
+        <FavoritesDialog
+          token={loadToken() ?? ''}
+          onOpenPlace={(id) => {
+            setShowFavorites(false)
+            openPlace(id)
+          }}
+          onClose={() => setShowFavorites(false)}
         />
       )}
       {adminDialog && user && (
@@ -468,6 +486,12 @@ export default function App() {
           // Only the map: the detail stays open with the thanks, even when the Place leaves the map.
           onReported={reloadPlaces}
         >
+          <FavoriteButton
+            key={`favorite-${selectedId}-${user?.id ?? 'guest'}`}
+            placeId={selectedId}
+            token={user ? loadToken() : null}
+            onLoginNeeded={() => setShowAuth(true)}
+          />
           <PlaceMeetups
             key={selectedId}
             placeId={selectedId}

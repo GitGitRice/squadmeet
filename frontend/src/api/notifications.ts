@@ -7,6 +7,7 @@ export type NotificationKind =
   | 'meetup_ended'
   | 'host_handover'
   | 'blocked_user_joined'
+  | 'favorite_meetup_created'
 
 export type Notification = {
   id: number
