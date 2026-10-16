@@ -1,4 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
-  "entry": ["frontend/src/main.tsx", "frontend/src/prototype/main.tsx", "frontend/public/sw.js"]
+  "entry": ["frontend/src/main.tsx", "frontend/src/prototype/main.tsx", "frontend/public/sw.js"],
+  "duplicates": {
+    "ignoredClones": ["dup:eca6a1e8:2"]
+  }
 }

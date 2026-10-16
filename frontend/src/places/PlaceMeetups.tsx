@@ -77,6 +77,18 @@ function PartySizeStepper({ value, onChange }: { value: number; onChange: (n: nu
   )
 }
 
+// A Push tap carries the exact Meetup as a fragment. The list loads asynchronously, so scroll
+// only after that card exists (SCRUM-44). Keeping this effect outside PlaceMeetups also keeps the
+// already large Meetup workflow from gaining another branch.
+function MeetupDeepLink({ meetups }: { meetups: Meetup[] }) {
+  useEffect(() => {
+    const match = /^#treffen-(\d+)$/.exec(window.location.hash)
+    if (!match || !meetups.some((meetup) => meetup.id === Number(match[1]))) return
+    requestAnimationFrame(() => document.getElementById(`treffen-${match[1]}`)?.scrollIntoView({ block: 'center' }))
+  }, [meetups])
+  return null
+}
+
 // The Meetups part of the Place detail, as in the prototype (SCRUM-17): the active and later
 // Meetups, the "Ich bin jetzt hier" form (SCRUM-29), "Später treffen" (SCRUM-35), and
 // "Ich komme mit" / "Verlassen" (SCRUM-34). Guests see only the number of people.
@@ -125,14 +137,6 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
     const timer = setInterval(reload, REFRESH_MS)
     return () => clearInterval(timer)
   }, [reload])
-
-  // A Push tap carries the exact Meetup as a fragment. The list loads asynchronously, so scroll
-  // only after that card exists (SCRUM-44).
-  useEffect(() => {
-    const match = /^#treffen-(\d+)$/.exec(window.location.hash)
-    if (!match || !meetups.some((meetup) => meetup.id === Number(match[1]))) return
-    requestAnimationFrame(() => document.getElementById(`treffen-${match[1]}`)?.scrollIntoView({ block: 'center' }))
-  }, [meetups])
 
   // True when the action worked, so a caller can show its own message.
   async function run(action: (token: string) => Promise<unknown>): Promise<boolean> {
@@ -426,6 +430,7 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
 
   return (
     <div className="place-meetups">
+      <MeetupDeepLink meetups={meetups} />
       {creating ? (
         <form
           className="now-form"
