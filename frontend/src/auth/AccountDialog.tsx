@@ -7,6 +7,7 @@ type Props = {
   // Contact requests waiting for an answer (SCRUM-32).
   incomingRequests: number
   onContacts: () => void
+  onFavorites: () => void
   onMfa: () => void
   onDelete: () => void
   onLockedPlaces: () => void
@@ -21,6 +22,7 @@ export default function AccountDialog({
   user,
   incomingRequests,
   onContacts,
+  onFavorites,
   onMfa,
   onDelete,
   onLockedPlaces,
@@ -35,6 +37,9 @@ export default function AccountDialog({
         <h2>Konto</h2>
         <button type="button" onClick={onContacts}>
           Kontakte{incomingRequests > 0 && ` (${incomingRequests} neu)`}
+        </button>
+        <button type="button" onClick={onFavorites}>
+          Favoriten
         </button>
         <button type="button" onClick={onMfa}>
           Zwei-Faktor-Anmeldung ({user.mfa_enabled ? 'an' : 'aus'})

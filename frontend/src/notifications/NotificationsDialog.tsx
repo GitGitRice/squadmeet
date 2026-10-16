@@ -26,6 +26,7 @@ const messages: Record<NotificationKind, (place: string) => string> = {
   host_handover: (place) => `Du bist jetzt Gastgeber des Treffens bei „${place}“.`,
   blocked_user_joined: (place) =>
     `Jemand, den du blockiert hast, ist dem Treffen bei „${place}“ beigetreten.`,
+  favorite_meetup_created: (place) => `Bei deinem Favoriten „${place}“ wurde ein neues Treffen erstellt.`,
 }
 
 export default function NotificationsDialog({ token, onChanged, onOpenMeetup, onClose }: Props) {

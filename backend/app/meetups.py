@@ -23,6 +23,7 @@ from app import meetup_lifecycle as lifecycle
 from app.auth import bearer, current_login, current_user
 from app.blocks import blocked_by, blockers_of
 from app.db import get_session
+from app.favorite_notifications import notify_favorites
 from app.meetup_lifecycle import MAX_DAYS_AHEAD, MeetupState, is_active, is_open
 from app.models import Meetup, MeetupJoin, MeetupSeries, Place, User
 from app.place_status import PlaceUse, require, view_use
@@ -292,6 +293,8 @@ def create_meetup(
         ends_at=starts_at + timedelta(hours=body.hours),
     )
     session.add(meetup)
+    session.flush()
+    notify_favorites(session, meetup, now)
     session.commit()
     session.refresh(meetup)
     return to_read(session, meetup, user)

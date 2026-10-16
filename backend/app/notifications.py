@@ -17,7 +17,11 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 class NotificationRead(BaseModel):
     id: int
     kind: Literal[
-        "meetup_cancelled", "meetup_ended", "host_handover", "blocked_user_joined"
+        "meetup_cancelled",
+        "meetup_ended",
+        "host_handover",
+        "blocked_user_joined",
+        "favorite_meetup_created",
     ]
     meetup_id: int
     place_id: int

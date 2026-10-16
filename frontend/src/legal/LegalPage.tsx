@@ -169,6 +169,11 @@ function Privacy() {
           nicht mehr, dass du es warst.
         </li>
         <li>
+          <strong>Favoriten:</strong> welche Plätze du gespeichert hast sowie optionale Wochentage
+          und Uhrzeiten für Benachrichtigungen über neue Treffen. Diese Angaben sind nur für dich
+          sichtbar und werden gelöscht, wenn du den Favoriten oder dein Konto löschst.
+        </li>
+        <li>
           <strong>Fotos:</strong> wenn du ein Foto eines Platzes hochlädst, das Foto, zu welchem
           Platz es gehört, von wem es ist und wann. Unser Server speichert eine verkleinerte Kopie
           ohne die Zusatzdaten deiner Kamera (EXIF), also auch ohne Aufnahmeort. Ein Foto ist erst
