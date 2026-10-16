@@ -24,6 +24,7 @@ from sqlalchemy import delete, func, or_, update
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
+from app.audit import forget_user, set_actor
 from app.db import get_session
 from app.meetup_lifecycle import hand_over_meetups_of
 from app.models import LoginSession, RecoveryCode, User
@@ -236,6 +237,7 @@ def current_login(
             )
         ).first()
         if login is not None:
+            set_actor(session, login.user_id, "user")
             return login
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -251,7 +253,9 @@ def current_user(
     return session.get(User, login.user_id)
 
 
-def require_admin(user: User = Depends(current_user)) -> User:
+def require_admin(
+    user: User = Depends(current_user), session: Session = Depends(get_session)
+) -> User:
     """Dependency for Admin routes: an Admin with MFA on, or 403."""
     if not user.is_admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Nur für Admins")
@@ -260,6 +264,7 @@ def require_admin(user: User = Depends(current_user)) -> User:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Schalte zuerst die Zwei-Faktor-Anmeldung ein",
         )
+    set_actor(session, user.id, "admin")
     return user
 
 
@@ -298,6 +303,8 @@ def register(
         avatar=body.avatar,
         created_at=datetime.now(UTC),
     )
+    # Nobody is logged in yet: the new user registers themselves.
+    set_actor(session, user, "user")
     session.add(user)
     try:
         session.flush()
@@ -551,5 +558,8 @@ def delete_account(
     # SCRUM-37: a Meetup with others in it gets a new Host first (app.meetup_lifecycle).
     hand_over_meetups_of(session, user.id, datetime.now(UTC))
     session.delete(user)
+    session.flush()
+    # SCRUM-66: the audit rows about the user hold the old Nickname.
+    forget_user(session, user.id)
     session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
