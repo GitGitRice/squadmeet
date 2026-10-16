@@ -17,6 +17,7 @@ browser ──HTTPS──▶ web (Caddy: built React app + /api/* → backend) �
 | [Dockerfile](Dockerfile) | The image `squadmeet-deploy`: only `compose.yml` + `host-deploy.sh`. CI pushes it with the same tags as the app images |
 | [setup-deploy-document.sh](setup-deploy-document.sh) | Creates the SSM document `squadmeet-deploy`: pull the `squadmeet-deploy` image of one tag, copy its two files to `/opt/squadmeet`, run `host-deploy.sh` |
 | [setup-github-deploy.sh](setup-github-deploy.sh) | Creates the GitHub OIDC provider and the IAM role `squadmeet-github-deploy` for the automatic deploy |
+| [setup-photos.sh](setup-photos.sh) | Photo storage (`SCRUM-42`): private S3 bucket, the host role's permission for it, its name in SSM, IMDS hop limit 2 |
 | [setup-turnstile.sh](setup-turnstile.sh) | Wizard: makes the Cloudflare Turnstile widget (captcha, `SCRUM-27`) and stores its keys in SSM |
 | [ec2-user-data.sh](ec2-user-data.sh) | First boot of the EC2 host: Docker, Compose plugin (fixed version, checksum checked), 2 GB swap file |
 | [../frontend/Caddyfile](../frontend/Caddyfile) | Caddy: HTTPS certificate, the static files, the proxy to the API |
@@ -188,3 +189,24 @@ stores both keys in SSM. Run it again to replace the keys, for example at the ha
 (`SCRUM-48`). The keys take effect at the next deploy.
 
 The host's IAM role may already read `/squadmeet/*`, so nothing else changes.
+
+## Photo storage (S3)
+
+Photos (`SCRUM-42`) are in a private S3 bucket, not in the database. The backend reaches it
+with the host's IAM role (no stored keys) and gives the browser presigned links that work for
+15 minutes. Locally the backend uses the folder `backend/photos/` (`PHOTO_DIR` in
+`docker-compose.yml`) with signed links of its own; the tests use neither.
+
+Run once per AWS account, then deploy again:
+
+```bash
+AWS_REGION=eu-central-1 deploy/setup-photos.sh <instance-id>
+```
+
+It creates the bucket `squadmeet-photos-<account id>` (all public access blocked), lets the
+role `squadmeet-ec2` put, get and delete objects under `places/`, stores the bucket name in
+`/squadmeet/photo-bucket`, and sets the IMDS hop limit of the instance to 2: the backend runs in
+a container, one network hop behind the host, and IMDSv2 answers only within the hop limit.
+`setup-aws.sh` starts new instances with hop limit 2.
+
+Without the parameter the deploy still works and Photos are off (upload answers 503).

@@ -142,7 +142,9 @@ in the Condition. The app sends nothing itself.
 _Avoid_: complaint, ticket, Place report
 
 **Photo** (Foto):
-A picture of a Place uploaded by a user. It is visible only after an Admin approves it.
+A picture of a Place uploaded by a user. It is visible only after an Admin approves it; a
+rejected Photo is deleted. Stored as a smaller JPEG without EXIF (no location). At most 3 pending
+per user and Place; none at a Place suggestion. After an account delete it stays without a name.
 _Avoid_: image, upload
 
 ## People

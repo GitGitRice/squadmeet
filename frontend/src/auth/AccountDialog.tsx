@@ -12,6 +12,7 @@ type Props = {
   onLockedPlaces: () => void
   onSuggestions: () => void
   onReports: () => void
+  onPhotos: () => void
   onClose: () => void
 }
 
@@ -25,6 +26,7 @@ export default function AccountDialog({
   onLockedPlaces,
   onSuggestions,
   onReports,
+  onPhotos,
   onClose,
 }: Props) {
   return (
@@ -44,6 +46,9 @@ export default function AccountDialog({
             </button>
             <button type="button" onClick={onReports}>
               Gemeldete Plätze
+            </button>
+            <button type="button" onClick={onPhotos}>
+              Fotos freigeben
             </button>
             <button type="button" onClick={onLockedPlaces}>
               Gesperrte Plätze

@@ -7,3 +7,7 @@ pyotp==2.10.*
 segno==1.6.*
 sqlmodel==0.0.48
 uvicorn[standard]==0.54.*
+# Photos (SCRUM-42): S3 storage, image check + EXIF removal, file upload in FastAPI.
+boto3==1.43.*
+pillow==12.3.*
+python-multipart==0.0.32

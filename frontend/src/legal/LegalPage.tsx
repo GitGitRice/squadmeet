@@ -169,8 +169,15 @@ function Privacy() {
           nicht mehr, dass du es warst.
         </li>
         <li>
-          <strong>Heimatgebiet und Fotos:</strong> nur, wenn du sie angibst oder hochlädst, sobald
-          es diese Funktionen gibt.
+          <strong>Fotos:</strong> wenn du ein Foto eines Platzes hochlädst, das Foto, zu welchem
+          Platz es gehört, von wem es ist und wann. Unser Server speichert eine verkleinerte Kopie
+          ohne die Zusatzdaten deiner Kamera (EXIF), also auch ohne Aufnahmeort. Ein Foto ist erst
+          sichtbar, wenn ein Admin es freigegeben hat; der Admin sieht dabei deinen Nickname,
+          andere sehen ihn nicht. Bitte fotografiere keine Personen. Ein abgelehntes Foto löschen
+          wir.
+        </li>
+        <li>
+          <strong>Heimatgebiet:</strong> nur, wenn du es angibst, sobald es diese Funktion gibt.
         </li>
       </ul>
       <p>
@@ -199,7 +206,9 @@ function Privacy() {
       <p>
         Die App läuft auf einem Server von Amazon Web Services EMEA SARL, 38 Avenue John F.
         Kennedy, L-1855 Luxemburg, in einem Rechenzentrum in Frankfurt am Main. Mit AWS gilt ein
-        Vertrag zur Auftragsverarbeitung.
+        Vertrag zur Auftragsverarbeitung. Fotos liegen in einem nicht öffentlichen Speicher von
+        AWS (Amazon S3) in derselben Region. Dein Browser lädt ein Foto über einen Link, der nach
+        15 Minuten nicht mehr gilt, direkt von dort; dabei sieht AWS deine IP-Adresse.
       </p>
       <p>
         Dein Browser sendet bei jedem Aufruf deine IP-Adresse an den Server. Wir benutzen sie nur,
@@ -268,7 +277,7 @@ function Privacy() {
       <p>
         Angemeldet findest du oben rechts unter „Konto“ den Punkt „Konto löschen“. Wir fragen dein Passwort (und mit
         Zwei-Faktor-Anmeldung einen Code) ab. Dann löschen wir sofort dein Konto mit allen oben
-        genannten Daten, auch deine Treffen, Serien, Teilnahmen, Kontakte, Blockierungen, Bewertungen und Antworten. Danach ist dein Nickname wieder frei.
+        genannten Daten, auch deine Treffen, Serien, Teilnahmen, Kontakte, Blockierungen, Bewertungen und Antworten. Danach ist dein Nickname wieder frei. Deine Fotos bleiben am Platz, aber ohne Verbindung zu dir; noch nicht freigegebene prüft ein Admin weiter.
       </p>
 
       <h2>Deine Rechte</h2>
