@@ -37,8 +37,10 @@ export async function fetchReasons(placeId: number): Promise<Reason[]> {
   return answer(await fetch(`/api/places/${placeId}/reasons`), 'GET reasons')
 }
 
-export async function fetchRatingSummary(placeId: number): Promise<RatingSummary> {
-  return answer(await fetch(`/api/places/${placeId}/ratings`), 'GET ratings')
+/** With the token of an Admin, also for a Place that users reported (SCRUM-57). */
+export async function fetchRatingSummary(placeId: number, token?: string | null): Promise<RatingSummary> {
+  const init = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  return answer(await fetch(`/api/places/${placeId}/ratings`, init), 'GET ratings')
 }
 
 /** The user's own Rating of the Place, or null. */

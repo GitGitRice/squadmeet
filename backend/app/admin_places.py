@@ -7,6 +7,9 @@ cannot bring it back, and its history (Ratings, past Meetups) stays.
 Lock and delete call off the Place's Meetups: one that has not started is Cancelled, one that
 runs is ended now (a running Meetup is ended, not cancelled, as in SCRUM-37). Unlock does not
 undo this. Series Occurrences (SCRUM-38) do not exist yet.
+
+Lock and delete also close the open Place reports (SCRUM-57): the Admin has decided, so an
+unlocked Place is not hidden again by the old reports.
 """
 
 from datetime import UTC, datetime
@@ -19,6 +22,7 @@ from app.auth import require_admin
 from app.db import get_session
 from app.meetup_lifecycle import call_off
 from app.models import Meetup, Place, User
+from app.place_reports import close_reports
 from app.place_status import STATUS, PlaceStatus, PlaceUse, get_status, require
 
 router = APIRouter(prefix="/admin/places", tags=["admin"])
@@ -66,6 +70,7 @@ def lock_place(
     now = datetime.now(UTC)
     place.locked_at = now
     call_off_meetups(session, place, now)
+    close_reports(session, place_id, now)
     session.commit()
     session.refresh(place)
     return LockedPlaceRead.model_validate(place, from_attributes=True)
@@ -97,5 +102,6 @@ def delete_place(
     now = datetime.now(UTC)
     place.deleted_at = now
     call_off_meetups(session, place, now)
+    close_reports(session, place_id, now)
     session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

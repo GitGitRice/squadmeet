@@ -7,8 +7,8 @@ import pytest
 from fastapi import HTTPException
 from sqlmodel import select
 
-from app.models import Place
-from app.place_status import PlaceStatus, PlaceUse, allowed_in, get_status, require
+from app.models import Place, PlaceReport, User
+from app.place_status import PlaceStatus, PlaceUse, allowed_in, get_status, require, view_use
 
 NOT_FOUND = (404, "Place not found")
 NOT_CONFIRMED = (409, "Dieser Platz ist noch nicht bestätigt")
@@ -20,15 +20,38 @@ ENOUGH_CONFIRMATIONS = (
 NOT_WAITING = (409, "Dieser Platz wartet nicht auf eine Freigabe")
 OK = None
 
-ACTIVE, SUGGESTION, WAITING, LOCKED, DELETED = PlaceStatus
+ACTIVE, SUGGESTION, WAITING, REPORTED, LOCKED, DELETED = PlaceStatus
 
 EXPECTED = {
-    PlaceUse.VIEW: {ACTIVE: OK, SUGGESTION: OK, WAITING: OK, LOCKED: NOT_FOUND, DELETED: NOT_FOUND},
-    PlaceUse.MAP: {ACTIVE: OK, SUGGESTION: OK, WAITING: OK, LOCKED: NOT_FOUND, DELETED: NOT_FOUND},
+    PlaceUse.VIEW: {
+        ACTIVE: OK,
+        SUGGESTION: OK,
+        WAITING: OK,
+        REPORTED: NOT_FOUND,
+        LOCKED: NOT_FOUND,
+        DELETED: NOT_FOUND,
+    },
+    PlaceUse.REVIEW: {
+        ACTIVE: OK,
+        SUGGESTION: OK,
+        WAITING: OK,
+        REPORTED: OK,
+        LOCKED: NOT_FOUND,
+        DELETED: NOT_FOUND,
+    },
+    PlaceUse.MAP: {
+        ACTIVE: OK,
+        SUGGESTION: OK,
+        WAITING: OK,
+        REPORTED: NOT_FOUND,
+        LOCKED: NOT_FOUND,
+        DELETED: NOT_FOUND,
+    },
     PlaceUse.MEETUP: {
         ACTIVE: OK,
         SUGGESTION: NOT_CONFIRMED,
         WAITING: NOT_CONFIRMED,
+        REPORTED: NOT_FOUND,
         LOCKED: NOT_FOUND,
         DELETED: NOT_FOUND,
     },
@@ -36,6 +59,7 @@ EXPECTED = {
         ACTIVE: OK,
         SUGGESTION: NOT_CONFIRMED,
         WAITING: NOT_CONFIRMED,
+        REPORTED: NOT_FOUND,
         LOCKED: NOT_FOUND,
         DELETED: NOT_FOUND,
     },
@@ -43,6 +67,15 @@ EXPECTED = {
         ACTIVE: ALREADY_CONFIRMED,
         SUGGESTION: OK,
         WAITING: ENOUGH_CONFIRMATIONS,
+        REPORTED: NOT_FOUND,
+        LOCKED: NOT_FOUND,
+        DELETED: NOT_FOUND,
+    },
+    PlaceUse.REPORT: {
+        ACTIVE: OK,
+        SUGGESTION: OK,
+        WAITING: OK,
+        REPORTED: NOT_FOUND,
         LOCKED: NOT_FOUND,
         DELETED: NOT_FOUND,
     },
@@ -50,10 +83,18 @@ EXPECTED = {
         ACTIVE: NOT_WAITING,
         SUGGESTION: NOT_WAITING,
         WAITING: OK,
+        REPORTED: NOT_WAITING,
         LOCKED: NOT_WAITING,
         DELETED: NOT_FOUND,
     },
-    PlaceUse.ADMIN: {ACTIVE: OK, SUGGESTION: OK, WAITING: OK, LOCKED: OK, DELETED: NOT_FOUND},
+    PlaceUse.ADMIN: {
+        ACTIVE: OK,
+        SUGGESTION: OK,
+        WAITING: OK,
+        REPORTED: OK,
+        LOCKED: OK,
+        DELETED: NOT_FOUND,
+    },
 }
 
 NOW = datetime.now(UTC)
@@ -68,6 +109,14 @@ COLUMNS = {
     "locked": ({"locked_at": NOW}, LOCKED),
     "locked suggestion": ({"is_suggestion": True, "locked_at": NOW}, LOCKED),
     "deleted": ({"deleted_at": NOW}, DELETED),
+    # Open Place reports from 3 different users (SCRUM-57); "reports" is not a column.
+    "two reports": ({"reports": 2}, ACTIVE),
+    "reported": ({"reports": 3}, REPORTED),
+    "three closed reports": ({"reports": 3, "closed": True}, ACTIVE),
+    # A Place suggestion stays a suggestion; the Admin approval guards it already.
+    "reported suggestion": ({"is_suggestion": True, "reports": 3}, SUGGESTION),
+    "reported waiting": ({"is_suggestion": True, "confirmed_at": NOW, "reports": 3}, WAITING),
+    "locked reported": ({"locked_at": NOW, "reports": 3}, LOCKED),
     "deleted locked suggestion": (
         {"is_suggestion": True, "locked_at": NOW, "deleted_at": NOW},
         DELETED,
@@ -81,7 +130,7 @@ CASES = [
 ]
 
 
-def make_place(session, **columns):
+def make_place(session, reports=0, closed=False, **columns):
     place = Place(
         name="Statusplatte",
         activity_type="table_tennis",
@@ -89,6 +138,20 @@ def make_place(session, **columns):
         **columns,
     )
     session.add(place)
+    session.commit()
+    for n in range(reports):
+        user = User(nickname=f"Melder_{n}", password_hash="-", avatar="fox", created_at=NOW)
+        session.add(user)
+        session.flush()
+        session.add(
+            PlaceReport(
+                place_id=place.id,
+                user_id=user.id,
+                reason="dangerous",
+                created_at=NOW,
+                closed_at=NOW if closed else None,
+            )
+        )
     session.commit()
     return place
 
@@ -134,3 +197,10 @@ def test_a_missing_place_is_not_found_for_every_use(session, use):
 
     assert (error.value.status_code, error.value.detail) == NOT_FOUND
     assert get_status(session, 2_000_000_000) is None
+
+
+def test_only_an_admin_with_mfa_may_review_a_reported_place():
+    assert view_use(None) is PlaceUse.VIEW
+    assert view_use(User(nickname="Paula", is_admin=False)) is PlaceUse.VIEW
+    assert view_use(User(nickname="Anna", is_admin=True)) is PlaceUse.VIEW
+    assert view_use(User(nickname="Anna", is_admin=True, mfa_enabled_at=NOW)) is PlaceUse.REVIEW

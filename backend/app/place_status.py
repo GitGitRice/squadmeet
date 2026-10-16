@@ -3,7 +3,8 @@
 A Place has one status, worked out from its columns by one SQL expression (STATUS), so the
 check of one Place (require) and the filter of a list (allowed_in) cannot drift apart.
 RULES says for each use and status whether the use is allowed, or which error it answers.
-Callers ask this module and do not read is_suggestion, locked_at or deleted_at themselves.
+Callers ask this module and do not read is_suggestion, locked_at, deleted_at or the open Place
+reports themselves.
 
 This module imports no other app module except the models, so every route can import it.
 """
@@ -12,10 +13,10 @@ from enum import StrEnum
 from typing import NamedTuple
 
 from fastapi import HTTPException, status
-from sqlalchemy import and_, case
+from sqlalchemy import and_, case, func
 from sqlmodel import Session, select
 
-from app.models import Place
+from app.models import Place, PlaceReport, User
 
 
 class PlaceStatus(StrEnum):
@@ -24,6 +25,8 @@ class PlaceStatus(StrEnum):
     SUGGESTION = "suggestion"
     # A Place suggestion with 3 Confirmations; an Admin must approve it (SCRUM-56).
     WAITING = "waiting"
+    # Open Place reports from 3 different users (SCRUM-57); off the map until an Admin decides.
+    REPORTED = "reported"
     # An Admin locked it (SCRUM-39); an Admin can unlock it.
     LOCKED = "locked"
     # An Admin deleted it (SCRUM-39). The row stays, so the OSM import cannot bring it back.
@@ -33,25 +36,41 @@ class PlaceStatus(StrEnum):
 class PlaceUse(StrEnum):
     # The Place detail and what it shows: Meetups, Ratings, Reasons.
     VIEW = "view"
+    # The same for an Admin, who also opens a reported Place (view_use).
+    REVIEW = "review"
     # The map, the name search and the duplicate warning of a suggestion.
     MAP = "map"
     MEETUP = "meetup"
     # A Rating, and the "noch so / behoben" vote on an issue.
     RATE = "rate"
     CONFIRM = "confirm"
+    # A Place report (SCRUM-57).
+    REPORT = "report"
     # An Admin approves or rejects a Place suggestion that waits for it (SCRUM-56).
     APPROVE = "approve"
     # Lock, unlock and delete.
     ADMIN = "admin"
 
 
-# When two columns are set, the stronger status counts: deleted, then locked, then waiting,
-# then suggestion. An approved Place keeps confirmed_at; is_suggestion = false makes it active.
+# Open Place reports from this many users hide a Place (SCRUM-57).
+REPORTS_TO_HIDE = 3
+
+# One open report per user and Place (uq_place_report_open), so this counts users.
+OPEN_REPORTS = (
+    select(func.count())
+    .where(PlaceReport.place_id == Place.id, PlaceReport.closed_at.is_(None))
+    .scalar_subquery()
+)
+
+# When two apply, the stronger status counts: deleted, then locked, then waiting, then
+# suggestion, then reported. An approved Place keeps confirmed_at; is_suggestion = false makes
+# it active. A reported suggestion stays a suggestion: the Admin approval guards it already.
 STATUS = case(
     (Place.deleted_at.is_not(None), PlaceStatus.DELETED.value),
     (Place.locked_at.is_not(None), PlaceStatus.LOCKED.value),
     (and_(Place.is_suggestion, Place.confirmed_at.is_not(None)), PlaceStatus.WAITING.value),
     (Place.is_suggestion, PlaceStatus.SUGGESTION.value),
+    (OPEN_REPORTS >= REPORTS_TO_HIDE, PlaceStatus.REPORTED.value),
     else_=PlaceStatus.ACTIVE.value,
 )
 
@@ -72,14 +91,24 @@ ENOUGH_CONFIRMATIONS = Refusal(
 )
 NOT_WAITING = Refusal(status.HTTP_409_CONFLICT, "Dieser Platz wartet nicht auf eine Freigabe")
 
-ACTIVE, SUGGESTION, WAITING, LOCKED, DELETED = PlaceStatus
+ACTIVE, SUGGESTION, WAITING, REPORTED, LOCKED, DELETED = PlaceStatus
 
-# None = allowed.
+# None = allowed. A reported Place is hidden from users like a locked one, until an Admin
+# dismisses the reports or locks it; its Meetups stay.
 RULES: dict[PlaceUse, dict[PlaceStatus, Refusal | None]] = {
     PlaceUse.VIEW: {
         ACTIVE: None,
         SUGGESTION: None,
         WAITING: None,
+        REPORTED: NOT_FOUND,
+        LOCKED: NOT_FOUND,
+        DELETED: NOT_FOUND,
+    },
+    PlaceUse.REVIEW: {
+        ACTIVE: None,
+        SUGGESTION: None,
+        WAITING: None,
+        REPORTED: None,
         LOCKED: NOT_FOUND,
         DELETED: NOT_FOUND,
     },
@@ -87,6 +116,7 @@ RULES: dict[PlaceUse, dict[PlaceStatus, Refusal | None]] = {
         ACTIVE: None,
         SUGGESTION: None,
         WAITING: None,
+        REPORTED: NOT_FOUND,
         LOCKED: NOT_FOUND,
         DELETED: NOT_FOUND,
     },
@@ -94,6 +124,7 @@ RULES: dict[PlaceUse, dict[PlaceStatus, Refusal | None]] = {
         ACTIVE: None,
         SUGGESTION: NOT_CONFIRMED,
         WAITING: NOT_CONFIRMED,
+        REPORTED: NOT_FOUND,
         LOCKED: NOT_FOUND,
         DELETED: NOT_FOUND,
     },
@@ -101,6 +132,7 @@ RULES: dict[PlaceUse, dict[PlaceStatus, Refusal | None]] = {
         ACTIVE: None,
         SUGGESTION: NOT_CONFIRMED,
         WAITING: NOT_CONFIRMED,
+        REPORTED: NOT_FOUND,
         LOCKED: NOT_FOUND,
         DELETED: NOT_FOUND,
     },
@@ -108,6 +140,15 @@ RULES: dict[PlaceUse, dict[PlaceStatus, Refusal | None]] = {
         ACTIVE: ALREADY_CONFIRMED,
         SUGGESTION: None,
         WAITING: ENOUGH_CONFIRMATIONS,
+        REPORTED: NOT_FOUND,
+        LOCKED: NOT_FOUND,
+        DELETED: NOT_FOUND,
+    },
+    PlaceUse.REPORT: {
+        ACTIVE: None,
+        SUGGESTION: None,
+        WAITING: None,
+        REPORTED: NOT_FOUND,
         LOCKED: NOT_FOUND,
         DELETED: NOT_FOUND,
     },
@@ -116,6 +157,7 @@ RULES: dict[PlaceUse, dict[PlaceStatus, Refusal | None]] = {
         ACTIVE: NOT_WAITING,
         SUGGESTION: NOT_WAITING,
         WAITING: None,
+        REPORTED: NOT_WAITING,
         LOCKED: NOT_WAITING,
         DELETED: NOT_FOUND,
     },
@@ -124,6 +166,7 @@ RULES: dict[PlaceUse, dict[PlaceStatus, Refusal | None]] = {
         ACTIVE: None,
         SUGGESTION: None,
         WAITING: None,
+        REPORTED: None,
         LOCKED: None,
         DELETED: NOT_FOUND,
     },
@@ -131,6 +174,14 @@ RULES: dict[PlaceUse, dict[PlaceStatus, Refusal | None]] = {
 
 # place.id is a PostgreSQL integer; a bigger number in the URL would make the query fail.
 MAX_DB_INT = 2_147_483_647
+
+
+def view_use(user: User | None) -> PlaceUse:
+    """VIEW, or REVIEW for an Admin with MFA on (the rule of auth.require_admin), who may open a
+    reported Place."""
+    if user is not None and user.is_admin and user.mfa_enabled_at is not None:
+        return PlaceUse.REVIEW
+    return PlaceUse.VIEW
 
 
 def allowed_in(use: PlaceUse):

@@ -1,8 +1,10 @@
 // Admin: lock, unlock and delete a Place (SCRUM-39): the API of backend/app/admin_places.py.
 // Approve or reject a Place suggestion (SCRUM-56): backend/app/admin_suggestions.py.
+// Dismiss Place reports (SCRUM-57): backend/app/place_reports.py.
 // The server allows it only for an Admin with MFA on.
 import type { User } from './auth'
 import { answer } from './http'
+import type { PlaceReportReason } from './places'
 
 export type LockedPlace = {
   id: number
@@ -32,6 +34,20 @@ export type WaitingSuggestion = {
   osm_hints: OsmHint[] | null
 }
 
+export type ReportedPlace = {
+  id: number
+  name: string
+  activity_type: string
+  lat: number
+  lon: number
+  address: string | null
+  // The number of open reports per reason.
+  reasons: Partial<Record<PlaceReportReason, number>>
+  first_reported_at: string
+  // Off the map: 3 users reported it.
+  hidden: boolean
+}
+
 /** The server checks the same: an Admin without MFA gets 403. */
 export function canModerate(user: User | null | undefined): boolean {
   return !!user && user.is_admin && user.mfa_enabled
@@ -42,6 +58,7 @@ function call(token: string, method: string, path: string, base = '/api/admin/pl
 }
 
 const SUGGESTIONS = '/api/admin/place-suggestions'
+const REPORTS = '/api/admin/place-reports'
 
 // 204 answers have no body, so `answer` (which reads JSON) is only used on errors.
 async function noContent(response: Response, what: string): Promise<void> {
@@ -74,4 +91,12 @@ export async function approveSuggestion(token: string, placeId: number): Promise
 
 export async function rejectSuggestion(token: string, placeId: number): Promise<void> {
   await noContent(await call(token, 'POST', `/${placeId}/reject`, SUGGESTIONS), 'POST reject suggestion')
+}
+
+export async function fetchReportedPlaces(token: string): Promise<ReportedPlace[]> {
+  return answer(await call(token, 'GET', '', REPORTS), 'GET reported places')
+}
+
+export async function dismissReports(token: string, placeId: number): Promise<void> {
+  await noContent(await call(token, 'POST', `/${placeId}/dismiss`, REPORTS), 'POST dismiss reports')
 }

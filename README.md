@@ -122,6 +122,9 @@ What an Admin can do (`SCRUM-39`):
   Cancelled Meetups stay cancelled.
 - **Delete a Place** ("Platz löschen"): like lock, but for good. The row stays in the database
   (soft delete), so the next OSM import does not bring it back.
+- **Reported Places** ("Konto" → "Gemeldete Plätze"): Places that users reported, the ones off
+  the map first. "Verwerfen" closes the reports, and the Place is back on the map. "Sperren"
+  locks it as above.
 
 ### Tests
 
