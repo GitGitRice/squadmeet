@@ -11,7 +11,11 @@ from sqlmodel import Session, select
 from app.models import Meetup, MeetupJoin, Notification
 
 NotificationKind = Literal[
-    "meetup_cancelled", "meetup_ended", "host_handover", "blocked_user_joined"
+    "meetup_cancelled",
+    "meetup_ended",
+    "host_handover",
+    "blocked_user_joined",
+    "favorite_meetup_created",
 ]
 
 

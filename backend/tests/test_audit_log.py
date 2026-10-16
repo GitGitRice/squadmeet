@@ -1,7 +1,7 @@
 """Audit log (SCRUM-66): who changed which row, and when."""
 
 import json
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
 
 import pyotp
 from sqlmodel import select
@@ -253,3 +253,9 @@ def test_times_are_iso_strings(client, session, place, host):  # noqa: F811
 
     [entry] = audit_rows(session, "meetup", meetup_id)
     assert datetime.fromisoformat(entry.changes["starts_at"]) == starts_at
+
+
+def test_wall_clock_times_are_iso_strings():
+    from app.audit import plain
+
+    assert plain(time(17, 30)) == "17:30:00"

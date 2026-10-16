@@ -8,6 +8,7 @@ from app.admin_suggestions import router as admin_suggestions_router
 from app.audit import audit_request
 from app.auth import router as auth_router
 from app.contacts import router as contacts_router
+from app.favorites import router as favorites_router
 from app.meetup_lifecycle import LifecycleError
 from app.meetups import router as meetups_router
 from app.notifications import router as notifications_router
@@ -41,6 +42,7 @@ api.include_router(meetups_router)
 api.include_router(notifications_router)
 api.include_router(series_router)
 api.include_router(contacts_router)
+api.include_router(favorites_router)
 api.include_router(suggestions_router)
 api.include_router(ratings_router)
 api.include_router(admin_places_router)

@@ -20,6 +20,7 @@ from sqlmodel import Session, select
 
 from app.auth import current_user
 from app.db import get_session
+from app.favorite_notifications import notify_favorites
 from app.meetup_lifecycle import call_off
 from app.models import Meetup, MeetupSeries, Place, User
 from app.place_status import PlaceUse, allowed_in, require
@@ -101,24 +102,25 @@ def fill_series(session: Session, series: MeetupSeries, now: datetime) -> int:
         return 0
     slots = [Slot.model_validate(slot) for slot in series.slots]
     have = set(session.exec(select(Meetup.series_date).where(Meetup.series_id == series.id)))
-    made = 0
+    created = []
     for start, day, hours in occurrence_times(slots, now, now + timedelta(days=WINDOW_DAYS), series.until):
         if day in have:
             continue
-        session.add(
-            Meetup(
-                place_id=series.place_id,
-                host_id=series.host_id,
-                party_size=series.party_size,
-                starts_at=start,
-                ends_at=start + timedelta(hours=hours),
-                series_id=series.id,
-                series_date=day,
-            )
+        meetup = Meetup(
+            place_id=series.place_id,
+            host_id=series.host_id,
+            party_size=series.party_size,
+            starts_at=start,
+            ends_at=start + timedelta(hours=hours),
+            series_id=series.id,
+            series_date=day,
         )
-        made += 1
+        session.add(meetup)
+        created.append(meetup)
     session.flush()
-    return made
+    for meetup in created:
+        notify_favorites(session, meetup, now)
+    return len(created)
 
 
 def fill_open_series(session: Session, now: datetime, place_id: int | None = None) -> None:

@@ -15,7 +15,7 @@ Not logged, because they skip the ORM:
 
 import struct
 from collections.abc import Iterator
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, time
 from typing import Any, Literal
 
 from fastapi import Depends
@@ -165,7 +165,7 @@ def plain(value: Any) -> Any:
     """A value for the jsonb column. A location becomes WKT, for example "POINT(12.3 51.3)"."""
     if isinstance(value, list):
         return [plain(item) for item in value]
-    if isinstance(value, (datetime, date)):
+    if isinstance(value, (datetime, date, time)):
         return value.isoformat()
     if isinstance(value, WKBElement):
         return point_wkt(value)

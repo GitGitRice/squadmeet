@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 from typing import Any, Literal
 
 from geoalchemy2 import Geometry
@@ -16,6 +16,7 @@ from sqlalchemy import (
     Integer,
     JSON,
     String,
+    Time,
     UniqueConstraint,
     false,
     text,
@@ -408,6 +409,40 @@ class UserBlock(SQLModel, table=True):
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
 
 
+class Favorite(SQLModel, table=True):
+    """A Place saved by one user for Meetup Notifications (SCRUM-41)."""
+
+    __tablename__ = "favorite"
+    __table_args__ = (UniqueConstraint("place_id", "user_id", name="uq_favorite_place_user"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(
+        sa_column=Column(ForeignKey("place.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    user_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
+class FavoriteTimeRule(SQLModel, table=True):
+    """Berlin weekdays and a same-day time range for one Favorite (SCRUM-41)."""
+
+    __tablename__ = "favorite_time_rule"
+    __table_args__ = (
+        CheckConstraint("cardinality(weekdays) BETWEEN 1 AND 7", name="ck_favorite_rule_weekdays"),
+        CheckConstraint("start_time < end_time", name="ck_favorite_rule_same_day"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    favorite_id: int = Field(
+        sa_column=Column(ForeignKey("favorite.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    weekdays: list[int] = Field(sa_column=Column(ARRAY(Integer), nullable=False))
+    start_time: time = Field(sa_column=Column(Time, nullable=False))
+    end_time: time = Field(sa_column=Column(Time, nullable=False))
+
+
 class Notification(SQLModel, table=True):
     """A Meetup event kept in one user's in-app Notification list (SCRUM-40)."""
 
@@ -415,7 +450,7 @@ class Notification(SQLModel, table=True):
     __table_args__ = (
         CheckConstraint(
             "kind IN ('meetup_cancelled', 'meetup_ended', 'host_handover', "
-            "'blocked_user_joined')",
+            "'blocked_user_joined', 'favorite_meetup_created')",
             name="ck_notification_kind",
         ),
         Index("ix_notification_user_created", "user_id", "created_at"),
