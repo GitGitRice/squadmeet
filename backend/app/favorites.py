@@ -1,0 +1,224 @@
+"""Favorites and their optional Berlin Time rules (SCRUM-41)."""
+
+from datetime import UTC, datetime, time
+
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from pydantic import BaseModel, Field, field_validator, model_validator
+from sqlmodel import Session, select
+
+from app.auth import current_user
+from app.db import get_session
+from app.models import Favorite, FavoriteTimeRule, Place, User
+from app.place_status import require, view_use
+
+router = APIRouter(tags=["favorites"])
+
+
+class TimeRuleWrite(BaseModel):
+    weekdays: list[int] = Field(min_length=1, max_length=7)
+    start: time
+    end: time
+
+    @field_validator("weekdays")
+    @classmethod
+    def valid_weekdays(cls, weekdays: list[int]) -> list[int]:
+        if any(day < 0 or day > 6 for day in weekdays) or len(set(weekdays)) != len(weekdays):
+            raise ValueError("Wochentage müssen eindeutig zwischen 0 und 6 liegen")
+        return sorted(weekdays)
+
+    @model_validator(mode="after")
+    def same_day(self):
+        if self.start >= self.end:
+            raise ValueError("Das Zeitfenster muss am selben Tag enden")
+        return self
+
+
+class TimeRuleRead(BaseModel):
+    id: int
+    weekdays: list[int]
+    start: time
+    end: time
+
+
+class FavoritePlaceRead(BaseModel):
+    id: int
+    name: str
+    address: str | None
+
+
+class FavoriteRead(BaseModel):
+    id: int
+    place: FavoritePlaceRead
+    rules: list[TimeRuleRead]
+
+
+def owned(session: Session, favorite_id: int, user_id: int) -> Favorite:
+    favorite = session.exec(
+        select(Favorite).where(Favorite.id == favorite_id, Favorite.user_id == user_id)
+    ).first()
+    if favorite is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Favorit nicht gefunden")
+    return favorite
+
+
+def rule_read(rule: FavoriteTimeRule) -> TimeRuleRead:
+    return TimeRuleRead(
+        id=rule.id, weekdays=rule.weekdays, start=rule.start_time, end=rule.end_time
+    )
+
+
+def favorite_reads(session: Session, favorites: list[Favorite]) -> list[FavoriteRead]:
+    if not favorites:
+        return []
+    ids = [favorite.id for favorite in favorites]
+    places = {
+        place.id: place
+        for place in session.exec(
+            select(Place).where(Place.id.in_({favorite.place_id for favorite in favorites}))
+        )
+    }
+    rules: dict[int, list[FavoriteTimeRule]] = {favorite_id: [] for favorite_id in ids}
+    for rule in session.exec(
+        select(FavoriteTimeRule)
+        .where(FavoriteTimeRule.favorite_id.in_(ids))
+        .order_by(FavoriteTimeRule.id)
+    ):
+        rules[rule.favorite_id].append(rule)
+    return [
+        FavoriteRead(
+            id=favorite.id,
+            place=FavoritePlaceRead(
+                id=place.id, name=place.name, address=place.address
+            ),
+            rules=[rule_read(rule) for rule in rules[favorite.id]],
+        )
+        for favorite in favorites
+        for place in [places[favorite.place_id]]
+    ]
+
+
+@router.get("/favorites", response_model=list[FavoriteRead])
+def list_favorites(
+    user: User = Depends(current_user), session: Session = Depends(get_session)
+):
+    favorites = list(
+        session.exec(
+            select(Favorite)
+            .where(Favorite.user_id == user.id)
+            .order_by(Favorite.created_at, Favorite.id)
+        )
+    )
+    return favorite_reads(session, favorites)
+
+
+@router.get("/places/{place_id}/favorite", response_model=FavoriteRead | None)
+def get_favorite(
+    place_id: int,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    favorite = session.exec(
+        select(Favorite).where(Favorite.place_id == place_id, Favorite.user_id == user.id)
+    ).first()
+    return favorite_reads(session, [favorite])[0] if favorite else None
+
+
+@router.put("/places/{place_id}/favorite", response_model=FavoriteRead)
+def add_favorite(
+    place_id: int,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    require(session, place_id, view_use(user))
+    favorite = session.exec(
+        select(Favorite).where(Favorite.place_id == place_id, Favorite.user_id == user.id)
+    ).first()
+    if favorite is None:
+        favorite = Favorite(place_id=place_id, user_id=user.id, created_at=datetime.now(UTC))
+        session.add(favorite)
+        session.commit()
+        session.refresh(favorite)
+    return favorite_reads(session, [favorite])[0]
+
+
+@router.delete("/places/{place_id}/favorite", status_code=status.HTTP_204_NO_CONTENT)
+def remove_favorite(
+    place_id: int,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    favorite = session.exec(
+        select(Favorite).where(Favorite.place_id == place_id, Favorite.user_id == user.id)
+    ).first()
+    if favorite is not None:
+        session.delete(favorite)
+        session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/favorites/{favorite_id}/rules",
+    response_model=TimeRuleRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def add_time_rule(
+    favorite_id: int,
+    body: TimeRuleWrite,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    owned(session, favorite_id, user.id)
+    rule = FavoriteTimeRule(
+        favorite_id=favorite_id,
+        weekdays=body.weekdays,
+        start_time=body.start,
+        end_time=body.end,
+    )
+    session.add(rule)
+    session.commit()
+    session.refresh(rule)
+    return rule_read(rule)
+
+
+def owned_rule(session: Session, favorite_id: int, rule_id: int, user_id: int):
+    owned(session, favorite_id, user_id)
+    rule = session.exec(
+        select(FavoriteTimeRule).where(
+            FavoriteTimeRule.id == rule_id, FavoriteTimeRule.favorite_id == favorite_id
+        )
+    ).first()
+    if rule is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Zeitfenster nicht gefunden")
+    return rule
+
+
+@router.put("/favorites/{favorite_id}/rules/{rule_id}", response_model=TimeRuleRead)
+def edit_time_rule(
+    favorite_id: int,
+    rule_id: int,
+    body: TimeRuleWrite,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    rule = owned_rule(session, favorite_id, rule_id, user.id)
+    rule.weekdays = body.weekdays
+    rule.start_time = body.start
+    rule.end_time = body.end
+    session.commit()
+    session.refresh(rule)
+    return rule_read(rule)
+
+
+@router.delete(
+    "/favorites/{favorite_id}/rules/{rule_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+def delete_time_rule(
+    favorite_id: int,
+    rule_id: int,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    rule = owned_rule(session, favorite_id, rule_id, user.id)
+    session.delete(rule)
+    session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

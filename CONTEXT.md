@@ -142,7 +142,9 @@ in the Condition. The app sends nothing itself.
 _Avoid_: complaint, ticket, Place report
 
 **Photo** (Foto):
-A picture of a Place uploaded by a user. It is visible only after an Admin approves it.
+A picture of a Place uploaded by a user. It is visible only after an Admin approves it; a
+rejected Photo is deleted. Stored as a smaller JPEG without EXIF (no location). At most 3 pending
+per user and Place; none at a Place suggestion. After an account delete it stays without a name.
 _Avoid_: image, upload
 
 ## People
@@ -191,10 +193,24 @@ _Avoid_: bookmark, saved place
 
 **Time rule** (Zeitfenster):
 Weekdays plus a time range on a Favorite. A Notification goes out only for Meetups that start
-inside a Time rule. A Favorite without Time rules notifies always.
+inside a Time rule in `Europe/Berlin` local time. The start is inclusive and the end is exclusive;
+a rule must end on the same day. A Favorite without Time rules notifies always. Each newly stored
+occurrence of a Series follows the same rule as an individually created Meetup.
 _Avoid_: schedule, filter
 
 **Notification** (Benachrichtigung):
 A message about a Meetup, kept in the in-app list newest first. A tap marks it read and opens the
 affected Place and its Meetups. Push delivery is a separate feature.
 _Avoid_: alert, pop-up, message
+
+**Contact Notification** (Kontakt-Benachrichtigung):
+A Notification to a user's Contacts when the user makes a Meetup or Now-meetup; it names the
+user. A Series sends one, for its first Occurrence. A Contact who also has the Place as Favorite
+gets only this one, not the Favorite Notification. Never to users blocked in either direction.
+_Avoid_: friend alert, follow
+
+**Invitation** (Einladung):
+A Notification that someone in a Meetup (the Host or a Join) sends to chosen Contacts of their
+own. It names the inviter and offers "Ich komme mit" (Party size 1). At most one per user and
+Meetup; nobody already in the Meetup, nobody blocked with the inviter or the Host.
+_Avoid_: request, invite link

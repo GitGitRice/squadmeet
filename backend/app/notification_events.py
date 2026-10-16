@@ -11,7 +11,14 @@ from sqlmodel import Session, select
 from app.models import Meetup, MeetupJoin, Notification
 
 NotificationKind = Literal[
-    "meetup_cancelled", "meetup_ended", "host_handover", "blocked_user_joined"
+    "meetup_cancelled",
+    "meetup_ended",
+    "host_handover",
+    "blocked_user_joined",
+    "favorite_meetup_created",
+    # SCRUM-43: a Contact made a Meetup; a Contact invited the user to one.
+    "contact_meetup_created",
+    "meetup_invitation",
 ]
 
 
@@ -21,12 +28,16 @@ def notify_users(
     meetup: Meetup,
     kind: NotificationKind,
     now: datetime,
+    actor_id: int | None = None,
 ) -> None:
-    """Add one Notification per recipient. The caller owns the transaction."""
+    """Add one Notification per recipient. The caller owns the transaction. `actor_id`: who
+    caused it, for the Contact kinds (SCRUM-43)."""
     if meetup.id is None:
         raise ValueError("A Notification needs a stored Meetup")
     session.add_all(
-        Notification(user_id=user_id, meetup_id=meetup.id, kind=kind, created_at=now)
+        Notification(
+            user_id=user_id, meetup_id=meetup.id, kind=kind, actor_id=actor_id, created_at=now
+        )
         for user_id in user_ids
     )
 

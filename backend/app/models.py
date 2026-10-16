@@ -1,7 +1,8 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 from typing import Any, Literal
 
 from geoalchemy2 import Geometry
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import (
     ARRAY,
     BigInteger,
@@ -15,6 +16,7 @@ from sqlalchemy import (
     Integer,
     JSON,
     String,
+    Time,
     UniqueConstraint,
     false,
     text,
@@ -310,6 +312,34 @@ class MeetupJoin(SQLModel, table=True):
 
 
 
+class Photo(SQLModel, table=True):
+    """A user's Photo of a Place (SCRUM-42, see CONTEXT.md). The file is in the photo storage
+    (app.photo_storage), not in the database. Pending until an Admin approves it; a rejected
+    Photo is deleted with its file."""
+
+    __tablename__ = "photo"
+    __table_args__ = (Index("ix_photo_place_approved", "place_id", "approved_at"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(
+        sa_column=Column(ForeignKey("place.id", ondelete="CASCADE"), nullable=False)
+    )
+    # Empty after the user deleted the account: the Photo stays without a name (Stefan,
+    # 2026-10-16). Photos show no people (the upload screen says so).
+    user_id: int | None = Field(
+        default=None,
+        sa_column=Column(ForeignKey("app_user.id", ondelete="SET NULL"), nullable=True, index=True),
+    )
+    # The file's name in the photo storage.
+    storage_key: str = Field(sa_column=Column(String, nullable=False, unique=True))
+    width: int
+    height: int
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    approved_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
+
+
 class Rating(SQLModel, table=True):
     """A user's 1–5 stars for a Place with at least one Reason (SCRUM-31, see CONTEXT.md).
 
@@ -407,6 +437,40 @@ class UserBlock(SQLModel, table=True):
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
 
 
+class Favorite(SQLModel, table=True):
+    """A Place saved by one user for Meetup Notifications (SCRUM-41)."""
+
+    __tablename__ = "favorite"
+    __table_args__ = (UniqueConstraint("place_id", "user_id", name="uq_favorite_place_user"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(
+        sa_column=Column(ForeignKey("place.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    user_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
+class FavoriteTimeRule(SQLModel, table=True):
+    """Berlin weekdays and a same-day time range for one Favorite (SCRUM-41)."""
+
+    __tablename__ = "favorite_time_rule"
+    __table_args__ = (
+        CheckConstraint("cardinality(weekdays) BETWEEN 1 AND 7", name="ck_favorite_rule_weekdays"),
+        CheckConstraint("start_time < end_time", name="ck_favorite_rule_same_day"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    favorite_id: int = Field(
+        sa_column=Column(ForeignKey("favorite.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    weekdays: list[int] = Field(sa_column=Column(ARRAY(Integer), nullable=False))
+    start_time: time = Field(sa_column=Column(Time, nullable=False))
+    end_time: time = Field(sa_column=Column(Time, nullable=False))
+
+
 class Notification(SQLModel, table=True):
     """A Meetup event kept in one user's in-app Notification list (SCRUM-40)."""
 
@@ -414,7 +478,8 @@ class Notification(SQLModel, table=True):
     __table_args__ = (
         CheckConstraint(
             "kind IN ('meetup_cancelled', 'meetup_ended', 'host_handover', "
-            "'blocked_user_joined')",
+            "'blocked_user_joined', 'favorite_meetup_created', 'contact_meetup_created', "
+            "'meetup_invitation')",
             name="ck_notification_kind",
         ),
         Index("ix_notification_user_created", "user_id", "created_at"),
@@ -428,6 +493,12 @@ class Notification(SQLModel, table=True):
         sa_column=Column(ForeignKey("meetup.id", ondelete="CASCADE"), nullable=False, index=True)
     )
     kind: str
+    # SCRUM-43: the Contact who made the Meetup or sent the invitation; empty after the account
+    # delete, and for the other kinds.
+    actor_id: int | None = Field(
+        default=None,
+        sa_column=Column(ForeignKey("app_user.id", ondelete="SET NULL"), nullable=True),
+    )
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     read_at: datetime | None = Field(
         default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
@@ -459,3 +530,32 @@ class MeetupSeries(SQLModel, table=True):
     cancelled_at: datetime | None = Field(
         default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
     )
+
+
+class AuditLog(SQLModel, table=True):
+    """One insert, update or delete of a domain row, with who did it and when (SCRUM-66).
+
+    Written by app/audit.py, never changed. changes: for an update only the changed fields as
+    {field: [old, new]}; for an insert or a delete the row. Secrets are never in it.
+    """
+
+    __tablename__ = "audit_log"
+    __table_args__ = (
+        CheckConstraint("actor_kind IN ('user', 'admin', 'system')", name="ck_audit_log_actor_kind"),
+        CheckConstraint("action IN ('insert', 'update', 'delete')", name="ck_audit_log_action"),
+        Index("ix_audit_log_entity", "entity", "entity_id"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    occurred_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    # NULL for a system change, and after the user deleted their account.
+    actor_id: int | None = Field(
+        default=None,
+        sa_column=Column(ForeignKey("app_user.id", ondelete="SET NULL"), nullable=True, index=True),
+    )
+    actor_kind: str
+    # The table name, for example "place".
+    entity: str
+    entity_id: int
+    action: str
+    changes: dict[str, Any] = Field(sa_column=Column(JSONB, nullable=False))

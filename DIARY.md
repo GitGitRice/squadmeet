@@ -13,6 +13,11 @@ Die Details stehen in Jira. Nenne also den Ticket-Key und kopiere nicht den Tick
 
 ---
 
+## Fr 16.10.2026 — Tag 8
+
+- **Steven:** `SCRUM-66` Änderungsprotokoll test-first gebaut: neue Tabelle `audit_log` speichert bei jedem Anlegen, Ändern und Löschen wer, wann und was (ohne Passwörter, Codes und Anmeldeschlüssel); beim Konto-Löschen verschwinden Nickname und Urheber. `psql`-Abfrage in deploy/README.md, Satz in der Datenschutzerklärung. PR #69 im Review, CI grün.
+- **Dominik:** `SCRUM-41` Favoriten mit Zeitfenstern und Benachrichtigungen test-first umgesetzt und mit zwei Benutzern im Browser geprüft; aktuellen `dev` mit `SCRUM-66` integriert und die Migrations- sowie Audit-Kompatibilität abgesichert.
+
 ## Do 15.10.2026 — Tag 7
 
 - **Steven:** `SCRUM-48` Übergabe an Stefan: Repo an `S-max-ui-star` übertragen, PRs #61 und #62 gemergt. Datenbank per pg_dump auf Stefans Server umgezogen, danach meinen AWS-Server, Turnstile-Widget, GHCR-Pakete und Zugänge abgebaut. Wizard-Fehler behoben: Datenfrage wurde übersprungen, wenn der Name schon umgeschaltet war (PR #64).
