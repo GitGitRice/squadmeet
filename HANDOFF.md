@@ -7,7 +7,7 @@ debugging case.
 Each person's own progress (*Now*, *In flight*, *Next*, *Log*) is in **`HANDOFF.local.md`**.
 That file is not in git (`.gitignore`), because each person's progress differs.
 
-**Last update:** 2026-10-16 · Stefan · `SCRUM-43` Contact Notifications (before: Dominik, `SCRUM-41` Favorites)
+**Last update:** 2026-10-16 · Stefan · repo, host and handover state after `SCRUM-48`; `SCRUM-49` on Mon 19.10. (before: Stefan, `SCRUM-43` Contact Notifications)
 
 ---
 
@@ -43,8 +43,15 @@ Rules. Keep them short so everybody follows them.
 - **Must-haves:** cloud deployment, Docker, CI/CD (test → build → deploy), one complete
   business workflow, tests, docs, one debugging case.
 - **Deadline:** work ends **Fri 23.10.2026**; presentation on **Mon 26.10.2026** (15–20 min, live demo). Changed on 2026-10-12 (was Wed 21.10.).
-- **Live:** https://squadmeet.duckdns.org (since 2026-10-08, `SCRUM-20`). It runs on one EC2 host in the Syntax course AWS account (SSO role "Student", region `eu-central-1`). Setup, shell access and troubleshooting: [deploy/README.md](deploy/README.md).
-- **Repo:** https://github.com/GitGitRice/squadmeet (private). Who starts with which ticket:
+- **Live:** https://squadmeet.duckdns.org (since 2026-10-08, `SCRUM-20`). Since the handover on
+  2026-10-15 (`SCRUM-48`) it runs on one EC2 host in Stefan's AWS account `146062274476` (login
+  `aws login`, SSO role "Student", region `eu-central-1`): instance `i-0c6f51ccbb8ba4cbe`, fixed IP
+  3.74.38.119, `t2.micro`. Photos are in the private S3 bucket `squadmeet-photos-146062274476`
+  (`SCRUM-42`). DuckDNS and Cloudflare Turnstile are Stefan's. Setup, shell access and
+  troubleshooting: [deploy/README.md](deploy/README.md).
+- **Repo:** https://github.com/S-max-ui-star/squadmeet (private, Stefan's since 2026-10-15,
+  `SCRUM-48`; collaborators GitGitRice, khaldrogo98). Images: `ghcr.io/s-max-ui-star/squadmeet-*`.
+  Old links to `GitGitRice/squadmeet` forward to it. Who starts with which ticket:
   [TICKETS.md](TICKETS.md).
 
 ---
@@ -54,7 +61,7 @@ Rules. Keep them short so everybody follows them.
 | Person | Role / area | Jira name |
 |--------|-------------|-----------|
 | Steven | DevOps (Docker, CI/CD, AWS, HTTPS) + login + Admin + Place suggestions | Steven Tanu |
-| Stefan | Product owner (his idea) + frontend PWA (map, meetup screens, ratings) | Stefan Kallinich |
+| Stefan | Product owner (his idea) + frontend PWA (map, meetup screens, ratings). Since 2026-10-15 (`SCRUM-48`) owns the repo, the AWS host, the domain and Turnstile | Stefan Kallinich |
 | Dominik | Joined on 2026-10-12. All-round. Finding (search, Meetup list), Home area, Notifications, manual test | Dominik Fischer |
 | ~~David~~ | Left the project on 2026-10-08. His tickets are split in `SCRUM-46` | David Ludwig-Erbs |
 
@@ -120,10 +127,11 @@ approval of Place suggestions, `SCRUM-57` Place report (Steven). `SCRUM-50` manu
 In Jira (since 2026-10-08), each ticket has the label `must`, `should` or `could` and the priority
 High, Medium or Low to match. Change both when a ticket changes category. `SCRUM-47` (deploy role
 permissions) is a Must.
-`SCRUM-49` (review the whole codebase) and `SCRUM-50` (manual test of the whole app): Musts on
-Thu 15.10. / Fri 16.10., several sessions possible, both in Sprint 2.
-`SCRUM-48` (handover: Stefan hosts and owns the repo, server, domain and Cloudflare) is the **last
-Must**: after the presentation on 26.10., blocked by all other Musts. It is in no sprint yet.
+`SCRUM-49` (review the whole codebase) and `SCRUM-50` (manual test of the whole app): Musts,
+several sessions possible, both in Sprint 2. `SCRUM-49` moved to **Mon 19.10.** (Stefan,
+2026-10-16).
+`SCRUM-48` (handover: Stefan hosts and owns the repo, server, domain and Cloudflare) was moved
+before the presentation and is **done** (2026-10-16, see *Decisions* 2026-10-15).
 
 "Blocked by" on `SCRUM-6` means only the walking skeleton, not the whole Epic. Stories come
 next; each owner writes them (for example with `/mattpocock-skills:to-tickets`).
