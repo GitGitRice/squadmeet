@@ -8,6 +8,9 @@ export type NotificationKind =
   | 'host_handover'
   | 'blocked_user_joined'
   | 'favorite_meetup_created'
+  // SCRUM-43: a Contact made a Meetup; a Contact invited the user.
+  | 'contact_meetup_created'
+  | 'meetup_invitation'
 
 export type Notification = {
   id: number
@@ -18,6 +21,8 @@ export type Notification = {
   place_address: string | null
   created_at: string
   read: boolean
+  // The Contact for the SCRUM-43 kinds; null for the others and after that account was deleted.
+  actor_nickname?: string | null
 }
 
 export async function fetchNotifications(token: string): Promise<Notification[]> {

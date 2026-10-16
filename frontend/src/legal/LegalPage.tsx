@@ -159,6 +159,10 @@ function Privacy() {
           Benachrichtigung entstand und ob du sie gelesen hast. Wenn jemand, den du blockiert hast,
           demselben Treffen beitritt, erhältst nur du einen neutralen Hinweis; die blockierte Person
           erfährt dadurch nichts von der Blockierung.
+          Wenn du ein Treffen erstellst, bekommen deine Kontakte eine Benachrichtigung mit deinem
+          Nickname, wann und wo es stattfindet. Lädst du Kontakte zu einem Treffen ein, sehen sie
+          in der Einladung deinen Nickname. Wir speichern, wer wen eingeladen hat. Personen, die du
+          blockiert hast oder die dich blockiert haben, bekommen nichts davon.
         </li>
         <li>
           <strong>Änderungsprotokoll:</strong> Wenn du etwas anlegst, änderst oder löschst (zum

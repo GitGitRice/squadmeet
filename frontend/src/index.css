@@ -1601,3 +1601,44 @@ body {
   display: block;
   color: #5c6370;
 }
+
+/* Kontakte einladen (SCRUM-43): the Contacts to choose in a Meetup card; "Ich komme mit" on an
+   invitation in the Notification list. */
+.invite-contacts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background: #f4f6f8;
+  border-radius: 8px;
+}
+
+.invite-contacts ul {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.invite-contacts p {
+  margin: 0;
+}
+
+.invite-contacts-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.notification-list button.notification-accept {
+  display: inline-block;
+  width: auto;
+  margin-top: 4px;
+  border-color: #1a5fb4;
+  background: #1a5fb4;
+  color: #fff;
+  text-align: center;
+}

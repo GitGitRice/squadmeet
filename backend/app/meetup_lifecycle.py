@@ -279,7 +279,7 @@ def answer_move(
     leave(session, meetup, by, now)
 
 
-Action = Literal["join", "leave", "cancel", "end", "move", "cancel_series"]
+Action = Literal["join", "leave", "cancel", "end", "move", "cancel_series", "invite"]
 
 
 def actions(
@@ -307,6 +307,9 @@ def actions(
         allowed.append("leave")
     else:
         allowed.append("join")
+    # Everyone in it may invite their Contacts (SCRUM-43).
+    if viewer is not None and (meetup.host_id == viewer or joined):
+        allowed.append("invite")
     if viewer is not None and series is not None and series.host_id == viewer and series.cancelled_at is None:
         allowed.append("cancel_series")
     return allowed

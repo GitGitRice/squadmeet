@@ -91,10 +91,10 @@ def test_a_start_must_be_in_the_future_and_at_most_30_days_ahead():
     ("viewer", "joined", "now", "expected"),
     [
         (None, False, T0 - timedelta(hours=1), ["join"]),
-        (HOST, False, T0 - timedelta(hours=1), ["cancel", "move", "leave"]),
-        (HOST, False, T0 + timedelta(minutes=1), ["end", "leave"]),
+        (HOST, False, T0 - timedelta(hours=1), ["cancel", "move", "leave", "invite"]),
+        (HOST, False, T0 + timedelta(minutes=1), ["end", "leave", "invite"]),
         (KARL, False, T0, ["join"]),
-        (KARL, True, T0, ["leave"]),
+        (KARL, True, T0, ["leave", "invite"]),
         (KARL, False, T0 + timedelta(hours=3), []),
     ],
 )

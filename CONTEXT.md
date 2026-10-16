@@ -202,3 +202,15 @@ _Avoid_: schedule, filter
 A message about a Meetup, kept in the in-app list newest first. A tap marks it read and opens the
 affected Place and its Meetups. Push delivery is a separate feature.
 _Avoid_: alert, pop-up, message
+
+**Contact Notification** (Kontakt-Benachrichtigung):
+A Notification to a user's Contacts when the user makes a Meetup or Now-meetup; it names the
+user. A Series sends one, for its first Occurrence. A Contact who also has the Place as Favorite
+gets only this one, not the Favorite Notification. Never to users blocked in either direction.
+_Avoid_: friend alert, follow
+
+**Invitation** (Einladung):
+A Notification that someone in a Meetup (the Host or a Join) sends to chosen Contacts of their
+own. It names the inviter and offers "Ich komme mit" (Party size 1). At most one per user and
+Meetup; nobody already in the Meetup, nobody blocked with the inviter or the Host.
+_Avoid_: request, invite link
