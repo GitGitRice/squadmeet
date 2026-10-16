@@ -166,6 +166,11 @@ function Privacy() {
           einschaltest, speichern wir zusätzlich die Push-Adresse deines Browsers und seine
           Verschlüsselungsschlüssel. Beim
           Ausschalten, bei Ablauf oder beim Löschen deines Kontos entfernen wir dieses Push-Abo.
+          Wenn du einen Heimatbereich einschaltest, speichern wir den Punkt, den du auf der Karte
+          gewählt hast, den Radius und die Sportarten, nie deinen aktuellen Standort. Damit melden
+          wir dir neue Treffen in diesem Bereich. Nur du siehst diese Angaben, sie stehen nicht im
+          Änderungsprotokoll, und beim Ausschalten oder beim Löschen deines Kontos löschen wir sie
+          sofort.
         </li>
         <li>
           <strong>Änderungsprotokoll:</strong> Wenn du etwas anlegst, änderst oder löschst (zum

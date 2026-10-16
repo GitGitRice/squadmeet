@@ -24,6 +24,7 @@ class NotificationRead(BaseModel):
         "favorite_meetup_created",
         "contact_meetup_created",
         "meetup_invitation",
+        "home_area_meetup_created",
     ]
     meetup_id: int
     place_id: int

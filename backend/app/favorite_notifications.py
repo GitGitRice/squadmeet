@@ -13,9 +13,10 @@ BERLIN = ZoneInfo("Europe/Berlin")
 
 def notify_favorites(
     session: Session, meetup: Meetup, now: datetime, skip: frozenset[int] = frozenset()
-) -> None:
-    """Notify matching Favorite owners, excluding the Host and Blocks in either direction.
-    `skip`: users who already got a Contact Notification for this Meetup (SCRUM-43)."""
+) -> set[int]:
+    """Notify matching Favorite owners, excluding the Host and Blocks in either direction; the
+    users notified. `skip`: users who already got a Contact Notification for this Meetup
+    (SCRUM-43)."""
     favorites = list(
         session.exec(
             select(Favorite).where(
@@ -24,7 +25,7 @@ def notify_favorites(
         )
     )
     if not favorites:
-        return
+        return set()
     favorite_ids = [favorite.id for favorite in favorites]
     rules: dict[int, list[FavoriteTimeRule]] = {favorite_id: [] for favorite_id in favorite_ids}
     for rule in session.exec(
@@ -62,3 +63,4 @@ def notify_favorites(
         )
     }
     notify_users(session, recipients, meetup, "favorite_meetup_created", now)
+    return recipients

@@ -20,6 +20,8 @@ NotificationKind = Literal[
     # SCRUM-43: a Contact made a Meetup; a Contact invited the user to one.
     "contact_meetup_created",
     "meetup_invitation",
+    # SCRUM-45: a new Meetup inside the user's Home area.
+    "home_area_meetup_created",
 ]
 
 

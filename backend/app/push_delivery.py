@@ -20,6 +20,7 @@ PushKind = Literal[
     "favorite_meetup_created",
     "contact_meetup_created",
     "meetup_invitation",
+    "home_area_meetup_created",
 ]
 
 MESSAGES: dict[PushKind, str] = {
@@ -30,6 +31,7 @@ MESSAGES: dict[PushKind, str] = {
     "favorite_meetup_created": "An einem deiner Favoriten wurde ein neues Treffen erstellt.",
     "contact_meetup_created": "Ein Kontakt hat ein neues Treffen erstellt.",
     "meetup_invitation": "Du wurdest zu einem Treffen eingeladen.",
+    "home_area_meetup_created": "In deinem Heimatbereich wurde ein neues Treffen erstellt.",
 }
 
 

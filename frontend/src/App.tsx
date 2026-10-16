@@ -40,6 +40,7 @@ import PlaceSearch from './places/PlaceSearch'
 import MeetupMap from './places/MeetupMap'
 import FavoriteButton from './places/FavoriteButton'
 import NotificationsDialog from './notifications/NotificationsDialog'
+import HomeAreaDialog from './notifications/HomeAreaDialog'
 import PushSettingsDialog from './notifications/PushSettingsDialog'
 import { notificationsFor, type NotificationState } from './notifications/notificationState'
 import { placeIdFromPath, placePath, usePath } from './places/route'
@@ -48,6 +49,11 @@ import { groupBySpot } from './places/spots'
 const LEIPZIG: [number, number] = [51.3397, 12.3731]
 // Zoomed out further, an area could hold more Places than the API sends (MAX_PLACES).
 const MIN_ZOOM = 11
+
+// The middle of the last map area, where the Home area map starts (SCRUM-45).
+function areaCenter(area: MapArea | null): [number, number] {
+  return area ? [(area.south + area.north) / 2, (area.west + area.east) / 2] : LEIPZIG
+}
 // Meetups end by themselves (SCRUM-29); the map asks again so an ended one leaves the map.
 const PLACES_REFRESH_MS = 60_000
 const NOTIFICATIONS_REFRESH_MS = 60_000
@@ -117,6 +123,8 @@ export default function App() {
   const [showFavorites, setShowFavorites] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showPushSettings, setShowPushSettings] = useState(false)
+  // Set while the Home area dialog is open: where its map starts (SCRUM-45).
+  const [homeAreaCenter, setHomeAreaCenter] = useState<[number, number] | null>(null)
   // Contact requests waiting for the user's answer, shown on the "Konto" button (SCRUM-32).
   const [requests, setRequests] = useState<RequestCount | null>(null)
   const [notificationState, setNotificationState] = useState<NotificationState | null>(null)
@@ -356,6 +364,13 @@ export default function App() {
           onClose={() => setShowPushSettings(false)}
         />
       )}
+      {homeAreaCenter && user && (
+        <HomeAreaDialog
+          token={loadToken() ?? ''}
+          fallbackCenter={homeAreaCenter}
+          onClose={() => setHomeAreaCenter(null)}
+        />
+      )}
       {showAccount && user && (
         <AccountDialog
           user={user}
@@ -367,6 +382,10 @@ export default function App() {
           onFavorites={() => {
             setShowAccount(false)
             setShowFavorites(true)
+          }}
+          onHomeArea={() => {
+            setShowAccount(false)
+            setHomeAreaCenter(areaCenter(lastArea.current))
           }}
           onPush={() => {
             setShowAccount(false)
