@@ -221,3 +221,26 @@ a container, one network hop behind the host, and IMDSv2 answers only within the
 `setup-aws.sh` starts new instances with hop limit 2.
 
 Without the parameter the deploy still works and Photos are off (upload answers 503).
+
+## Web Push (VAPID)
+
+Web Push (`SCRUM-44`) uses one P-256 VAPID key pair. The public key is sent to signed-in browsers;
+the private key stays in SSM Parameter Store and is passed only to the backend container. Generate
+and store the pair once per AWS account, then deploy again:
+
+```bash
+AWS_REGION=eu-central-1 deploy/setup-push.sh
+```
+
+The script stores `/squadmeet/vapid-public-key` and the encrypted
+`/squadmeet/vapid-private-key`. Replacing the pair invalidates existing subscriptions, so users
+would have to turn Push on again. Without both values the app keeps working, but the Push setting
+shows that Push is not configured.
+
+For local testing, generate a matching pair in the ignored `.env` without printing the private
+key, then recreate the backend:
+
+```bash
+deploy/setup-push-local.sh
+docker compose up -d --force-recreate backend
+```
