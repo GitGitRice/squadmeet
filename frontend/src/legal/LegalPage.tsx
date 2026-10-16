@@ -162,7 +162,10 @@ function Privacy() {
           Wenn du ein Treffen erstellst, bekommen deine Kontakte eine Benachrichtigung mit deinem
           Nickname, wann und wo es stattfindet. Lädst du Kontakte zu einem Treffen ein, sehen sie
           in der Einladung deinen Nickname. Wir speichern, wer wen eingeladen hat. Personen, die du
-          blockiert hast oder die dich blockiert haben, bekommen nichts davon.
+          blockiert hast oder die dich blockiert haben, bekommen nichts davon. Wenn du Push
+          einschaltest, speichern wir zusätzlich die Push-Adresse deines Browsers und seine
+          Verschlüsselungsschlüssel. Beim
+          Ausschalten, bei Ablauf oder beim Löschen deines Kontos entfernen wir dieses Push-Abo.
         </li>
         <li>
           <strong>Änderungsprotokoll:</strong> Wenn du etwas anlegst, änderst oder löschst (zum
@@ -209,6 +212,13 @@ function Privacy() {
         Wenn du dich anmeldest, legen wir deinen Anmeldeschlüssel im Speicher deines Browsers ab
         (localStorage). Ohne ihn bleibst du nicht angemeldet. Das ist technisch nötig (§ 25 Abs. 2
         Nr. 2 TDDDG). Beim Abmelden löschen wir ihn.
+      </p>
+      <p>
+        Push-Benachrichtigungen sind freiwillig. Erst nach deiner Zustimmung richtet dein Browser
+        ein Push-Abo bei seinem Anbieter ein (zum Beispiel Apple, Google oder Mozilla). Dieser
+        Anbieter verarbeitet für die Zustellung deine IP-Adresse und Zustellungsdaten; der Inhalt
+        wird für deinen Browser verschlüsselt. Auf dem iPhone funktioniert Web Push nur, wenn du
+        SquadMeet vorher zum Home-Bildschirm hinzugefügt hast.
       </p>
 
       <h2>Server (Amazon Web Services)</h2>

@@ -814,6 +814,11 @@ body {
   border-radius: 10px;
 }
 
+.meetup-card:target {
+  outline: 3px solid #1a5fb4;
+  outline-offset: 2px;
+}
+
 .meetup-card .live {
   padding: 1px 6px;
   font-size: 0.75rem;

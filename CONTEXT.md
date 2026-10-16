@@ -200,7 +200,9 @@ _Avoid_: schedule, filter
 
 **Notification** (Benachrichtigung):
 A message about a Meetup, kept in the in-app list newest first. A tap marks it read and opens the
-affected Place and its Meetups. Push delivery is a separate feature.
+affected Place and its Meetups. If the user turned on Web Push, the same event also reaches each
+subscribed browser; tapping it opens the affected Place. An expired browser subscription is
+removed automatically.
 _Avoid_: alert, pop-up, message
 
 **Contact Notification** (Kontakt-Benachrichtigung):
@@ -214,3 +216,9 @@ A Notification that someone in a Meetup (the Host or a Join) sends to chosen Con
 own. It names the inviter and offers "Ich komme mit" (Party size 1). At most one per user and
 Meetup; nobody already in the Meetup, nobody blocked with the inviter or the Host.
 _Avoid_: request, invite link
+
+**Push subscription** (Push-Abo):
+One browser endpoint plus its encryption keys, stored for one user after browser permission. It is
+private account data and disappears when the user turns Push off, the provider reports it expired,
+or the account is deleted. The VAPID private key is only server configuration.
+_Avoid_: device token, Notification

@@ -505,6 +505,21 @@ class Notification(SQLModel, table=True):
     )
 
 
+class PushSubscription(SQLModel, table=True):
+    """One browser endpoint that may receive a user's Notifications (SCRUM-44)."""
+
+    __tablename__ = "push_subscription"
+
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    endpoint: str = Field(sa_column=Column(String, nullable=False, unique=True))
+    p256dh: str
+    auth: str
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
 class MeetupSeries(SQLModel, table=True):
     """A weekly Series (SCRUM-38, see CONTEXT.md): weekdays, each with a start time in Berlin
     and a duration. Its Occurrences are ordinary Meetups (series_id), made for the next 30 days

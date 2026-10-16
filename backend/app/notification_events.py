@@ -9,6 +9,7 @@ from typing import Literal
 from sqlmodel import Session, select
 
 from app.models import Meetup, MeetupJoin, Notification
+from app.push_delivery import send_web_push
 
 NotificationKind = Literal[
     "meetup_cancelled",
@@ -40,6 +41,7 @@ def notify_users(
         )
         for user_id in user_ids
     )
+    send_web_push(session, user_ids, meetup.id, meetup.place_id, kind)
 
 
 def notify_joined(

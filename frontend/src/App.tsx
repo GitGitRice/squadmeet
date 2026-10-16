@@ -40,6 +40,7 @@ import PlaceSearch from './places/PlaceSearch'
 import MeetupMap from './places/MeetupMap'
 import FavoriteButton from './places/FavoriteButton'
 import NotificationsDialog from './notifications/NotificationsDialog'
+import PushSettingsDialog from './notifications/PushSettingsDialog'
 import { notificationsFor, type NotificationState } from './notifications/notificationState'
 import { placeIdFromPath, placePath, usePath } from './places/route'
 import { groupBySpot } from './places/spots'
@@ -115,6 +116,7 @@ export default function App() {
   const [showContacts, setShowContacts] = useState(false)
   const [showFavorites, setShowFavorites] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [showPushSettings, setShowPushSettings] = useState(false)
   // Contact requests waiting for the user's answer, shown on the "Konto" button (SCRUM-32).
   const [requests, setRequests] = useState<RequestCount | null>(null)
   const [notificationState, setNotificationState] = useState<NotificationState | null>(null)
@@ -282,6 +284,7 @@ export default function App() {
     setUser(null)
     setShowAccount(false)
     setShowNotifications(false)
+    setShowPushSettings(false)
     setShowFavorites(false)
     setShowMfa(false)
     setShowSuggest(false)
@@ -346,6 +349,13 @@ export default function App() {
           onClose={() => setShowNotifications(false)}
         />
       )}
+      {showPushSettings && user && (
+        <PushSettingsDialog
+          key={user.id}
+          token={loadToken() ?? ''}
+          onClose={() => setShowPushSettings(false)}
+        />
+      )}
       {showAccount && user && (
         <AccountDialog
           user={user}
@@ -357,6 +367,10 @@ export default function App() {
           onFavorites={() => {
             setShowAccount(false)
             setShowFavorites(true)
+          }}
+          onPush={() => {
+            setShowAccount(false)
+            setShowPushSettings(true)
           }}
           onMfa={() => {
             setShowAccount(false)

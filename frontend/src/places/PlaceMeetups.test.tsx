@@ -76,6 +76,7 @@ describe('PlaceMeetups', () => {
     expect(text).toContain('LIVE')
     expect(text).toContain('Paula')
     expect(text).toContain('3 Personen')
+    expect(document.getElementById('treffen-7')).not.toBeNull()
   })
 
   it('shows "Jetzt beenden" only to the Host', async () => {
