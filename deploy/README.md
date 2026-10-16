@@ -136,6 +136,27 @@ In a shell on the host, in `/opt/squadmeet`:
 | Did the first boot finish? | `cloud-init status` and `/var/log/cloud-init-output.log` |
 | Memory? | `free -h` (the swap file must show 2 GB) |
 
+## Audit log (SCRUM-66)
+
+The table `audit_log` keeps each insert, update and delete of a domain row: when, who
+(`actor_id` and `actor_kind`: `user`, `admin` or `system`) and what (`changes`; an update holds
+only the changed fields as `{"field": [old, new]}`). Code: `backend/app/audit.py`. There is no
+Admin page; read it in a shell on the host, in `/opt/squadmeet`. The history of one row, here
+Place 42:
+
+```sh
+docker compose exec db psql -U squadmeet -d squadmeet -c "
+  SELECT a.occurred_at, a.action, a.actor_kind, u.nickname, a.changes
+  FROM audit_log a LEFT JOIN app_user u ON u.id = a.actor_id
+  WHERE a.entity = 'place' AND a.entity_id = 42
+  ORDER BY a.id"
+```
+
+`entity` is the table name (`place`, `meetup`, `app_user`, ...). Not in the log: secrets
+(password hash, MFA secret, Recovery codes, login sessions), Notifications, rows that the
+database deletes by cascade (for example the Meetups of a deleted account), and edits in `psql`.
+An empty `nickname` with `actor_kind = user` means that the account was deleted.
+
 ## Move to the NAS later
 
 The NAS needs Docker with Compose and ports 80 and 443 forwarded from the router.

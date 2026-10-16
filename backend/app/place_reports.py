@@ -18,6 +18,7 @@ from sqlalchemy import func, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlmodel import Session, select
 
+from app.audit import record
 from app.auth import current_user, require_admin
 from app.db import get_session
 from app.models import Place, PlaceReport, PlaceReportReason, User
@@ -58,12 +59,15 @@ class ReportedPlace(BaseModel):
 
 def close_reports(session: Session, place_id: int, now: datetime) -> int:
     """Close the open reports of the Place; the number closed. The caller commits."""
-    result = session.exec(
+    closed = session.exec(
         update(PlaceReport)
         .where(PlaceReport.place_id == place_id, IS_OPEN)
         .values(closed_at=now)
-    )
-    return result.rowcount
+        .returning(PlaceReport.id)
+    ).all()
+    for (report_id,) in closed:
+        record(session, "place_report", report_id, "update", {"closed_at": [None, now]})
+    return len(closed)
 
 
 @router.post("/places/{place_id}/reports", status_code=status.HTTP_204_NO_CONTENT)
@@ -76,14 +80,15 @@ def report_place(
     """Melden. A second open report of the same user answers 409 and changes nothing."""
     require(session, place_id, PlaceUse.REPORT)
     # One statement, so two requests at the same moment cannot make two open reports.
+    values = {
+        "place_id": place_id,
+        "user_id": user.id,
+        "reason": body.reason,
+        "created_at": datetime.now(UTC),
+    }
     inserted = session.exec(
         insert(PlaceReport)
-        .values(
-            place_id=place_id,
-            user_id=user.id,
-            reason=body.reason,
-            created_at=datetime.now(UTC),
-        )
+        .values(**values)
         .on_conflict_do_nothing(index_elements=["place_id", "user_id"], index_where=IS_OPEN)
         .returning(PlaceReport.id)
     ).first()
@@ -91,6 +96,7 @@ def report_place(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Du hast diesen Platz schon gemeldet"
         )
+    record(session, "place_report", inserted.id, "insert", values)
     session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

@@ -13,3 +13,7 @@ engine = create_engine(DATABASE_URL)
 def get_session():
     with Session(engine) as session:
         yield session
+
+
+# Every session writes the audit log (SCRUM-66), also in the CLI tools (seed, admin).
+import app.audit  # noqa: E402, F401

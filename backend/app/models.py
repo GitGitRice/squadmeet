@@ -2,6 +2,7 @@ from datetime import date, datetime
 from typing import Any, Literal
 
 from geoalchemy2 import Geometry
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import (
     ARRAY,
     BigInteger,
@@ -487,3 +488,32 @@ class MeetupSeries(SQLModel, table=True):
     cancelled_at: datetime | None = Field(
         default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
     )
+
+
+class AuditLog(SQLModel, table=True):
+    """One insert, update or delete of a domain row, with who did it and when (SCRUM-66).
+
+    Written by app/audit.py, never changed. changes: for an update only the changed fields as
+    {field: [old, new]}; for an insert or a delete the row. Secrets are never in it.
+    """
+
+    __tablename__ = "audit_log"
+    __table_args__ = (
+        CheckConstraint("actor_kind IN ('user', 'admin', 'system')", name="ck_audit_log_actor_kind"),
+        CheckConstraint("action IN ('insert', 'update', 'delete')", name="ck_audit_log_action"),
+        Index("ix_audit_log_entity", "entity", "entity_id"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    occurred_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    # NULL for a system change, and after the user deleted their account.
+    actor_id: int | None = Field(
+        default=None,
+        sa_column=Column(ForeignKey("app_user.id", ondelete="SET NULL"), nullable=True, index=True),
+    )
+    actor_kind: str
+    # The table name, for example "place".
+    entity: str
+    entity_id: int
+    action: str
+    changes: dict[str, Any] = Field(sa_column=Column(JSONB, nullable=False))

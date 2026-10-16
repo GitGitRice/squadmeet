@@ -217,7 +217,7 @@ def test_admin_without_mfa_is_blocked(client, session):
 def test_admin_with_mfa_is_allowed(client, session, mfa_user):
     user = set_admin(session, "Pingpong_Paula", True)
 
-    assert require_admin(user) is user
+    assert require_admin(user, session) is user
     me = client.get("/api/auth/me", headers=auth_header(mfa_user[0])).json()
     assert me["is_admin"] is True
 

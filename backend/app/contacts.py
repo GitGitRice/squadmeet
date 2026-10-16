@@ -14,7 +14,7 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel
-from sqlalchemy import and_, delete, func, or_
+from sqlalchemy import and_, func, or_
 from sqlmodel import Session, select
 
 from app.auth import current_user
@@ -218,11 +218,17 @@ def block_user(
         select(UserBlock.id).where(UserBlock.blocker_id == user.id, UserBlock.blocked_id == other.id)
     ).first():
         session.add(UserBlock(blocker_id=user.id, blocked_id=other.id, created_at=now))
-    session.exec(delete(ContactRequest).where(between(user.id, other.id)))
     hosted = select(Meetup.id).where(Meetup.host_id == user.id, Meetup.ends_at > now)
-    session.exec(
-        delete(MeetupJoin).where(MeetupJoin.user_id == other.id, MeetupJoin.meetup_id.in_(hosted))
-    )
+    # ORM deletes, not one DELETE statement, so the audit log sees each row (SCRUM-66).
+    for row in [
+        *session.exec(select(ContactRequest).where(between(user.id, other.id))),
+        *session.exec(
+            select(MeetupJoin).where(
+                MeetupJoin.user_id == other.id, MeetupJoin.meetup_id.in_(hosted)
+            )
+        ),
+    ]:
+        session.delete(row)
     session.commit()
     return brief(other)
 
