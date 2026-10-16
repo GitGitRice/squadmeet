@@ -1529,3 +1529,75 @@ body {
   flex-wrap: wrap;
   gap: 6px;
 }
+
+/* Photos (SCRUM-42): a row of approved Photos in the Place detail; the Admin queue. */
+.place-photos {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #e4e6ea;
+}
+
+.place-photos h3 {
+  margin: 4px 0 0;
+  font-size: 1rem;
+}
+
+.place-photos p {
+  margin: 0;
+}
+
+.place-photo-list {
+  display: flex;
+  gap: 8px;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 0 4px;
+  overflow-x: auto;
+  list-style: none;
+  scroll-snap-type: x mandatory;
+}
+
+.place-photo-list li {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+.place-photo-list img {
+  display: block;
+  width: auto;
+  height: 140px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.pending-photos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pending-photos li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pending-photos img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 260px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.pending-photos small {
+  display: block;
+  color: #5c6370;
+}

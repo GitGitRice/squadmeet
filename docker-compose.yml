@@ -27,6 +27,8 @@ services:
       TURNSTILE_SECRET_KEY: 1x0000000000000000000000000000000AA
       NOMINATIM_URL: ${NOMINATIM_URL:-https://nominatim.openstreetmap.org}
       NOMINATIM_USER_AGENT: ${NOMINATIM_USER_AGENT:-SquadMeet/1.0 (https://squadmeet.duckdns.org)}
+      # Photos (SCRUM-42) in backend/photos/ (not in git); production uses S3 (PHOTO_BUCKET).
+      PHOTO_DIR: photos
     command: sh -c "alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     ports:
       - "8000:8000"

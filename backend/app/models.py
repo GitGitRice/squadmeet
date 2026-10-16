@@ -312,6 +312,34 @@ class MeetupJoin(SQLModel, table=True):
 
 
 
+class Photo(SQLModel, table=True):
+    """A user's Photo of a Place (SCRUM-42, see CONTEXT.md). The file is in the photo storage
+    (app.photo_storage), not in the database. Pending until an Admin approves it; a rejected
+    Photo is deleted with its file."""
+
+    __tablename__ = "photo"
+    __table_args__ = (Index("ix_photo_place_approved", "place_id", "approved_at"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(
+        sa_column=Column(ForeignKey("place.id", ondelete="CASCADE"), nullable=False)
+    )
+    # Empty after the user deleted the account: the Photo stays without a name (Stefan,
+    # 2026-10-16). Photos show no people (the upload screen says so).
+    user_id: int | None = Field(
+        default=None,
+        sa_column=Column(ForeignKey("app_user.id", ondelete="SET NULL"), nullable=True, index=True),
+    )
+    # The file's name in the photo storage.
+    storage_key: str = Field(sa_column=Column(String, nullable=False, unique=True))
+    width: int
+    height: int
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    approved_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
+
+
 class Rating(SQLModel, table=True):
     """A user's 1–5 stars for a Place with at least one Reason (SCRUM-31, see CONTEXT.md).
 

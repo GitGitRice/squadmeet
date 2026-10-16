@@ -1,7 +1,7 @@
 """favorites with Time rules and Meetup Notifications (SCRUM-41)
 
-Revision ID: 0020
-Revises: 0019
+Revision ID: 0021
+Revises: 0020
 Create Date: 2026-10-16
 
 """
@@ -11,8 +11,8 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-revision: str = "0020"
-down_revision: Union[str, Sequence[str], None] = "0019"
+revision: str = "0021"
+down_revision: Union[str, Sequence[str], None] = "0020"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

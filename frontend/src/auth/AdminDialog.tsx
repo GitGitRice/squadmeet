@@ -1,10 +1,12 @@
 import LockedPlacesDialog from './LockedPlacesDialog'
+import PhotoApprovalDialog from './PhotoApprovalDialog'
 import ReportedPlacesDialog from './ReportedPlacesDialog'
 import SuggestionApprovalDialog from './SuggestionApprovalDialog'
 
 // The Admin dialogs of the Konto dialog: "Gesperrte Plätze" (SCRUM-39) and
-// "Platzvorschläge freigeben" (SCRUM-56) and "Gemeldete Plätze" (SCRUM-57).
-export type AdminDialogKind = 'locked' | 'approvals' | 'reports'
+// "Platzvorschläge freigeben" (SCRUM-56) and "Gemeldete Plätze" (SCRUM-57) and
+// "Fotos freigeben" (SCRUM-42).
+export type AdminDialogKind = 'locked' | 'approvals' | 'reports' | 'photos'
 
 type Props = {
   kind: AdminDialogKind
@@ -17,6 +19,9 @@ type Props = {
 
 export default function AdminDialog({ kind, token, onChanged, onOpenPlace, onClose }: Props) {
   if (kind === 'locked') return <LockedPlacesDialog token={token} onUnlocked={onChanged} onClose={onClose} />
+  if (kind === 'photos') {
+    return <PhotoApprovalDialog token={token} onChanged={onChanged} onOpenPlace={onOpenPlace} onClose={onClose} />
+  }
   if (kind === 'reports') {
     return <ReportedPlacesDialog token={token} onChanged={onChanged} onOpenPlace={onOpenPlace} onClose={onClose} />
   }

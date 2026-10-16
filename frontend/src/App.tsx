@@ -34,6 +34,7 @@ import { placeIcon, spotIcon } from './places/markers'
 import PlaceDetail from './places/PlaceDetail'
 import PlaceMeetups from './places/PlaceMeetups'
 import SuggestPlaceDialog from './places/SuggestPlaceDialog'
+import PlacePhotos from './places/PlacePhotos'
 import PlaceRatings from './places/PlaceRatings'
 import PlaceSearch from './places/PlaceSearch'
 import MeetupMap from './places/MeetupMap'
@@ -377,6 +378,10 @@ export default function App() {
             setShowAccount(false)
             setAdminDialog('reports')
           }}
+          onPhotos={() => {
+            setShowAccount(false)
+            setAdminDialog('photos')
+          }}
           onClose={() => setShowAccount(false)}
         />
       )}
@@ -504,6 +509,13 @@ export default function App() {
             key={`${selectedId}-${user?.id ?? 'guest'}`}
             placeId={selectedId}
             place={selected}
+            user={user}
+            onLoginNeeded={() => setShowAuth(true)}
+          />
+          {/* A new key per Admin decision too: an approved Photo shows at once. */}
+          <PlacePhotos
+            key={`${selectedId}-${user?.id ?? 'guest'}-${detailTry}`}
+            placeId={selectedId}
             user={user}
             onLoginNeeded={() => setShowAuth(true)}
           />
