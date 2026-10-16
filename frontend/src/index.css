@@ -1626,13 +1626,6 @@ body {
   margin: 0;
 }
 
-.invite-contacts-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
 .notification-list button.notification-accept {
   display: inline-block;
   width: auto;

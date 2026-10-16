@@ -95,8 +95,6 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
   const [joining, setJoining] = useState<{ id: number; partySize: number } | null>(null)
   // The person whose Nickname was tapped: ask them as a Contact or Block them (SCRUM-32).
   const [person, setPerson] = useState<{ meetupId: number; nickname: string } | null>(null)
-  // The Meetup whose "Kontakte einladen" is open (SCRUM-43).
-  const [inviting, setInviting] = useState<number | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   // Weekly Series (SCRUM-38): "Jede Woche wiederholen" in the form, and the open overviews.
   const [repeat, setRepeat] = useState(false)
@@ -318,12 +316,7 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
             Verlassen
           </button>
         )}
-        {can('invite') && inviting !== meetup.id && (
-          <button type="button" disabled={busy} onClick={() => setInviting(meetup.id)}>
-            Kontakte einladen
-          </button>
-        )}
-        {inviting === meetup.id && <InviteContacts meetupId={meetup.id} onClose={() => setInviting(null)} />}
+        <InviteContacts meetup={meetup} />
         {joining?.id === meetup.id && (
           <form
             className="move-form"

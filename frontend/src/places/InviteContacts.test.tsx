@@ -30,7 +30,8 @@ async function render() {
   saveToken('t')
   const container = document.createElement('div')
   document.body.append(container)
-  await act(async () => createRoot(container).render(<InviteContacts meetupId={12} onClose={() => {}} />))
+  await act(async () => createRoot(container).render(<InviteContacts meetup={{ id: 12, actions: ['leave', 'invite'] }} />))
+  await act(async () => button(container, 'Kontakte einladen')?.click())
   return container
 }
 
@@ -39,6 +40,14 @@ function button(container: HTMLElement, text: string) {
 }
 
 describe('InviteContacts', () => {
+  it('shows nothing without the action "invite"', async () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    await act(async () => createRoot(container).render(<InviteContacts meetup={{ id: 12, actions: ['join'] }} />))
+
+    expect(container.textContent).toBe('')
+  })
+
   it('lists the Contacts; "Einladen" waits for a choice', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json(contacts)))
 

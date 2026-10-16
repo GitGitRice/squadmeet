@@ -1,17 +1,69 @@
 import { useEffect, useState } from 'react'
 import { loadToken } from '../api/auth'
 import { fetchContacts, type ContactUser } from '../api/contacts'
-import { inviteContacts } from '../api/meetups'
+import { inviteContacts, type Meetup } from '../api/meetups'
 
-type Props = {
+type ChooserProps = {
   meetupId: number
   onClose: () => void
 }
 
-/** "Kontakte einladen" (SCRUM-43): choose one or more Contacts; each gets an invitation in the
- * Notification list with "Ich komme mit". The server leaves out who is already in the Meetup or
- * already invited, and anyone blocked. */
-export default function InviteContacts({ meetupId, onClose }: Props) {
+function invitedText(count: number): string {
+  if (count === 0) return 'Alle Gewählten sind schon dabei oder eingeladen.'
+  return `${count} ${count === 1 ? 'Kontakt' : 'Kontakte'} eingeladen.`
+}
+
+function toggled(chosen: Set<number>, id: number): Set<number> {
+  const next = new Set(chosen)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  return next
+}
+
+function ContactList({ contacts, chosen, onToggle }: {
+  contacts: ContactUser[]
+  chosen: Set<number>
+  onToggle: (id: number) => void
+}) {
+  if (contacts.length === 0) return <p className="hint">Du hast noch keine Kontakte.</p>
+  return (
+    <ul>
+      {contacts.map((contact) => (
+        <li key={contact.id}>
+          <label>
+            <input type="checkbox" checked={chosen.has(contact.id)} onChange={() => onToggle(contact.id)} />{' '}
+            {contact.nickname}
+          </label>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function ChooserButtons({ canSend, showSend, done, onSend, onClose }: {
+  canSend: boolean
+  showSend: boolean
+  done: boolean
+  onSend: () => void
+  onClose: () => void
+}) {
+  return (
+    <div className="button-row">
+      {showSend && (
+        <button type="button" disabled={!canSend} onClick={onSend}>
+          Einladen
+        </button>
+      )}
+      <button type="button" className="link-button" onClick={onClose}>
+        {done ? 'Fertig' : 'Abbrechen'}
+      </button>
+    </div>
+  )
+}
+
+/** The Contacts to choose; "Einladen" sends one invitation each. The server leaves out who is
+ * already in the Meetup or already invited, and anyone blocked. */
+function ContactChooser({ meetupId, onClose }: ChooserProps) {
   const [contacts, setContacts] = useState<ContactUser[] | null>(null)
   const [chosen, setChosen] = useState<Set<number>>(new Set())
   const [busy, setBusy] = useState(false)
@@ -19,32 +71,16 @@ export default function InviteContacts({ meetupId, onClose }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const token = loadToken()
-    if (!token) return
-    fetchContacts(token)
+    fetchContacts(loadToken() ?? '')
       .then((found) => setContacts(found.contacts))
       .catch((err: Error) => setError(err.message))
   }, [])
 
-  function toggle(id: number) {
-    const next = new Set(chosen)
-    if (next.has(id)) next.delete(id)
-    else next.add(id)
-    setChosen(next)
-  }
-
   async function send() {
-    const token = loadToken()
-    if (!token || chosen.size === 0) return
     setBusy(true)
     setError(null)
     try {
-      const count = await inviteContacts(token, meetupId, [...chosen])
-      setDone(
-        count === 0
-          ? 'Alle Gewählten sind schon dabei oder eingeladen.'
-          : `${count} ${count === 1 ? 'Kontakt' : 'Kontakte'} eingeladen.`,
-      )
+      setDone(invitedText(await inviteContacts(loadToken() ?? '', meetupId, [...chosen])))
       setChosen(new Set())
     } catch (err) {
       setError((err as Error).message)
@@ -56,31 +92,29 @@ export default function InviteContacts({ meetupId, onClose }: Props) {
   return (
     <div className="invite-contacts" role="group" aria-label="Kontakte einladen">
       {contacts === null && !error && <p>Lädt …</p>}
-      {contacts?.length === 0 && <p className="hint">Du hast noch keine Kontakte.</p>}
-      {contacts && contacts.length > 0 && (
-        <ul>
-          {contacts.map((contact) => (
-            <li key={contact.id}>
-              <label>
-                <input type="checkbox" checked={chosen.has(contact.id)} onChange={() => toggle(contact.id)} />{' '}
-                {contact.nickname}
-              </label>
-            </li>
-          ))}
-        </ul>
-      )}
+      {contacts && <ContactList contacts={contacts} chosen={chosen} onToggle={(id) => setChosen(toggled(chosen, id))} />}
       {done && <p>{done}</p>}
       {error && <p className="form-error">{error}</p>}
-      <div className="invite-contacts-actions">
-        {contacts && contacts.length > 0 && (
-          <button type="button" disabled={busy || chosen.size === 0} onClick={send}>
-            Einladen
-          </button>
-        )}
-        <button type="button" className="link-button" onClick={onClose}>
-          {done ? 'Fertig' : 'Abbrechen'}
-        </button>
-      </div>
+      <ChooserButtons
+        canSend={!busy && chosen.size > 0}
+        showSend={!!contacts?.length}
+        done={done !== null}
+        onSend={send}
+        onClose={onClose}
+      />
     </div>
+  )
+}
+
+/** "Kontakte einladen" on a Meetup card (SCRUM-43), for everyone in the Meetup (action
+ * "invite"). Invited Contacts get a Notification with "Ich komme mit". */
+export default function InviteContacts({ meetup }: { meetup: Pick<Meetup, 'id' | 'actions'> }) {
+  const [open, setOpen] = useState(false)
+  if (!meetup.actions.includes('invite')) return null
+  if (open) return <ContactChooser meetupId={meetup.id} onClose={() => setOpen(false)} />
+  return (
+    <button type="button" onClick={() => setOpen(true)}>
+      Kontakte einladen
+    </button>
   )
 }
