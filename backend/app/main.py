@@ -1,10 +1,11 @@
 import os
 
-from fastapi import APIRouter, FastAPI, Request
+from fastapi import APIRouter, Depends, FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.admin_places import router as admin_places_router
 from app.admin_suggestions import router as admin_suggestions_router
+from app.audit import audit_request
 from app.auth import router as auth_router
 from app.contacts import router as contacts_router
 from app.meetup_lifecycle import LifecycleError
@@ -16,7 +17,8 @@ from app.places import router as places_router
 from app.ratings import router as ratings_router
 from app.suggestions import router as suggestions_router
 
-app = FastAPI(title="SquadMeet API")
+# audit_request runs first: the auth dependencies then set the actor of the audit log.
+app = FastAPI(title="SquadMeet API", dependencies=[Depends(audit_request)])
 
 
 @app.exception_handler(LifecycleError)

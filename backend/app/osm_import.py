@@ -20,10 +20,12 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import insert
 from sqlmodel import Session, select
 
 from app.activities import LABELS, ActivityType
+from app.audit import record
 from app.models import Place
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "osm"
@@ -195,12 +197,20 @@ def load(session: Session, files: list[Path] | None = None) -> LoadResult:
         for path in (files if files is not None else sorted(DATA_DIR.glob("*.json")))
         for row in json.loads(path.read_text())["places"]
     ]
-    known = {
-        tuple(key)
-        for key in session.exec(
-            select(Place.osm_id, Place.activity_type).where(Place.osm_id.is_not(None))
+    # (osm id, Activity type) -> (name, WKT) before the import, for the audit log (SCRUM-66).
+    before = {
+        (osm_id, activity_type): (name, point(lon, lat))
+        for osm_id, activity_type, name, lon, lat in session.exec(
+            select(
+                Place.osm_id,
+                Place.activity_type,
+                Place.name,
+                func.ST_X(Place.location),
+                func.ST_Y(Place.location),
+            ).where(Place.osm_id.is_not(None))
         )
     }
+    known = set(before)
     in_snapshots = {(row["osm_id"], row["activity_type"]) for row in rows}
     if rows:
         statement = insert(Place.__table__).values(
@@ -214,18 +224,48 @@ def load(session: Session, files: list[Path] | None = None) -> LoadResult:
                 for row in rows
             ]
         )
-        session.exec(
+        ids = session.exec(
             statement.on_conflict_do_update(
                 constraint="uq_place_osm_id_activity_type",
                 set_={"name": statement.excluded.name, "location": statement.excluded.location},
-            )
-        )
+            ).returning(Place.id, Place.osm_id, Place.activity_type)
+        ).all()
+        log_changes(session, rows, before, {(osm_id, kind): id for id, osm_id, kind in ids})
         session.commit()
     return LoadResult(
         added=len(in_snapshots - known),
         refreshed=len(in_snapshots & known),
         kept=len(known - in_snapshots),
     )
+
+
+def point(lon: float, lat: float) -> str:
+    return f"POINT({float(lon)} {float(lat)})"
+
+
+def log_changes(session: Session, rows: list[dict], before: dict, ids: dict) -> None:
+    """Audit rows for new Places and for Places whose name or location changed. The import
+    refreshes every Place on each deploy; an unchanged one is not logged."""
+    for row in rows:
+        key = (row["osm_id"], row["activity_type"])
+        name, location = row["name"], point(row["lon"], row["lat"])
+        if key not in before:
+            record(
+                session,
+                "place",
+                ids[key],
+                "insert",
+                {"name": name, "activity_type": key[1], "osm_id": key[0], "location": location},
+            )
+            continue
+        old = dict(zip(("name", "location"), before[key]))
+        changes = {
+            field: [old[field], new]
+            for field, new in (("name", name), ("location", location))
+            if old[field] != new
+        }
+        if changes:
+            record(session, "place", ids[key], "update", changes)
 
 
 def main(args: list[str]) -> None:

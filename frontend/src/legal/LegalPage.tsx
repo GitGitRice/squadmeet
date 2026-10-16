@@ -161,6 +161,14 @@ function Privacy() {
           erfährt dadurch nichts von der Blockierung.
         </li>
         <li>
+          <strong>Änderungsprotokoll:</strong> Wenn du etwas anlegst, änderst oder löschst (zum
+          Beispiel ein Treffen oder eine Meldung), speichern wir, was sich geändert hat, wer es war
+          und wann. So finden wir Fehler und Missbrauch. Passwörter, Codes und Anmeldeschlüssel
+          stehen nicht darin, und nur wir lesen es direkt auf dem Server. Beim Löschen deines
+          Kontos löschen wir die Einträge mit deinem Nickname, und die übrigen Einträge zeigen
+          nicht mehr, dass du es warst.
+        </li>
+        <li>
           <strong>Heimatgebiet und Fotos:</strong> nur, wenn du sie angibst oder hochlädst, sobald
           es diese Funktionen gibt.
         </li>
@@ -171,7 +179,8 @@ function Privacy() {
       </p>
       <p>
         <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO (du nutzt die App mit deinem
-        Konto). Für den Schutz vor Missbrauch (Captcha, Begrenzung der Anmeldeversuche) Art. 6
+        Konto). Für den Schutz vor Missbrauch (Captcha, Begrenzung der Anmeldeversuche,
+        Änderungsprotokoll) Art. 6
         Abs. 1 lit. f DSGVO: unser berechtigtes Interesse an einer sicheren App.
       </p>
       <p>
