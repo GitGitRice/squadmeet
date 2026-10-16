@@ -23,7 +23,7 @@ from app import meetup_lifecycle as lifecycle
 from app.auth import bearer, current_login, current_user
 from app.blocks import blocked_by, blockers_of
 from app.db import get_session
-from app.favorite_notifications import notify_favorites
+from app.contact_notifications import MAX_INVITES, invite, notify_new_meetup
 from app.meetup_lifecycle import MAX_DAYS_AHEAD, MeetupState, is_active, is_open
 from app.models import Meetup, MeetupJoin, MeetupSeries, Place, User
 from app.place_status import PlaceUse, require, view_use
@@ -294,7 +294,7 @@ def create_meetup(
     )
     session.add(meetup)
     session.flush()
-    notify_favorites(session, meetup, now)
+    notify_new_meetup(session, meetup, now)
     session.commit()
     session.refresh(meetup)
     return to_read(session, meetup, user)
@@ -373,6 +373,30 @@ def join_meetup(
             status_code=status.HTTP_409_CONFLICT, detail="Du bist schon dabei"
         ) from None
     return to_read(session, meetup, user)
+
+
+class InviteCreate(BaseModel):
+    # User ids of the inviter's Contacts.
+    user_ids: list[int] = Field(min_length=1, max_length=MAX_INVITES)
+
+
+class InviteResult(BaseModel):
+    # New invitations; Contacts already in the Meetup or already invited are not counted.
+    invited: int
+
+
+@router.post("/meetups/{meetup_id}/invite", response_model=InviteResult)
+def invite_contacts(
+    meetup_id: int,
+    body: InviteCreate,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    """Kontakte einladen (SCRUM-43): the chosen Contacts get an invitation Notification."""
+    meetup = get_meetup(session, meetup_id)
+    count = invite(session, meetup, user.id, set(body.user_ids), datetime.now(UTC))
+    session.commit()
+    return InviteResult(invited=count)
 
 
 @router.delete("/meetups/{meetup_id}/join", status_code=status.HTTP_204_NO_CONTENT)

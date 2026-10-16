@@ -20,7 +20,7 @@ from sqlmodel import Session, select
 
 from app.auth import current_user
 from app.db import get_session
-from app.favorite_notifications import notify_favorites
+from app.contact_notifications import notify_new_meetup
 from app.meetup_lifecycle import call_off
 from app.models import Meetup, MeetupSeries, Place, User
 from app.place_status import PlaceUse, allowed_in, require
@@ -95,9 +95,12 @@ def occurrence_times(
     return found
 
 
-def fill_series(session: Session, series: MeetupSeries, now: datetime) -> int:
+def fill_series(
+    session: Session, series: MeetupSeries, now: datetime, new_series: bool = False
+) -> int:
     """Makes the missing Occurrences of the next WINDOW_DAYS days; the number made. The caller
-    commits."""
+    commits. Each new Occurrence notifies the Favorites; for a `new_series` the first one also
+    notifies the Host's Contacts, once for the whole Series (SCRUM-43)."""
     if series.cancelled_at is not None:
         return 0
     slots = [Slot.model_validate(slot) for slot in series.slots]
@@ -118,8 +121,9 @@ def fill_series(session: Session, series: MeetupSeries, now: datetime) -> int:
         session.add(meetup)
         created.append(meetup)
     session.flush()
-    for meetup in created:
-        notify_favorites(session, meetup, now)
+    created.sort(key=lambda meetup: meetup.starts_at)
+    for index, meetup in enumerate(created):
+        notify_new_meetup(session, meetup, now, contacts=new_series and index == 0)
     return len(created)
 
 
@@ -171,7 +175,7 @@ def create_series(
     )
     session.add(series)
     session.flush()
-    fill_series(session, series, now)
+    fill_series(session, series, now, new_series=True)
     session.commit()
     session.refresh(series)
     return to_read(series)

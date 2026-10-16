@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { joinMeetup } from '../api/meetups'
 import {
   fetchNotifications,
   markNotificationRead,
@@ -20,19 +21,24 @@ const when = new Intl.DateTimeFormat('de-DE', {
   minute: '2-digit',
 })
 
-const messages: Record<NotificationKind, (place: string) => string> = {
+// `actor`: the Contact for the SCRUM-43 kinds; null after that account was deleted.
+const messages: Record<NotificationKind, (place: string, actor: string | null) => string> = {
   meetup_cancelled: (place) => `Das Treffen bei „${place}“ wurde abgesagt.`,
   meetup_ended: (place) => `Das Treffen bei „${place}“ wurde wegen einer Platzsperrung beendet.`,
   host_handover: (place) => `Du bist jetzt Gastgeber des Treffens bei „${place}“.`,
   blocked_user_joined: (place) =>
     `Jemand, den du blockiert hast, ist dem Treffen bei „${place}“ beigetreten.`,
   favorite_meetup_created: (place) => `Bei deinem Favoriten „${place}“ wurde ein neues Treffen erstellt.`,
+  contact_meetup_created: (place, actor) => `${actor ?? 'Ein Kontakt'} plant ein Treffen bei „${place}“.`,
+  meetup_invitation: (place, actor) => `${actor ?? 'Ein Kontakt'} lädt dich zum Treffen bei „${place}“ ein.`,
 }
 
 export default function NotificationsDialog({ token, onChanged, onOpenMeetup, onClose }: Props) {
   const [data, setData] = useState<Notification[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  // Invitations accepted in this dialog (SCRUM-43).
+  const [accepted, setAccepted] = useState<Set<number>>(new Set())
 
   const reload = useCallback(
     () =>
@@ -67,6 +73,23 @@ export default function NotificationsDialog({ token, onChanged, onOpenMeetup, on
     }
   }
 
+  // "Ich komme mit" right from an invitation, with Party size 1; then the Meetup opens.
+  async function accept(notice: Notification) {
+    if (busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      await joinMeetup(token, notice.meetup_id, 1)
+      setAccepted((current) => new Set(current).add(notice.id))
+    } catch (err) {
+      setError((err as Error).message)
+      return
+    } finally {
+      setBusy(false)
+    }
+    await open(notice)
+  }
+
   return (
     <div className="dialog-backdrop">
       <div className="dialog notifications" role="dialog" aria-label="Benachrichtigungen">
@@ -84,10 +107,15 @@ export default function NotificationsDialog({ token, onChanged, onOpenMeetup, on
                   disabled={busy}
                   onClick={() => open(notice)}
                 >
-                  <strong>{messages[notice.kind](notice.place_name)}</strong>
+                  <strong>{messages[notice.kind](notice.place_name, notice.actor_nickname ?? null)}</strong>
                   {notice.place_address && <span>{notice.place_address}</span>}
                   <time dateTime={notice.created_at}>{when.format(new Date(notice.created_at))} Uhr</time>
                 </button>
+                {notice.kind === 'meetup_invitation' && !accepted.has(notice.id) && (
+                  <button type="button" className="notification-accept" disabled={busy} onClick={() => accept(notice)}>
+                    Ich komme mit
+                  </button>
+                )}
               </li>
             ))}
           </ul>

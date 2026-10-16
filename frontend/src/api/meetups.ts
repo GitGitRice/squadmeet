@@ -43,7 +43,7 @@ export type Meetup = {
 
 export type MeetupState = 'upcoming' | 'live' | 'ended' | 'cancelled' | 'closed'
 
-export type MeetupAction = 'join' | 'leave' | 'cancel' | 'end' | 'move' | 'cancel_series'
+export type MeetupAction = 'join' | 'leave' | 'cancel' | 'end' | 'move' | 'cancel_series' | 'invite'
 
 // Without starts_at a Now-meetup; with it a later Meetup (ISO 8601 with time zone).
 export type MeetupInput = { place_id: number; hours: number; party_size: number; starts_at?: string }
@@ -158,4 +158,16 @@ export async function cancelSeries(token: string, seriesId: number): Promise<{ i
     headers: { Authorization: `Bearer ${token}` },
   })
   return answer(response, 'POST cancel series')
+}
+
+// "Kontakte einladen" (SCRUM-43): the number of new invitations (Contacts already in the Meetup
+// or already invited are not counted).
+export async function inviteContacts(token: string, meetupId: number, userIds: number[]): Promise<number> {
+  const response = await fetch(`/api/meetups/${meetupId}/invite`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ user_ids: userIds }),
+  })
+  const body = await answer<{ invited: number }>(response, 'POST invite')
+  return body.invited
 }

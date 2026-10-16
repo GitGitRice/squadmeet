@@ -11,8 +11,11 @@ from app.notification_events import notify_users
 BERLIN = ZoneInfo("Europe/Berlin")
 
 
-def notify_favorites(session: Session, meetup: Meetup, now: datetime) -> None:
-    """Notify matching Favorite owners, excluding the Host and Blocks in either direction."""
+def notify_favorites(
+    session: Session, meetup: Meetup, now: datetime, skip: frozenset[int] = frozenset()
+) -> None:
+    """Notify matching Favorite owners, excluding the Host and Blocks in either direction.
+    `skip`: users who already got a Contact Notification for this Meetup (SCRUM-43)."""
     favorites = list(
         session.exec(
             select(Favorite).where(
@@ -48,6 +51,7 @@ def notify_favorites(session: Session, meetup: Meetup, now: datetime) -> None:
         favorite.user_id
         for favorite in favorites
         if favorite.user_id not in blocked
+        and favorite.user_id not in skip
         and (
             not rules[favorite.id]
             or any(

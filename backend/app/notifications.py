@@ -22,6 +22,8 @@ class NotificationRead(BaseModel):
         "host_handover",
         "blocked_user_joined",
         "favorite_meetup_created",
+        "contact_meetup_created",
+        "meetup_invitation",
     ]
     meetup_id: int
     place_id: int
@@ -29,6 +31,9 @@ class NotificationRead(BaseModel):
     place_address: str | None
     created_at: datetime
     read: bool
+    # SCRUM-43: the Contact's Nickname for the Contact kinds; null for the others and after
+    # that account was deleted.
+    actor_nickname: str | None = None
 
 
 @router.get("", response_model=list[NotificationRead])
@@ -37,9 +42,10 @@ def list_notifications(
 ):
     """Newest first; a Notification stays until the account or Meetup is deleted."""
     rows = session.exec(
-        select(Notification, Meetup.place_id, Place.name, Place.address)
+        select(Notification, Meetup.place_id, Place.name, Place.address, User.nickname)
         .join(Meetup, Meetup.id == Notification.meetup_id)
         .join(Place, Place.id == Meetup.place_id)
+        .outerjoin(User, User.id == Notification.actor_id)
         .where(Notification.user_id == user.id)
         .order_by(Notification.created_at.desc(), Notification.id.desc())
     ).all()
@@ -53,8 +59,9 @@ def list_notifications(
             place_address=place_address,
             created_at=notice.created_at,
             read=notice.read_at is not None,
+            actor_nickname=actor_nickname,
         )
-        for notice, place_id, place_name, place_address in rows
+        for notice, place_id, place_name, place_address, actor_nickname in rows
     ]
 
 

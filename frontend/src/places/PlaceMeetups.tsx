@@ -17,6 +17,7 @@ import {
 } from '../api/meetups'
 import { askForContact, blockUser } from '../api/contacts'
 import { AVATARS } from '../auth/avatars'
+import InviteContacts from './InviteContacts'
 import { fromInputValue, inputBounds, slot, toInputValue } from './meetupTime'
 import { WEEKDAYS, emptySlots, groupSeries, slotsInput, type SlotFields } from './seriesGroups'
 
@@ -315,6 +316,7 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
             Verlassen
           </button>
         )}
+        <InviteContacts meetup={meetup} />
         {joining?.id === meetup.id && (
           <form
             className="move-form"
