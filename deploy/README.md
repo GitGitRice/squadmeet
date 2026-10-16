@@ -3,6 +3,13 @@
 The app runs on one AWS EC2 host with Docker Compose ([ADR-0002](../docs/adr/0002-one-ec2-host-with-docker-compose.md)).
 The same files work on the NAS later.
 
+**Current host (since the handover on 2026-10-15, `SCRUM-48`):** Stefan's AWS account
+`146062274476` (login `aws login`, SSO role "Student"), region `eu-central-1`, instance
+`i-0c6f51ccbb8ba4cbe` (`t2.micro`), Elastic IP 3.74.38.119, https://squadmeet.duckdns.org.
+Repo `S-max-ui-star/squadmeet`, images `ghcr.io/s-max-ui-star/squadmeet-*`, Photos in the private
+bucket `squadmeet-photos-146062274476` ([Photo storage](#photo-storage-s3)). DuckDNS and
+Cloudflare Turnstile are in Stefan's accounts.
+
 ```
 browser ──HTTPS──▶ web (Caddy: built React app + /api/* → backend) ──▶ backend (FastAPI) ──▶ db (PostGIS)
 ```
@@ -72,7 +79,7 @@ GitHub Actions ──OIDC──▶ AWS role squadmeet-github-deploy ──SSM do
 ```
 
 - No AWS keys and no SSH keys in GitHub. The role trusts only runs on `main` of
-  `GitGitRice/squadmeet`. It may only send the SSM document `squadmeet-deploy` to our one
+  `S-max-ui-star/squadmeet` (since the handover, `SCRUM-48`). It may only send the SSM document `squadmeet-deploy` to our one
   instance (`SCRUM-47`). It cannot send `AWS-RunShellScript`, so it cannot run other commands.
 - The document takes one parameter, the tag. SSM accepts only a full commit SHA, `main` or
   `dev`. The domain and the region are fixed in the document.
@@ -99,8 +106,12 @@ themselves: a rollback over a migration needs `alembic downgrade` first.
 
 ## Handover to Stefan (SCRUM-48)
 
-All hosting moves to Stefan's accounts: AWS, GitHub (repo + GHCR images), DuckDNS and Cloudflare
-Turnstile. Steven's host stays live until the switch, so there is no time without a host.
+**Done on 2026-10-15/16:** all hosting is in Stefan's accounts (see *Current host* above), and
+Steven removed his side. The table below records how it was done; run the wizard again only for
+another move.
+
+All hosting moved to Stefan's accounts: AWS, GitHub (repo + GHCR images), DuckDNS and Cloudflare
+Turnstile. Steven's host stayed live until the switch, so there was no time without a host.
 In the repo root, on `main`:
 
 ```sh
