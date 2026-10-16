@@ -29,6 +29,10 @@ services:
       # Configurable so the public geocoding service can be switched without a new image.
       NOMINATIM_URL: ${NOMINATIM_URL:-https://nominatim.openstreetmap.org}
       NOMINATIM_USER_AGENT: ${NOMINATIM_USER_AGENT:-SquadMeet/1.0 (https://squadmeet.duckdns.org)}
+      # Photos (SCRUM-42): the private S3 bucket from deploy/setup-photos.sh; empty = Photos off.
+      # boto3 uses the host role and needs the region.
+      PHOTO_BUCKET: ${PHOTO_BUCKET:-}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:?}
     # --forwarded-allow-ips: the client IP comes from Caddy's X-Forwarded-For (rate limit per
     # IP, SCRUM-27). Safe here: only Caddy can reach the backend. Caddy replaces the header
     # that a client sends, so a client cannot fake its address.

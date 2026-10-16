@@ -438,7 +438,7 @@ if [[ "$INSTANCE_ID" == "None" ]]; then
     INSTANCE_ID=$(aws ec2 run-instances --image-id "$AMI_ID" --instance-type "$INSTANCE_TYPE" \
       --security-group-ids "$SG_ID" --iam-instance-profile Name="$NAME-ec2" \
       --credit-specification CpuCredits=standard \
-      --metadata-options HttpTokens=required,HttpEndpoint=enabled \
+      --metadata-options HttpTokens=required,HttpEndpoint=enabled,HttpPutResponseHopLimit=2 \
       --block-device-mappings '[{"DeviceName":"/dev/xvda","Ebs":{"VolumeSize":20,"VolumeType":"gp3"}}]' \
       --user-data file://deploy/ec2-user-data.sh \
       --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$NAME}]" \
