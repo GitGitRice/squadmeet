@@ -8,6 +8,7 @@ type Props = {
   incomingRequests: number
   onContacts: () => void
   onFavorites: () => void
+  onPush: () => void
   onMfa: () => void
   onDelete: () => void
   onLockedPlaces: () => void
@@ -23,6 +24,7 @@ export default function AccountDialog({
   incomingRequests,
   onContacts,
   onFavorites,
+  onPush,
   onMfa,
   onDelete,
   onLockedPlaces,
@@ -40,6 +42,9 @@ export default function AccountDialog({
         </button>
         <button type="button" onClick={onFavorites}>
           Favoriten
+        </button>
+        <button type="button" onClick={onPush}>
+          Push-Benachrichtigungen
         </button>
         <button type="button" onClick={onMfa}>
           Zwei-Faktor-Anmeldung ({user.mfa_enabled ? 'an' : 'aus'})

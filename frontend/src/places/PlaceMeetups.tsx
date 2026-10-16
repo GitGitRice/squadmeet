@@ -126,6 +126,14 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
     return () => clearInterval(timer)
   }, [reload])
 
+  // A Push tap carries the exact Meetup as a fragment. The list loads asynchronously, so scroll
+  // only after that card exists (SCRUM-44).
+  useEffect(() => {
+    const match = /^#treffen-(\d+)$/.exec(window.location.hash)
+    if (!match || !meetups.some((meetup) => meetup.id === Number(match[1]))) return
+    requestAnimationFrame(() => document.getElementById(`treffen-${match[1]}`)?.scrollIntoView({ block: 'center' }))
+  }, [meetups])
+
   // True when the action worked, so a caller can show its own message.
   async function run(action: (token: string) => Promise<unknown>): Promise<boolean> {
     const token = loadToken()
@@ -183,7 +191,7 @@ export default function PlaceMeetups({ placeId, user, onLoginNeeded, onChanged }
     const isHost = user !== null && user.id === meetup.host?.id
     const offer = meetup.move_offer
     return (
-      <li key={meetup.id} className={live ? 'meetup-card' : meetup.state === 'cancelled' ? 'meetup-card cancelled' : 'meetup-card later'}>
+      <li id={`treffen-${meetup.id}`} key={meetup.id} className={live ? 'meetup-card' : meetup.state === 'cancelled' ? 'meetup-card cancelled' : 'meetup-card later'}>
         <div>
           {meetup.state === 'cancelled' && (
             <>
