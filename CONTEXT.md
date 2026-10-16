@@ -191,7 +191,9 @@ _Avoid_: bookmark, saved place
 
 **Time rule** (Zeitfenster):
 Weekdays plus a time range on a Favorite. A Notification goes out only for Meetups that start
-inside a Time rule. A Favorite without Time rules notifies always.
+inside a Time rule in `Europe/Berlin` local time. The start is inclusive and the end is exclusive;
+a rule must end on the same day. A Favorite without Time rules notifies always. Each newly stored
+occurrence of a Series follows the same rule as an individually created Meetup.
 _Avoid_: schedule, filter
 
 **Notification** (Benachrichtigung):
