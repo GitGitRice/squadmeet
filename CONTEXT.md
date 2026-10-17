@@ -184,7 +184,10 @@ _Avoid_: moderator, owner
 ## Notifications
 
 **Home area** (Heimatbereich):
-A point and a radius that a user sets. The user gets Notifications for new Meetups inside it.
+A point and a radius (1–20 km) that a user sets, with the Activity types they care about. The
+user gets a Notification for a new Meetup inside it at a Place of one of those types; a Series
+only once, for its first Occurrence. A user who got a Contact or Favorite Notification for the
+Meetup gets no second one. Turning it off deletes the point (ADR-0003).
 _Avoid_: location, current position, radius
 
 **Favorite** (Favorit):

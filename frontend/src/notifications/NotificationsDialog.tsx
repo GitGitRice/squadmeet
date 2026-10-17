@@ -31,6 +31,7 @@ const messages: Record<NotificationKind, (place: string, actor: string | null) =
   favorite_meetup_created: (place) => `Bei deinem Favoriten „${place}“ wurde ein neues Treffen erstellt.`,
   contact_meetup_created: (place, actor) => `${actor ?? 'Ein Kontakt'} plant ein Treffen bei „${place}“.`,
   meetup_invitation: (place, actor) => `${actor ?? 'Ein Kontakt'} lädt dich zum Treffen bei „${place}“ ein.`,
+  home_area_meetup_created: (place) => `In deinem Heimatbereich gibt es ein neues Treffen bei „${place}“.`,
 }
 
 export default function NotificationsDialog({ token, onChanged, onOpenMeetup, onClose }: Props) {

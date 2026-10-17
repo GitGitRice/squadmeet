@@ -8,6 +8,7 @@ type Props = {
   incomingRequests: number
   onContacts: () => void
   onFavorites: () => void
+  onHomeArea: () => void
   onPush: () => void
   onMfa: () => void
   onDelete: () => void
@@ -24,6 +25,7 @@ export default function AccountDialog({
   incomingRequests,
   onContacts,
   onFavorites,
+  onHomeArea,
   onPush,
   onMfa,
   onDelete,
@@ -42,6 +44,9 @@ export default function AccountDialog({
         </button>
         <button type="button" onClick={onFavorites}>
           Favoriten
+        </button>
+        <button type="button" onClick={onHomeArea}>
+          Heimatbereich
         </button>
         <button type="button" onClick={onPush}>
           Push-Benachrichtigungen

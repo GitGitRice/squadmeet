@@ -100,7 +100,8 @@ def fill_series(
 ) -> int:
     """Makes the missing Occurrences of the next WINDOW_DAYS days; the number made. The caller
     commits. Each new Occurrence notifies the Favorites; for a `new_series` the first one also
-    notifies the Host's Contacts, once for the whole Series (SCRUM-43)."""
+    notifies the Host's Contacts (SCRUM-43) and the Home areas (SCRUM-45), once for the whole
+    Series."""
     if series.cancelled_at is not None:
         return 0
     slots = [Slot.model_validate(slot) for slot in series.slots]
@@ -123,7 +124,7 @@ def fill_series(
     session.flush()
     created.sort(key=lambda meetup: meetup.starts_at)
     for index, meetup in enumerate(created):
-        notify_new_meetup(session, meetup, now, contacts=new_series and index == 0)
+        notify_new_meetup(session, meetup, now, first=new_series and index == 0)
     return len(created)
 
 
