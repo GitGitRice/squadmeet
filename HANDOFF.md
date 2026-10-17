@@ -7,7 +7,7 @@ debugging case.
 Each person's own progress (*Now*, *In flight*, *Next*, *Log*) is in **`HANDOFF.local.md`**.
 That file is not in git (`.gitignore`), because each person's progress differs.
 
-**Last update:** 2026-10-16 · Stefan · `SCRUM-43` Contact Notifications (before: Dominik, `SCRUM-41` Favorites)
+**Last update:** 2026-10-16 · Stefan · `SCRUM-45` Home area moved to Stefan and built (before: Dominik, `SCRUM-44` Web Push integrated after `SCRUM-43`)
 
 ---
 
@@ -43,8 +43,15 @@ Rules. Keep them short so everybody follows them.
 - **Must-haves:** cloud deployment, Docker, CI/CD (test → build → deploy), one complete
   business workflow, tests, docs, one debugging case.
 - **Deadline:** work ends **Fri 23.10.2026**; presentation on **Mon 26.10.2026** (15–20 min, live demo). Changed on 2026-10-12 (was Wed 21.10.).
-- **Live:** https://squadmeet.duckdns.org (since 2026-10-08, `SCRUM-20`). It runs on one EC2 host in the Syntax course AWS account (SSO role "Student", region `eu-central-1`). Setup, shell access and troubleshooting: [deploy/README.md](deploy/README.md).
-- **Repo:** https://github.com/GitGitRice/squadmeet (private). Who starts with which ticket:
+- **Live:** https://squadmeet.duckdns.org (since 2026-10-08, `SCRUM-20`). Since the handover on
+  2026-10-15 (`SCRUM-48`) it runs on one EC2 host in Stefan's AWS account `146062274476` (login
+  `aws login`, SSO role "Student", region `eu-central-1`): instance `i-0c6f51ccbb8ba4cbe`, fixed IP
+  3.74.38.119, `t2.micro`. Photos are in the private S3 bucket `squadmeet-photos-146062274476`
+  (`SCRUM-42`). DuckDNS and Cloudflare Turnstile are Stefan's. Setup, shell access and
+  troubleshooting: [deploy/README.md](deploy/README.md).
+- **Repo:** https://github.com/S-max-ui-star/squadmeet (private, Stefan's since 2026-10-15,
+  `SCRUM-48`; collaborators GitGitRice, khaldrogo98). Images: `ghcr.io/s-max-ui-star/squadmeet-*`.
+  Old links to `GitGitRice/squadmeet` forward to it. Who starts with which ticket:
   [TICKETS.md](TICKETS.md).
 
 ---
@@ -54,8 +61,8 @@ Rules. Keep them short so everybody follows them.
 | Person | Role / area | Jira name |
 |--------|-------------|-----------|
 | Steven | DevOps (Docker, CI/CD, AWS, HTTPS) + login + Admin + Place suggestions | Steven Tanu |
-| Stefan | Product owner (his idea) + frontend PWA (map, meetup screens, ratings) | Stefan Kallinich |
-| Dominik | Joined on 2026-10-12. All-round. Finding (search, Meetup list), Home area, Notifications, manual test | Dominik Fischer |
+| Stefan | Product owner (his idea) + frontend PWA (map, meetup screens, ratings). Since 2026-10-15 (`SCRUM-48`) owns the repo, the AWS host, the domain and Turnstile | Stefan Kallinich |
+| Dominik | Joined on 2026-10-12. All-round. Finding (search, Meetup list), Notifications, manual test (Home area `SCRUM-45` went to Stefan on 2026-10-16) | Dominik Fischer |
 | ~~David~~ | Left the project on 2026-10-08. His tickets are split in `SCRUM-46` | David Ludwig-Erbs |
 
 ---
@@ -113,17 +120,18 @@ Should since 2026-10-08 (`SCRUM-46`): `SCRUM-38` Series (Stefan); `SCRUM-30` sug
 `SCRUM-36` confirm (Steven).
 Should: `SCRUM-40` in-app Notifications, `SCRUM-41` Favorites (Dominik since 2026-10-12); `SCRUM-42`
 Photos, `SCRUM-32` Contacts + Block (Stefan). Could: `SCRUM-43` Contact notifications (Stefan),
-`SCRUM-44` web push, `SCRUM-45` Home area (Dominik). Each ticket's "Blocked by" is a Jira link.
+`SCRUM-44` web push, `SCRUM-45` Home area (Stefan since 2026-10-16, before Dominik). Each ticket's "Blocked by" is a Jira link.
 New on 2026-10-12 (`SCRUM-51`, Dominik joins): `SCRUM-52` search + address, `SCRUM-53` Route link,
 `SCRUM-54` Meetup list + Time filter (Dominik); `SCRUM-55` City report (Stefan); `SCRUM-56` Admin
 approval of Place suggestions, `SCRUM-57` Place report (Steven). `SCRUM-50` manual test: Dominik.
 In Jira (since 2026-10-08), each ticket has the label `must`, `should` or `could` and the priority
 High, Medium or Low to match. Change both when a ticket changes category. `SCRUM-47` (deploy role
 permissions) is a Must.
-`SCRUM-49` (review the whole codebase) and `SCRUM-50` (manual test of the whole app): Musts on
-Thu 15.10. / Fri 16.10., several sessions possible, both in Sprint 2.
-`SCRUM-48` (handover: Stefan hosts and owns the repo, server, domain and Cloudflare) is the **last
-Must**: after the presentation on 26.10., blocked by all other Musts. It is in no sprint yet.
+`SCRUM-49` (review the whole codebase) and `SCRUM-50` (manual test of the whole app): Musts,
+several sessions possible, both in Sprint 2. `SCRUM-49` moved to **Mon 19.10.** (Stefan,
+2026-10-16).
+`SCRUM-48` (handover: Stefan hosts and owns the repo, server, domain and Cloudflare) was moved
+before the presentation and is **done** (2026-10-16, see *Decisions* 2026-10-15).
 
 "Blocked by" on `SCRUM-6` means only the walking skeleton, not the whole Epic. Stories come
 next; each owner writes them (for example with `/mattpocock-skills:to-tickets`).
@@ -170,7 +178,9 @@ Short entries. Put the reason next to the decision. Longer reasoning goes to a s
 
 | Date | Decision | Why | Where |
 |------|----------|-----|-------|
+| 2026-10-16 | Home area Notifications (`SCRUM-45`, migration 0024, [backend/app/home_area_notifications.py](backend/app/home_area_notifications.py)) move from Dominik to Stefan (nothing was built yet). One `home_area` row per user: point, `radius_km` 1–20, `activity_types` (at least one; all are ticked at first). `PUT`/`GET`/`DELETE /api/home-area`; off = the row is deleted, not paused. A new Meetup notifies (`home_area_meetup_created`) users whose circle contains the Place (`ST_DWithin` on geography, metres) and who chose its Activity type; not the Host, not users blocked in either direction. A Series notifies only for its first Occurrence (`notify_new_meetup(first=…)`, was `contacts=`). Order: Contacts, then Favorites, then Home area; `notify_favorites` now returns whom it notified, so nobody gets two. `home_area` is not in the audit log. UI: Konto → "Heimatbereich", a dialog with its own small map (tap = point, circle = radius), a slider and checkboxes | Stefan (product owner), 2026-10-16: the circle is large, so a weekly Series would notify every week; deleting the point stores the least; ADR-0003 (no live location). An audit row would keep the point after the account delete, because `forget_user` removes only the `app_user` rows | `SCRUM-45`, [backend/app/home_area.py](backend/app/home_area.py), [frontend/src/notifications/HomeAreaDialog.tsx](frontend/src/notifications/HomeAreaDialog.tsx), [CONTEXT.md](CONTEXT.md) (Home area) |
 | 2026-10-16 | Contact Notifications (`SCRUM-43`, migration 0022, [backend/app/contact_notifications.py](backend/app/contact_notifications.py)): a new Meetup or Now-meetup notifies the Host's Contacts (`contact_meetup_created`); a Series only once, for its first Occurrence (`fill_series(new_series=True)`). `notify_new_meetup` notifies the Contacts first and passes them as `skip` to `notify_favorites`, so a Contact with the Place as Favorite gets one Notification, the Contact one. Invitation: `POST /api/meetups/{id}/invite` (`user_ids`, 1–50) by the Host or a Join (403 otherwise), only own Contacts (422), not for a cancelled/ended Meetup (409); users already in it, already invited, or blocked with the inviter or the Host are left out (`invited` counts the new ones). New action `invite` in `meetup_lifecycle.actions`. `notification.actor_id` (FK, `ON DELETE SET NULL`) names the Contact; the list returns `actor_nickname`. Additions in Dominik's files (new kinds, `actor_id` in `notify_users`, `skip` in `notify_favorites`, texts + "Ich komme mit" in the dialog), nothing existing changed | Stefan (product owner), 2026-10-16: the Contact notice names the person, so it wins over the Favorite one; one notice per Series, not every week; everyone in a Meetup may invite their Contacts. Stefan chose to only add in Dominik's files and to ask Dominik for a review | `SCRUM-43`, [CONTEXT.md](CONTEXT.md) (Contact Notification, Invitation) |
+| 2026-10-16 | Web Push (`SCRUM-44`, migration 0023): a signed-in user explicitly enables or disables one Push subscription per browser under Konto. All Notifications, including Contact Notifications and invitations from `SCRUM-43`, use the existing recipient rules and additionally send an encrypted Web Push; a tap opens and highlights the exact Meetup. HTTP 404/410 removes an expired subscription. iPhone shows that the PWA must first be added to the Home Screen. Browser endpoints and encryption keys are private account data, excluded from the audit log and deleted with the account. VAPID uses URL-safe P-256 keys: public key to browsers, private key only in ignored local `.env` or encrypted AWS SSM; without keys Push is off while the app remains usable | One central delivery hook cannot diverge from in-app Notification/block rules. HTTPS/public-endpoint validation limits SSRF. Five-second delivery timeout and best-effort errors keep Push providers from breaking the durable Notification. Replacing VAPID keys invalidates existing subscriptions | `SCRUM-44`, [backend/app/push.py](backend/app/push.py), [backend/app/push_delivery.py](backend/app/push_delivery.py), [frontend/src/notifications/PushSettingsDialog.tsx](frontend/src/notifications/PushSettingsDialog.tsx), [frontend/public/sw.js](frontend/public/sw.js), [deploy/setup-push.sh](deploy/setup-push.sh) |
 | 2026-10-16 | Photos (`SCRUM-42`, migration 0020, [backend/app/photos.py](backend/app/photos.py)): live in a **private S3 bucket** `squadmeet-photos-<account id>` in Stefan's account, reached with the host role `squadmeet-ec2` (no stored keys); the browser gets presigned links valid 15 min. Locally a folder (`PHOTO_DIR=photos` → `backend/photos/`, not in git) with HMAC-signed links of the same kind; no MinIO. No bucket and no folder = Photos off (upload 503), so a deploy before [deploy/setup-photos.sh](deploy/setup-photos.sh) still works. JPEG/PNG/WebP up to 10 MB; the server stores a new JPEG (max 1600 px, camera orientation applied), which drops EXIF and the location. At most 3 pending Photos per user and Place. Photos follow the Rating rules of the Place status (`PlaceUse.RATE` for upload, `view_use` for the list). Account delete: `user_id` becomes NULL (`ON DELETE SET NULL`), approved and pending Photos stay without a name; the Admin queue shows "gelöschtes Konto". Not built: Photos on a Confirmation (`SCRUM-36` has no photo upload) | Stefan (product owner), 2026-10-16: the ticket says S3; the account is Stefan's since `SCRUM-48`; one storage module keeps tests and local development without AWS; re-encoding is the reliable way to remove EXIF; the limit keeps the Admin queue short. The IMDS hop limit must be 2, or the backend container gets no role credentials with IMDSv2 | `SCRUM-42`, [backend/app/photo_storage.py](backend/app/photo_storage.py), [deploy/README.md](deploy/README.md) → *Photo storage* |
 | 2026-10-16 | Place report: an account must be **7 days old** to report a Place (`MIN_ACCOUNT_AGE`, the same rule as suggesting and confirming). Answers Steven's open question in the `SCRUM-57` row below; Steven builds it | Stefan (product owner), 2026-10-16: 3 fresh accounts must not hide any Place | `SCRUM-57` (Jira comment 16.10.) |
 | 2026-10-16 | Audit log (`SCRUM-66`, migration 0019, [backend/app/audit.py](backend/app/audit.py)): one `audit_log` row per insert / update / delete, written by one `after_flush` session hook (registered in `app/db.py`, so the CLI tools log too). The actor sits in `session.info`: `current_login` sets `user`, `require_admin` sets `admin`, `register` sets the new user; no actor = `system`. An app dependency (`audit_request`) clears it at each request start, because the tests share one session. One time per request (first write). Column attributes load their old value before a set (`active_history`), so an update after a commit still logs `[old, new]`. **Not logged:** `login_session`, `recovery_code`, `notification`; fields `password_hash`, `mfa_secret`, `mfa_last_step`, `failed_logins`; database cascades; `psql`. Bulk statements: the Block uses ORM deletes now; Place reports and the OSM import call `audit.record`; the OSM import logs only new Places and real name/location changes. Account delete: `forget_user` removes the `app_user` rows, the FK sets `actor_id` to NULL | The ticket (decided 2026-10-14: full history, not `changed_by` columns). A `contextvar` set in a sync FastAPI dependency does not reach the route (thread pool copies the context); the session is shared, so it carries the actor. Notifications are made from logged Meetup changes, and each read changes them. The OSM import runs on each deploy and would log every Place each time | `SCRUM-66`, [deploy/README.md](deploy/README.md) (*Audit log*, `psql` query) |

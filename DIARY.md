@@ -16,7 +16,8 @@ Die Details stehen in Jira. Nenne also den Ticket-Key und kopiere nicht den Tick
 ## Fr 16.10.2026 — Tag 8
 
 - **Steven:** `SCRUM-66` Änderungsprotokoll test-first gebaut: neue Tabelle `audit_log` speichert bei jedem Anlegen, Ändern und Löschen wer, wann und was (ohne Passwörter, Codes und Anmeldeschlüssel); beim Konto-Löschen verschwinden Nickname und Urheber. `psql`-Abfrage in deploy/README.md, Satz in der Datenschutzerklärung. PR #69 im Review, CI grün.
-- **Dominik:** `SCRUM-41` Favoriten mit Zeitfenstern und Benachrichtigungen test-first umgesetzt und mit zwei Benutzern im Browser geprüft; aktuellen `dev` mit `SCRUM-66` integriert und die Migrations- sowie Audit-Kompatibilität abgesichert.
+- **Stefan:** `SCRUM-42` Fotos (S3) und `SCRUM-43` Kontakt-Benachrichtigungen gemergt, Release #75 läuft live; `SCRUM-48` Doku nach der Übergabe (PR #74). `SCRUM-45` Heimatbereich von Dominik übernommen und gebaut: Punkt, Radius und Sportarten auf eigener Karte, neue Treffen im Bereich melden sich einmal (PR #77).
+- **Dominik:** `SCRUM-41` Favoriten mit Zeitfenstern und Benachrichtigungen fertiggestellt, Konflikt mit `SCRUM-42` behoben und gemergt; `SCRUM-44` Web Push mit VAPID, Service Worker, Geräte-Abo und iPhone-Hinweis test-first umgesetzt, automatisierte Tests grün.
 
 ## Do 15.10.2026 — Tag 7
 

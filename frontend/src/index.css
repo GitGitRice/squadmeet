@@ -247,6 +247,23 @@ body {
   opacity: 0;
 }
 
+/* SCRUM-45: the small map in the Home area dialog. */
+.home-area-map {
+  height: 240px;
+  flex-shrink: 0;
+  border-radius: 6px;
+}
+
+.home-area-types {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
 .form-error {
   margin: 0;
   color: #8a1c13;
@@ -812,6 +829,11 @@ body {
   border: 1px solid #d5d8de;
   border-left: 6px solid #c8102e;
   border-radius: 10px;
+}
+
+.meetup-card:target {
+  outline: 3px solid #1a5fb4;
+  outline-offset: 2px;
 }
 
 .meetup-card .live {

@@ -184,7 +184,10 @@ _Avoid_: moderator, owner
 ## Notifications
 
 **Home area** (Heimatbereich):
-A point and a radius that a user sets. The user gets Notifications for new Meetups inside it.
+A point and a radius (1–20 km) that a user sets, with the Activity types they care about. The
+user gets a Notification for a new Meetup inside it at a Place of one of those types; a Series
+only once, for its first Occurrence. A user who got a Contact or Favorite Notification for the
+Meetup gets no second one. Turning it off deletes the point (ADR-0003).
 _Avoid_: location, current position, radius
 
 **Favorite** (Favorit):
@@ -200,7 +203,9 @@ _Avoid_: schedule, filter
 
 **Notification** (Benachrichtigung):
 A message about a Meetup, kept in the in-app list newest first. A tap marks it read and opens the
-affected Place and its Meetups. Push delivery is a separate feature.
+affected Place and its Meetups. If the user turned on Web Push, the same event also reaches each
+subscribed browser; tapping it opens the affected Place. An expired browser subscription is
+removed automatically.
 _Avoid_: alert, pop-up, message
 
 **Contact Notification** (Kontakt-Benachrichtigung):
@@ -214,3 +219,9 @@ A Notification that someone in a Meetup (the Host or a Join) sends to chosen Con
 own. It names the inviter and offers "Ich komme mit" (Party size 1). At most one per user and
 Meetup; nobody already in the Meetup, nobody blocked with the inviter or the Host.
 _Avoid_: request, invite link
+
+**Push subscription** (Push-Abo):
+One browser endpoint plus its encryption keys, stored for one user after browser permission. It is
+private account data and disappears when the user turns Push off, the provider reports it expired,
+or the account is deleted. The VAPID private key is only server configuration.
+_Avoid_: device token, Notification

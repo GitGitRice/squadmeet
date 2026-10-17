@@ -9,11 +9,13 @@ from app.audit import audit_request
 from app.auth import router as auth_router
 from app.contacts import router as contacts_router
 from app.favorites import router as favorites_router
+from app.home_area import router as home_area_router
 from app.meetup_lifecycle import LifecycleError
 from app.meetups import router as meetups_router
 from app.notifications import router as notifications_router
 from app.photo_storage import router as photo_files_router
 from app.photos import router as photos_router
+from app.push import router as push_router
 from app.place_reports import router as place_reports_router
 from app.series import router as series_router
 from app.places import router as places_router
@@ -42,9 +44,11 @@ api.include_router(places_router)
 api.include_router(auth_router)
 api.include_router(meetups_router)
 api.include_router(notifications_router)
+api.include_router(push_router)
 api.include_router(series_router)
 api.include_router(contacts_router)
 api.include_router(favorites_router)
+api.include_router(home_area_router)
 api.include_router(suggestions_router)
 api.include_router(ratings_router)
 api.include_router(admin_places_router)

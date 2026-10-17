@@ -471,6 +471,29 @@ class FavoriteTimeRule(SQLModel, table=True):
     end_time: time = Field(sa_column=Column(Time, nullable=False))
 
 
+class HomeArea(SQLModel, table=True):
+    """A user's Home area (SCRUM-45, ADR-0003): a point they chose and a radius, never a live
+    location. One per user; turning it off deletes the row."""
+
+    __tablename__ = "home_area"
+    __table_args__ = (
+        CheckConstraint("radius_km BETWEEN 1 AND 20", name="ck_home_area_radius"),
+        CheckConstraint("cardinality(activity_types) >= 1", name="ck_home_area_activity_types"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(
+        sa_column=Column(
+            ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, unique=True
+        )
+    )
+    location: Any = Field(sa_column=Column(Geometry("POINT", srid=4326), nullable=False))
+    radius_km: int
+    # Keys of app.activities.ActivityType; a new Meetup at a Place of another type is ignored.
+    activity_types: list[str] = Field(sa_column=Column(ARRAY(String), nullable=False))
+    updated_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
 class Notification(SQLModel, table=True):
     """A Meetup event kept in one user's in-app Notification list (SCRUM-40)."""
 
@@ -479,7 +502,7 @@ class Notification(SQLModel, table=True):
         CheckConstraint(
             "kind IN ('meetup_cancelled', 'meetup_ended', 'host_handover', "
             "'blocked_user_joined', 'favorite_meetup_created', 'contact_meetup_created', "
-            "'meetup_invitation')",
+            "'meetup_invitation', 'home_area_meetup_created')",
             name="ck_notification_kind",
         ),
         Index("ix_notification_user_created", "user_id", "created_at"),
@@ -503,6 +526,21 @@ class Notification(SQLModel, table=True):
     read_at: datetime | None = Field(
         default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
     )
+
+
+class PushSubscription(SQLModel, table=True):
+    """One browser endpoint that may receive a user's Notifications (SCRUM-44)."""
+
+    __tablename__ = "push_subscription"
+
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(
+        sa_column=Column(ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False, index=True)
+    )
+    endpoint: str = Field(sa_column=Column(String, nullable=False, unique=True))
+    p256dh: str
+    auth: str
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
 
 
 class MeetupSeries(SQLModel, table=True):

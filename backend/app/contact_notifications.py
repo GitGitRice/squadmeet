@@ -21,6 +21,7 @@ from sqlmodel import Session, select
 from app import meetup_lifecycle as lifecycle
 from app.blocks import blocked_by, blockers_of
 from app.favorite_notifications import notify_favorites
+from app.home_area_notifications import notify_home_areas
 from app.models import ContactRequest, Meetup, MeetupJoin, Notification
 from app.notification_events import notify_users
 
@@ -45,17 +46,21 @@ def blocks_with(session: Session, user_id: int) -> set[int]:
 
 
 def notify_new_meetup(
-    session: Session, meetup: Meetup, now: datetime, contacts: bool = True
+    session: Session, meetup: Meetup, now: datetime, first: bool = True
 ) -> None:
-    """A new Meetup: the Host's Contacts first (`contacts`), then the Favorites without them.
-    The caller has flushed the Meetup and owns the transaction."""
+    """A new Meetup: the Host's Contacts first, then the Favorites without them, then the Home
+    areas (SCRUM-45) without both. `first`: a single Meetup or the first Occurrence of a new
+    Series; a later Occurrence notifies only the Favorites. The caller has flushed the Meetup
+    and owns the transaction."""
     notified: set[int] = set()
-    if contacts:
+    if first:
         notified = contacts_of(session, meetup.host_id) - blocks_with(session, meetup.host_id)
         notify_users(
             session, notified, meetup, "contact_meetup_created", now, actor_id=meetup.host_id
         )
-    notify_favorites(session, meetup, now, skip=frozenset(notified))
+    notified |= notify_favorites(session, meetup, now, skip=frozenset(notified))
+    if first:
+        notify_home_areas(session, meetup, now, skip=frozenset(notified))
 
 
 def invite(

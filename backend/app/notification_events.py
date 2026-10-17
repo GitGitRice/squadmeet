@@ -9,6 +9,7 @@ from typing import Literal
 from sqlmodel import Session, select
 
 from app.models import Meetup, MeetupJoin, Notification
+from app.push_delivery import send_web_push
 
 NotificationKind = Literal[
     "meetup_cancelled",
@@ -19,6 +20,8 @@ NotificationKind = Literal[
     # SCRUM-43: a Contact made a Meetup; a Contact invited the user to one.
     "contact_meetup_created",
     "meetup_invitation",
+    # SCRUM-45: a new Meetup inside the user's Home area.
+    "home_area_meetup_created",
 ]
 
 
@@ -40,6 +43,7 @@ def notify_users(
         )
         for user_id in user_ids
     )
+    send_web_push(session, user_ids, meetup.id, meetup.place_id, kind)
 
 
 def notify_joined(

@@ -11,3 +11,5 @@ uvicorn[standard]==0.54.*
 boto3==1.43.*
 pillow==12.3.*
 python-multipart==0.0.32
+# Standard Web Push encryption and VAPID signing (SCRUM-44).
+pywebpush==2.5.*

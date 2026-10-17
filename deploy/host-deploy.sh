@@ -38,6 +38,9 @@ POSTGRES_PASSWORD=$(param /squadmeet/postgres-password)
 TURNSTILE_SITE_KEY=$(param /squadmeet/turnstile-site-key)
 TURNSTILE_SECRET_KEY=$(param /squadmeet/turnstile-secret-key)
 PHOTO_BUCKET=$(param /squadmeet/photo-bucket 2>/dev/null || true)
+VAPID_PUBLIC_KEY=$(param /squadmeet/vapid-public-key 2>/dev/null || true)
+VAPID_PRIVATE_KEY=$(param /squadmeet/vapid-private-key 2>/dev/null || true)
+VAPID_SUBJECT=mailto:admin@$DOMAIN
 AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
 EOF
 

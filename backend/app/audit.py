@@ -37,6 +37,10 @@ EXCLUDED_TABLES = {
     "recovery_code",
     # Made from Meetup changes that are logged already; each read changes read_at.
     "notification",
+    # Browser endpoint and encryption keys are delivery secrets, not domain history.
+    "push_subscription",
+    # SCRUM-45: the user's chosen point; off and account delete must remove it at once.
+    "home_area",
 }
 # Secrets. failed_logins is not one, but each login changes it; it is not domain data.
 EXCLUDED_FIELDS = {"app_user": {"password_hash", "mfa_secret", "mfa_last_step", "failed_logins"}}
